@@ -1,0 +1,17 @@
+# Swift Package Manager
+.build/
+Package.resolved
+
+# macOS
+.DS_Store
+
+# Xcode
+*.xcodeproj/project.xcworkspace/xcshareddata/
+*.xcodeproj/xcuserdata/
+*.xcworkspace/xcshareddata/
+*.xcworkspace/xcuserdata/
+
+# Object files and Build products
+*.o
+build/
+DerivedData/

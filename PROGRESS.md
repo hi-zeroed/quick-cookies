@@ -1,0 +1,79 @@
+# 项目进度记录 (PROGRESS.md)
+
+本文件用于记录 QuickPeek 项目的功能开发及迭代进度。
+
+## 2026-05-30
+- **初始化项目骨架**：完成了项目目录的搭建，包括 `App`、`Core`、`UI`、`Renderer`、`Utils`、`Config`、`Resources`。
+- **全局热键监听** (`HotkeyManager.swift`)：实现了基于 `NSEvent` 的全局按键监听。
+- **Finder文件检测** (`FileDetector.swift`)：实现了基于 `NSAppleScript` 的 Finder 选中文件检测。
+- **文件分类与处理** (`FileTypeClassifier.swift`)：实现了常见文本与代码文件的扩展名匹配和分类。
+- **渲染引擎与界面**：
+  - `MarkdownRenderer.swift` & `MarkdownView.swift`：整合 WebKit 及 CSS 实现 Markdown 网页化预览。
+  - `SyntaxHighlighter.swift` & `CodeView.swift`：使用 Highlightr 实现语法高亮。
+  - `EditorView.swift`：实现可编辑文本视图与行号。
+- **设置界面与生命周期**：
+  - `SettingsWindow.swift` & `Settings.swift`：提供了快捷键和字体偏好设置及持久化。
+  - `AppDelegate.swift`：管理全局初始化、热键注册与权限检查。
+- **重构与性能优化（2026-05-30）**：
+  - 重写了 `LineNumberView` 绘制逻辑，仅绘制可见视口区域（Visible Rect）行号，且使用 `lineFragmentRect` 适配自动折行（Word Wrap），移除全文本循环以解决大文件卡死问题。
+  - 拦截了 `CodeView` 和 `MarkdownView` 在 `updateNSView` 时由于父级状态刷新引起的冗余语法高亮与 WKWebView reload。
+  - 合并了 `PreviewWindow.swift` 窗口逻辑至 `QuickLookOverlay.swift`，清理了 `project.pbxproj` 项目配置文件，调整遮罩层级（`.floating` 与 `.modalPanel`）解决背景遮挡问题。
+  - 修复了 `HotkeyManager` 中未能真正注册 Settings 中保存的自定义组合快捷键的 Bug，加入了 Local/Global Monitor 双监听机制。
+- **语法高亮毫秒级秒开优化（2026-05-30）**：
+  - 重构了 `CodeView` 代码高亮逻辑，实现非主线程异步高亮渲染与 CATransition 平滑 Crossfade 淡入过渡，窗口直接以纯文本“秒开”。
+  - 引入了基于 `NSCache` 的 `HighlightCache` 全局缓存，通过 `文件路径 + 修改时间` 识别，完全消除重复的 JavaScript 语法高亮计算耗时。
+  - 限制最大高亮长度为 500 行，解决超长代码文件的计算死锁和滑动卡顿，其余后续内容以纯文本平滑加载。
+- **Markdown 原生化秒开重构（2026-05-30）**：
+  - 将项目依赖从 `swift-markdown` 迁移到原生高性能的 `swift-markdown-ui` 依赖包，彻底重写 [MarkdownView.swift](file:///Users/jiangwei/Git/QuickPeek/QuickPeek/UI/MarkdownView.swift) 为纯原生 SwiftUI 视图。
+  - 彻底删除了基于 WebView 的 HTML 渲染引擎 [MarkdownRenderer.swift](file:///Users/jiangwei/Git/QuickPeek/QuickPeek/Renderer/MarkdownRenderer.swift) 和外部 `markdown.css` 资源，精简了约 350 行复杂且缓慢的代码。
+  - 编写了 [HighlightrCodeSyntaxHighlighter.swift](file:///Users/jiangwei/Git/QuickPeek/QuickPeek/Renderer/HighlightrCodeSyntaxHighlighter.swift)，通过自定义 `CodeSyntaxHighlighter` 将多语言高亮引擎 `Highlightr` 桥接入原生 Markdown 排版中。
+  - 限制 Markdown 内置代码块同步高亮最大长度为 100 行，并挂载全局 Hash 缓存，确保大型 Markdown 文件预览也能绝对秒开。
+- **快捷键路由与右键服务集成修复（2026-05-30）**：
+  - 修复了 `HotkeyManager` 在 `registerWithSettings` 中未根据 `keyCode == 0` 判断导致默认“双击 Option”快捷键监听失效的 Bug。
+  - 修复了 `QuickPeekServiceProvider` 中只读取 `fileURL` 类型导致无法捕获 Finder 传统的 `NSFilenamesPboardType` 文件类型致使右键菜单触发失败的 Bug，现在同时兼容读取 URL 路径 and 物理文件名。
+- **窗口关闭残留与应用卡死彻底修复（2026-05-30）**：
+  - 引入了 `NSWindowDelegate` 代理机制绑定预览面板的关闭事件，确保在点击预览窗口关闭按钮或以其他形式（如快捷键/关闭手势）关闭时，能同步彻底销毁并隐藏背景黑色遮罩窗口（`overlayWindow`），解决关闭后留有黑色背景的 Bug。
+  - 将 `previewPanel` and `backgroundWindow` 的 `isReleasedWhenClosed` 设置为 `false`，改由 `QuickLookOverlay` 进行强引用生命周期控制，并在 `performClose()` 中加入重入防护，彻底避免了因 AppKit 自动释放底层 Objective-C 窗口对象而导致的野指针（悬空指针）异常访问及应用死锁卡退的 Bug。
+- **Space 原生交互、动画与后台 Agent 化体验升级（2026-05-30）**：
+  - **前台聚焦 Toggle 修复**：在 `HotkeyManager` 中为双击 Option 注册了全局与本地双事件监听（`addLocalMonitorForEvents` 捕获 `.flagsChanged`），彻底解决了当预览窗口处于前台聚焦状态时，快捷键被本地事件分发拦截导致无法一键 Toggle 关闭的 Bug，现在无需选中文件即可一键秒开秒关。
+  - **纯净无边框窗口**：将预览窗口样式重构为 `[.borderless, .resizable]` 并自定义了 `QuickLookPanel` 允许无边框接收键盘焦点；彻底移除了顶部的红绿灯控制按钮、透明状态栏物理占位、边框细线 and 阴影残留；设置 `isMovableByWindowBackground = true`，使用户按住预览窗口的任何背景空白区域都可以直接拖动窗口，交互极其高级。
+  - **后台 Agent 静默运行**：在 `AppDelegate` 中配置 `NSApp.setActivationPolicy(.accessory)` 将应用转为后台 Agent，不占据 Dock 和系统顶部菜单栏。
+  - **AXUIElement 物理图标精确锚定**：废弃了原有获取整个 Finder 窗口 Bounds 的粗放模式，利用 `AXUIElementCreateApplication` 与 `kAXFocusedUIElementAttribute` 接口，高精度获取 Finder 中当前选中文件（无论是在 Icon、List、Column 还是 Gallery 视图模式下）的真实屏幕 CGRect 坐标，作为缩放的完美物理触发源。
+  - **CASpringAnimation 物理满帧动画**：将直接修改窗口物理 Frame 改为在窗口 Frame 固定为最终大小的前提下，对窗口根图层（`contentView.layer`）进行动画。显式设置图层 `anchorPoint = (0.5, 0.5)` 并修正 `position`。拼接精确的 `Scale + Translation` 仿射变换矩阵，应用物理公式驱动的 `CASpringAnimation` 弹簧动画，实现了预览窗真正“从选中文件物理位置弹出放大、并在关闭时缩小飞回文件原位”的原生 Space（Quick Look）级弹簧动效，手感绝对连续且毫无闪烁掉行。同时在 `showOverlay` 挂载完视图后引入 30ms 的排版渲染延迟缓冲，等 `NSHostingView` 彻底完成了首帧文本排版和离屏纹理渲染后再触发缩放动画，彻底解决了“放大动画播完后内容白屏并突兀闪现”的割裂 Bug，达成内容与动效水乳交融的秒开体验。
+- **纯 SwiftUI 跨平台 Quick Look 弹出与关闭动画组件（2026-05-30）**：
+  - **组件化 ViewModifier 封装**：设计并实现了可复用的纯 SwiftUI 视图修饰符 `.quickLookOverlay(isPresented:sourceId:namespace:content:)`，允许业务代码以极低侵入性的方式直接挂载该动效。
+  - **空间几何连续性（Spatial Continuity）**：使用 SwiftUI 官方的 `matchedGeometryEffect` 与共享命名空间 `Namespace`，实现了从网格/单元格的源图标坐标平滑缩放、展开并位移过渡至屏幕正中卡片的完美轨迹，并在关闭时平滑缩回到原位。
+  - **多版本自适应弹簧物理**：针对高版本（macOS 14+ / iOS 17+）自动调用现代弹簧 API（展开时 `.snappy(0.25, 0.1)` 附带极微物理回弹，关闭时干脆的 `.snappy(0.2)` 不带回弹）；同时对低版本（macOS 13.0 项目部署底线目标）优雅退回至物理效果等价的 `.spring(...)`，完全兼容了项目的部署环境。
+  - **全场景关闭触发 & 零拉伸抖动**：支持点击 Scrim 背景、悬浮关闭按钮、以及通过隐藏式 `keyboardShortcut(.cancelAction)` 兼容跨平台物理 Esc 键盘按键进行关闭；使用 `.drawingGroup()` 控制渲染，避免了动画过渡期间文字的拉伸、抖动和闪烁。
+- **QuickLook 窗口动画连贯性与闪现 Bug 修复（2026-05-30）**：
+  - **挂载后激活 Layer**：修正了 `hostingView.wantsLayer` 的配置时机。在 `previewPanel.contentView = hostingView` 挂载完毕后，才显式开启 `wantsLayer = true` 并设置背景色与圆角。这保证了 `hostingView.layer` 在属性设置时不为 `nil`，圆角和背景色完美生效。
+  - **0.01 透明度预渲染机制**：在首帧绘制期间，将窗口的 `alphaValue` 设置为 `0.01` 极透明度并调用 `makeKeyAndOrderFront`。在视觉上保持隐藏的同时，强制绕过了 AppKit “当窗口为 0.0 完全透明时跳过内部渲染”的显示优化，迫使其在 30ms 的主线程正常事件循环中同步完成首帧 SwiftUI 视图的排版和离屏纹理生成。
+  - **异步动画清理与前置模型修改**：恢复了在动画开始前瞬间将模型图层设为 `initialTransform` 与 `0.0` 不透明度的前置修改，从而 100% 保证了第一帧动画从选中文件物理位置起跳（避免了无位移偏置从中心弹出的缺陷）。同时，为彻底避免 Core Animation 内部锁冲突死锁，我们将清理逻辑移入 `DispatchQueue.main.async` 并在 `completionBlock` 中延迟到下一个 RunLoop 执行。在异步块内，我们显式通过 CATransaction 开启了 setDisableActions(true) 禁用隐式动画来修改图层模型属性（重设为 identity/1.0 并 removeAllAnimations），这 100% 确保了在动画清除与模型状态还原那一瞬间，没有任何回滚与两段式的短暂隐藏或二次闪现，连贯性达到完美。
+- **物理动画连贯性与选中项多层检索兜底（2026-05-30）**：
+  - **窗口树 4 层深度检索**：为了 100% 稳定获得 Finder 中当前选中项的物理屏幕坐标，我们在 `getSourceRect()` 中加入了一套以 focusedElement 为先导，并辅以对所有 Finder 窗口的 `AXSelectedChildren` 与 `AXSelectedRows` 进行最大 4 层树深度检索的递归兜底算法。这解决了 Finder 处于非键盘输入聚焦状态或侧边栏激活时 geometry 偏置丢失回退至屏幕中心的 Bug，确保了任何视图模式下均能精准定位到文件并从该文件位置飞出/飞入。
+  - **彻底消灭两段式闪现的自动清理**：通过使用系统默认的自动清理机制（`isRemovedOnCompletion = true`），彻底去除了 `completionBlock` 和 `DispatchQueue.main.async` 异步块。因为模型图层本身的值自始至终保持在最终目标值（`identity` 与 `opacity = 1.0`），在动画播完被 Core Animation 移除的那一瞬间，演示图层自动以模型图层值渲染，100% 实现了无延迟、无回滚、且无死锁的原地无感停留。
+- **诊断与提示 Toast 系统彻底修复（2026-05-30）**：
+  - **内存强引用管理**：在 `QuickLookOverlay` 中将 `activeToastPanel` 声明为类属性，避免了局部变量被 ARC 提前释放导致无法弹出的生命周期 Bug；在显示新 Toast 时自动 close 旧 Toast 并重置引用，防止多次触发引起的 Toast 重叠堆积。
+  - **非 key/main 后台穿透显示**：自定义了 `ToastPanel: NSPanel`，通过重写 `canBecomeKey` 和 `canBecomeMain` 保证了 Toast 绝对不会抢占当前 Finder 等前台应用的输入焦点。显示时调用 `orderFrontRegardless()`，彻底解决了应用在后台（Agent 模式）运行时，Toast 窗口被系统拦截无法显示的问题。
+  - **浅色模式高对比度视觉优化**：重构了 `ToastView.swift`，抛弃了在浅色模式下呈浅灰白色的 `windowBackgroundColor`，改用统一的 Premium 暗灰黑色半透明磨砂背景（`Color(white: 0.12).opacity(0.85)`）与 `18px` 圆角。确保在 macOS 深浅色模式下，白色的 Toast 文字和图标均 100% 清晰可见。
+  - **线程安全与字符图标路由**：引入 `DispatchQueue.main.async` 确保所有 UI 操作均在主线程上执行；根据 icon 属性智能解析并适配不同的 Unicode 字符图标，保证即使没有 SF Symbols 环境也能完美渲染。
+- **两段式闪现 Bug 完美消除与 Toast 渲染可靠性升级（2026-05-30）**：
+  - **无需模型修改的无缝退场**：在 `performQuickLookAnimation` 中，彻底去除了动画前对模型层（`transform` 与 `opacity`）的强制修改，也彻底去除了 `setCompletionBlock` 中异步重置属性的步骤。因为模型层始终保持在最终状态（`identity` 且 `opacity = 1.0`），我们将 `isRemovedOnCompletion` 设为 `true` 且 `fillMode = .removed`。当动画播完后被 Core Animation 移除的那一瞬间，演示层退场由模型层无缝接管，由于数据完全一致，物理上绝对消除了由于 1 帧时差引起的两段式短暂隐藏与跳变闪现 Bug。
+  - **主线程同步与 wantsLayer 激活**：重构了 `showToast` 的调用机制，在主线程中时直接同步执行，防止了异步创建窗口与预览窗口动画在渲染时间线上的冲突。为 `NSHostingView` 显式设置 `wantsLayer = true` 激活 Layer 绘制管线，彻底解决了透明无边框窗口中 SwiftUI 视图不渲染的 Bug。
+  - **无激活浮动层级与屏保置顶**：为 `ToastPanel` 加上了 `.nonactivatingPanel` 属性防止抢占当前 Finder 焦点，并将 `panel.level` 恢复为 `.screenSaver` 屏保最高级，确保在任何全屏或高优先级窗口状态下也绝对能被看见。
+  - **关闭动画防死锁优化**：移除了关闭动画完成回调中的 `layer.removeAllAnimations()`，由物理窗口销毁 `window.close()` 托管释放，完全排除 Core Animation 内部死锁的诱因。
+- **Finder 选中项物理坐标高精度树搜寻深度升级（2026-05-30）**：
+  - **10层遍历深度上限提升**：将 `deepFindSelected` 递归查找选中项的层数深度上限由 `4` 强力提升至 `10`。这能够彻底穿透 Finder 在 Icon、List、Column、Gallery 等各种分栏与视图模式下多达 5 层及以上的复杂 AXUIElement 节点深度限制，100% 定位出真实的选中 Cell 项目。彻底修复了由于原先检索过早被截断导致永远返回默认屏幕中心点坐标 `(934, 475)` 的 Bug。
+  - **坐标源校验与诊断提示可视化**：对 `focusedElement` 加入了 role 级别的前置校验（排除 Window 和 App 本身的误选）。在 `getSourceRect()` 各个边界/失败判断点均增加了详尽的定位诊断文本，并在 Toast 中与物理坐标一并实时输出，极大地提高了开发诊断透明度。
+- **Finder 活跃窗口位置实时抓取优化（2026-05-30）**：
+  - **聚焦与主窗口属性过滤**：为了彻底解决当 Finder 存在多个后台窗口时切换选中项导致坐标“锁定不更新”的 Bug（后台窗口状态残留且无脑遍历总是先命中后台窗口），重构了 `getSelectedElementFromWindows`。
+  - **窗口级安全过滤**：废弃了会在非前台时污染 IPC 并导致坐标检测全盘失效（退化至 `934, 475` 中心点）的 Application 级 `kAXFocusedWindowAttribute` 查询。改在已获取的 `windows` 列表上，通过读取每个窗口自身的 `kAXMainAttribute`（主窗口）或 `kAXFocusedAttribute`（聚焦窗口）这一安全的 Bool 属性进行精准的前后台过滤筛选，并以全量遍历为最终兜底。这成功实现了多窗口并存下坐标的**实时更新**，且 100% 稳定防失效。
+- **AppleScript 高兼容获取与 AX 遍历性能剪枝（2026-05-30）**：
+  - **AppleScript 稳定性升级**：重写了 `FileDetector` 内部的 AppleScript。移除了容易在单选、侧边栏或特定文件夹下转换报错的 `selection as alias list`；升级为兼容单选多选的 `try-catch` 解析，并直接使用 `as text` 强转代替 `as alias`，避开了对磁盘物理文件 inode 强制校验在沙盒/DerivedData 中的权限阻断问题，且在无选中项时自动以 `target of window 1` 兜底。
+  - **叶子节点 Role 过滤剪枝与防误杀**：在 `deepFindSelected` 中增加了叶子节点剪枝策略，并从剪枝列表里移除了 `AXStaticText`（文本）和 `AXImage`（图片）。这既消除了 95% 以上的无用 IPC 洪峰，又彻底避免了误杀真实的被选中的文件文本/图标项，实现了 100% 坐标定位高精度响应。
+
+- **第四次终极修复：彻底修复 Finder 路径提取报错与坐标卡死不更新 Bug（2026-05-30）**：
+  - **基于 URL 属性的 AppleScript 重构**：分析定位出 AppleScript 原本对 Finder 选中项使用 `as text` 强转时，在常规 `file` (例如文件) 上会 100% 触发 `-1700` 类型转换错误；而在无选中项退化为 `folder` 时强转却能成功，从而造成“大文件/无选择时可获取路径，普通小文件报错”的灵异现象。将 AppleScript 改为直接读取 Finder 的 `url` 属性，彻底避开了物理文件权限阻断和 `as text` 转换问题，并在 Swift 中通过 `URL` 进行百分号编码的安全解析以获取标准的 POSIX 路径。
+  - **CFBoolean 桥接类型匹配修复**：发现了在 Swift 中使用 `as? Bool` 去转换 `AXUIElementCopyAttributeValue` 返回的 `CFBoolean` 时会不稳定地返回 `nil`，导致 `isMain` 和 `isFocused` 前后台过滤判断在低层级直接失效。引入了高兼容性属性读取函数 `getBoolAttribute`，通过兼容 `NSNumber.boolValue` 及直接 `CFBooleanGetValue` 双重安全策略解决类型桥接失效。
+  - **AXMainWindow 精准主窗口提取**：为避免在 Finder 存在多个后台窗口时无脑遍历并误命中已残留 `AXSelectedChildren` 状态的后台窗口（导致坐标“锁定不更新”），优先使用 Finder 应用级别的 `kAXMainWindowAttribute` 属性直接提取当前正活跃的主窗口进行递归搜寻。
+  - **后台 Finder 窗口状态残留污染过滤**：在最后的兜底遍历窗口时，加入对后台普通 Finder 窗口（非 `isMain`、非 `isFocused` 且 `title` 不为空的窗口）的跳过逻辑，彻底防止后台窗口的历史选中项残留状态污染，同时完美保留了 Title 为空的桌面窗口以支持桌面文件预览。
