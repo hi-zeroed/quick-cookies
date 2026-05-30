@@ -35,6 +35,7 @@ struct ContentView: View {
             // 内容区域
             contentArea
         }
+        .background(Color(red: 0.09, green: 0.09, blue: 0.11))
         .alert("保存失败", isPresented: $showErrorAlert) {
             Button("确定", role: .cancel) { }
         } message: {
@@ -45,37 +46,54 @@ struct ContentView: View {
     @ViewBuilder
     private var toolbar: some View {
         HStack {
-            // 文件名 + 修改标记
-            Text(URL(fileURLWithPath: filePath).lastPathComponent)
-                .font(.system(size: 13, weight: .medium))
+            // 左侧占位（完美避让 macOS 系统红绿灯按钮，占位 80px）
+            Spacer()
+                .frame(width: 80)
+            
+            Spacer()
 
-            if isModified {
-                Text("●")
-                    .foregroundColor(.orange)
-                    .font(.system(size: 16))
+            // 中间文件名 + 状态修饰点 (完美重现参考图 Project_Notes.md 样式)
+            HStack(spacing: 6) {
+                Text(URL(fileURLWithPath: filePath).lastPathComponent)
+                    .font(.system(size: 13, weight: .semibold, design: .monospaced))
+                    .foregroundColor(Color(white: 0.85))
+                
+                // 蓝点装饰，若修改则显示亮橙色
+                Circle()
+                    .fill(isModified ? Color.orange : Color.blue.opacity(0.8))
+                    .frame(width: 6, height: 6)
             }
 
             Spacer()
 
-            // 模式切换按钮（使用 Unicode 字符替代图标）
-            Button(action: toggleMode) {
-                Text(mode == .preview ? "✎" : "👁") // pencil / eye Unicode
-            }
-            .buttonStyle(.plain)
-            .help(mode == .preview ? "编辑" : "预览")
-
-            // 保存按钮（编辑模式）
-            if mode == .edit && isModified {
-                Button(action: saveFile) {
-                    Text("⬇") // download Unicode
+            // 右侧控制区域（模式切换与保存，右对齐固定 80px）
+            HStack(spacing: 12) {
+                // 模式切换按钮
+                Button(action: toggleMode) {
+                    Text(mode == .preview ? "✎" : "👁")
+                        .font(.system(size: 14))
+                        .foregroundColor(Color(white: 0.7))
                 }
                 .buttonStyle(.plain)
-                .help("保存 (Cmd+S)")
+                .help(mode == .preview ? "进入编辑 (Cmd+E)" : "回到预览 (Esc)")
+
+                // 保存按钮
+                if mode == .edit && isModified {
+                    Button(action: saveFile) {
+                        Text("⬇")
+                            .font(.system(size: 14))
+                            .foregroundColor(.orange)
+                    }
+                    .buttonStyle(.plain)
+                    .help("保存 (Cmd+S)")
+                }
             }
+            .frame(width: 80, alignment: .trailing)
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 8)
-        .background(Color(NSColor.windowBackgroundColor))
+        .padding(.horizontal, 16)
+        .padding(.top, 10) // 增加顶端高度，让红绿灯和文字中线对齐
+        .padding(.bottom, 10)
+        .background(Color(red: 0.09, green: 0.09, blue: 0.11))
     }
 
     @ViewBuilder

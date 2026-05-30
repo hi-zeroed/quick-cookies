@@ -71,9 +71,13 @@
 - **AppleScript 高兼容获取与 AX 遍历性能剪枝（2026-05-30）**：
   - **AppleScript 稳定性升级**：重写了 `FileDetector` 内部的 AppleScript。移除了容易在单选、侧边栏或特定文件夹下转换报错的 `selection as alias list`；升级为兼容单选多选的 `try-catch` 解析，并直接使用 `as text` 强转代替 `as alias`，避开了对磁盘物理文件 inode 强制校验在沙盒/DerivedData 中的权限阻断问题，且在无选中项时自动以 `target of window 1` 兜底。
   - **叶子节点 Role 过滤剪枝与防误杀**：在 `deepFindSelected` 中增加了叶子节点剪枝策略，并从剪枝列表里移除了 `AXStaticText`（文本）和 `AXImage`（图片）。这既消除了 95% 以上的无用 IPC 洪峰，又彻底避免了误杀真实的被选中的文件文本/图标项，实现了 100% 坐标定位高精度响应。
-
 - **第四次终极修复：彻底修复 Finder 路径提取报错与坐标卡死不更新 Bug（2026-05-30）**：
   - **基于 URL 属性的 AppleScript 重构**：分析定位出 AppleScript 原本对 Finder 选中项使用 `as text` 强转时，在常规 `file` (例如文件) 上会 100% 触发 `-1700` 类型转换错误；而在无选中项退化为 `folder` 时强转却能成功，从而造成“大文件/无选择时可获取路径，普通小文件报错”的灵异现象。将 AppleScript 改为直接读取 Finder 的 `url` 属性，彻底避开了物理文件权限阻断和 `as text` 转换问题，并在 Swift 中通过 `URL` 进行百分号编码的安全解析以获取标准的 POSIX 路径。
   - **CFBoolean 桥接类型匹配修复**：发现了在 Swift 中使用 `as? Bool` 去转换 `AXUIElementCopyAttributeValue` 返回的 `CFBoolean` 时会不稳定地返回 `nil`，导致 `isMain` 和 `isFocused` 前后台过滤判断在低层级直接失效。引入了高兼容性属性读取函数 `getBoolAttribute`，通过兼容 `NSNumber.boolValue` 及直接 `CFBooleanGetValue` 双重安全策略解决类型桥接失效。
   - **AXMainWindow 精准主窗口提取**：为避免在 Finder 存在多个后台窗口时无脑遍历并误命中已残留 `AXSelectedChildren` 状态的后台窗口（导致坐标“锁定不更新”），优先使用 Finder 应用级别的 `kAXMainWindowAttribute` 属性直接提取当前正活跃的主窗口进行递归搜寻。
   - **后台 Finder 窗口状态残留污染过滤**：在最后的兜底遍历窗口时，加入对后台普通 Finder 窗口（非 `isMain`、非 `isFocused` 且 `title` 不为空的窗口）的跳过逻辑，彻底防止后台窗口的历史选中项残留状态污染，同时完美保留了 Title 为空的桌面窗口以支持桌面文件预览。
+- **一体化 UI 布局升级与 macOS 原生红绿灯完美集成（2026-05-30）**：
+  - **全屏内容延伸与原生红绿灯保留**：重构了 `QuickLookOverlay.swift` 的窗口 `styleMask` 为 `[.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView]`，并设置 `titlebarAppearsTransparent = true` 和 `titleVisibility = .hidden`。在保留左上角 macOS 原生红黄绿控制按钮的同时，使自定义的 SwiftUI 内容直接延伸并填充至状态栏区域，达成现代一体化无缝视感。
+  - **高对称居中 Header 设计**：重构了 `ContentView.swift` 的顶部 Header，左侧预留 80px 宽度完全避让红绿灯，右侧预留 80px 宽度放置操作组件，中间以 monospaced 字体完美居中对齐文件名与蓝橙双色状态圆点（`Project_Notes.md •`），实现 100% 视觉比例重现。
+  - **呼吸感周边留白与统一深黑色系**：将预览、编辑及 Markdown 视图的背景色统一升级为极具高级感的 `#18181c` 暗灰黑色（`NSColor(red: 0.09, green: 0.09, blue: 0.11)`），并将文字颜色调和为柔和的浅白灰色（`#e1e1e6`）。同时，为 `NSTextView` 引入 `NSSize(width: 16, height: 16)` 的文本内边距，呈现极其舒适的版式呼吸感。
+  - **共享 LineNumberView 与预览行号显示**：重构并剥离出公用的 `LineNumberView.swift` 文件，并且通过将行号标尺背景及前景色安全擦除来完美融入深色背景。不仅在编辑模式下，更在代码/文本的**预览模式**下也统一渲染行号，实现了和参考图完全一致的代码级专业视觉。

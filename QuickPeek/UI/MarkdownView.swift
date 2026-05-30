@@ -11,6 +11,7 @@ struct MarkdownView: View {
                 .markdownCodeSyntaxHighlighter(.highlightr) // 挂载 Highlightr 高亮适配器
                 .padding(20)
         }
+        .background(Color(red: 0.09, green: 0.09, blue: 0.11))
         // 捕获超链接点击事件，使用默认浏览器打开，防止预览窗口内跳转
         .environment(\.openURL, OpenURLAction { url in
             NSWorkspace.shared.open(url)

@@ -8,25 +8,37 @@ struct CodeView: NSViewRepresentable {
     let fontSize: CGFloat
 
     func makeNSView(context: Context) -> NSScrollView {
-        // 创建 ScrollView（包装 TextView）
         let scrollView = NSScrollView()
         scrollView.hasVerticalScroller = true
         scrollView.hasHorizontalRuler = false
         scrollView.autohidesScrollers = true
         scrollView.borderType = .noBorder
+        
+        // 统一深黑色主题背景
+        scrollView.backgroundColor = NSColor(red: 0.09, green: 0.09, blue: 0.11, alpha: 1.0)
+        scrollView.drawsBackground = true
 
         // 创建 TextView
         let textView = NSTextView()
         textView.isEditable = false
         textView.isSelectable = true
-        // 改用更适合显示代码的等宽字体
         textView.font = NSFont.monospacedSystemFont(ofSize: fontSize, weight: .regular)
-        textView.backgroundColor = NSColor.textBackgroundColor
+        textView.backgroundColor = NSColor(red: 0.09, green: 0.09, blue: 0.11, alpha: 1.0)
+        textView.textColor = NSColor(red: 0.88, green: 0.88, blue: 0.90, alpha: 1.0)
         textView.isRichText = false
         textView.string = content
-        textView.wantsLayer = true // 启用 Layer 绘制以支持动画过渡
+        textView.wantsLayer = true 
+        
+        // 增加四周留白
+        textView.textContainerInset = NSSize(width: 16, height: 16)
 
         scrollView.documentView = textView
+
+        // 统一在预览模式也展示行号标尺，极大增强 UI 连贯性
+        let lineNumberView = LineNumberView(textView: textView)
+        scrollView.hasVerticalRuler = true
+        scrollView.verticalRulerView = lineNumberView
+        scrollView.rulersVisible = true
 
         // 滚动到顶部（显示首行）
         textView.scrollRangeToVisible(NSRange(location: 0, length: 0))
@@ -52,12 +64,15 @@ struct CodeView: NSViewRepresentable {
         }
 
         if contentChanged {
-            // 只有内容确实变化时才滚动到顶部并重新进行语法高亮
             textView.scrollRangeToVisible(NSRange(location: 0, length: 0))
             loadSyntaxHighlightAsync(for: textView, forced: true)
         } else if fontChanged {
-            // 仅字体改变（如设置项修改）且内容没有改变时，仍然利用缓存刷新样式
             loadSyntaxHighlightAsync(for: textView, forced: false)
+        }
+
+        // 更新行号标尺
+        if let lineNumberView = scrollView.verticalRulerView as? LineNumberView {
+            lineNumberView.needsDisplay = true
         }
     }
 

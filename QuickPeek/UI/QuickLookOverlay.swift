@@ -172,13 +172,15 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
             height: windowHeight
         )
 
-        // 采用 .borderless 彻底去除红绿灯按钮和顶端标题栏占位/边框线
+        // 采用融入背景的一体化标题栏，保留左上角系统红绿灯，内容区直接填充到状态栏 (fullSizeContentView)
         let previewPanel = QuickLookPanel(
             contentRect: targetRect,
-            styleMask: [.borderless, .resizable],
+            styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
             backing: .buffered,
             defer: false
         )
+        previewPanel.titlebarAppearsTransparent = true
+        previewPanel.titleVisibility = .hidden
         
         // 允许用户按住预览窗口的任何背景空白区域随意拖动窗口位置
         previewPanel.isMovableByWindowBackground = true
