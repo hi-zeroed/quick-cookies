@@ -36,14 +36,6 @@ struct EditorView: NSViewRepresentable {
 
         scrollView.documentView = textView
 
-        // 共享的行号视图
-        if showLineNumbers {
-            let lineNumberView = LineNumberView(textView: textView)
-            scrollView.hasVerticalRuler = true
-            scrollView.verticalRulerView = lineNumberView
-            scrollView.rulersVisible = true
-        }
-
         return scrollView
     }
 
@@ -56,11 +48,6 @@ struct EditorView: NSViewRepresentable {
         }
 
         textView.font = NSFont.monospacedSystemFont(ofSize: fontSize, weight: .regular)
-
-        // 更新行号视图
-        if let lineNumberView = scrollView.verticalRulerView as? LineNumberView {
-            lineNumberView.needsDisplay = true
-        }
     }
 
     func makeCoordinator() -> Coordinator {

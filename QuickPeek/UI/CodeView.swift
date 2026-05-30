@@ -34,12 +34,6 @@ struct CodeView: NSViewRepresentable {
 
         scrollView.documentView = textView
 
-        // 统一在预览模式也展示行号标尺，极大增强 UI 连贯性
-        let lineNumberView = LineNumberView(textView: textView)
-        scrollView.hasVerticalRuler = true
-        scrollView.verticalRulerView = lineNumberView
-        scrollView.rulersVisible = true
-
         // 滚动到顶部（显示首行）
         textView.scrollRangeToVisible(NSRange(location: 0, length: 0))
 
@@ -68,11 +62,6 @@ struct CodeView: NSViewRepresentable {
             loadSyntaxHighlightAsync(for: textView, forced: true)
         } else if fontChanged {
             loadSyntaxHighlightAsync(for: textView, forced: false)
-        }
-
-        // 更新行号标尺
-        if let lineNumberView = scrollView.verticalRulerView as? LineNumberView {
-            lineNumberView.needsDisplay = true
         }
     }
 
