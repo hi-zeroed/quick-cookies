@@ -65,6 +65,48 @@ enum FileUtils {
         return .success((content: content, encoding: encoding))
     }
 
+    /// 高性能分段读取文件（仅读取前 limitBytes 字节，支持超大文件秒开）
+    static func readLimitFile(at path: String, limitBytes: Int = 128 * 1024) -> Result<(content: String, isTruncated: Bool), FileError> {
+        let url = URL(fileURLWithPath: path)
+
+        guard FileManager.default.fileExists(atPath: path) else {
+            return .failure(.fileNotFound(path: path))
+        }
+        guard FileManager.default.isReadableFile(atPath: path) else {
+            return .failure(.permissionDenied(path: path))
+        }
+
+        do {
+            let attributes = try FileManager.default.attributesOfItem(atPath: path)
+            let fileSize = (attributes[.size] as? UInt64) ?? 0
+            let isTruncated = fileSize > UInt64(limitBytes)
+
+            let fileHandle = try FileHandle(forReadingFrom: url)
+            
+            // 物理限制只读取 limitBytes 字节，瞬间返回
+            let data: Data
+            if #available(macOS 10.15, *) {
+                data = try fileHandle.read(upToCount: limitBytes) ?? Data()
+            } else {
+                data = fileHandle.readData(ofLength: limitBytes)
+            }
+            try? fileHandle.close()
+
+            if isBinaryFile(data) {
+                return .failure(.binaryFile(path: path))
+            }
+
+            let encoding = EncodingDetector.detect(data: data)
+            guard let content = String(data: data, encoding: encoding) else {
+                return .failure(.readFailed(path: path, reason: "编码解码失败"))
+            }
+
+            return .success((content: content, isTruncated: isTruncated))
+        } catch {
+            return .failure(.readFailed(path: path, reason: error.localizedDescription))
+        }
+    }
+
     /// 写入文件
     static func writeFile(at path: String, content: String, encoding: String.Encoding = .utf8) -> Result<Void, FileError> {
         let url = URL(fileURLWithPath: path)

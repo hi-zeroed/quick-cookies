@@ -9,9 +9,10 @@ struct ContentView: View {
     let filePath: String
     let renderType: FileRenderType
     let language: String?
-    let initialContent: String
 
-    @State private var content: String
+    @State private var content: String = ""
+    @State private var isLoading: Bool = true
+    @State private var isTruncated: Bool = false
     @State private var mode: ContentMode = .preview
     @State private var isModified: Bool = false
     @State private var showErrorAlert: Bool = false
@@ -19,12 +20,10 @@ struct ContentView: View {
 
     @ObservedObject var settings = Settings.shared
 
-    init(filePath: String, renderType: FileRenderType, language: String?, content: String) {
+    init(filePath: String, renderType: FileRenderType, language: String?) {
         self.filePath = filePath
         self.renderType = renderType
         self.language = language
-        self.initialContent = content
-        self._content = State(initialValue: content)
     }
 
     var body: some View {
@@ -42,6 +41,9 @@ struct ContentView: View {
         } message: {
             Text(errorMessage)
         }
+        .task {
+            await loadFileAsync()
+        }
     }
 
     @ViewBuilder
@@ -53,11 +55,22 @@ struct ContentView: View {
             
             Spacer()
 
-            // 中间文件名 + 状态修饰点 (完美重现参考图 Project_Notes.md 样式)
+            // 中间文件名 + 状态修饰点
             HStack(spacing: 6) {
                 Text(URL(fileURLWithPath: filePath).lastPathComponent)
                     .font(.system(size: 13, weight: .semibold, design: .monospaced))
                     .foregroundColor(Color(white: 0.85))
+                
+                // 大文件截断提示（参考极简设计）
+                if isTruncated {
+                    Text("⚠️只加载了前1000行")
+                        .font(.system(size: 9, weight: .medium, design: .monospaced))
+                        .foregroundColor(.orange)
+                        .padding(.horizontal, 4)
+                        .padding(.vertical, 1)
+                        .background(Color.orange.opacity(0.12))
+                        .cornerRadius(3)
+                }
                 
                 // 蓝点装饰，若修改则显示亮橙色
                 Circle()
@@ -99,12 +112,26 @@ struct ContentView: View {
 
     @ViewBuilder
     private var contentArea: some View {
-        Group {
-            switch mode {
-            case .preview:
-                previewView
-            case .edit:
-                editView
+        if isLoading {
+            VStack {
+                Spacer()
+                ProgressView()
+                    .progressViewStyle(CircularProgressViewStyle(tint: .white.opacity(0.4)))
+                Text("正在载入并高亮文本...")
+                    .font(.system(size: 11, design: .monospaced))
+                    .foregroundColor(.white.opacity(0.3))
+                    .padding(.top, 8)
+                Spacer()
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else {
+            Group {
+                switch mode {
+                case .preview:
+                    previewView
+                case .edit:
+                    editView
+                }
             }
         }
     }
@@ -154,6 +181,25 @@ struct ContentView: View {
         case .failure(let error):
             errorMessage = error.errorDescription ?? "未知错误"
             showErrorAlert = true
+        }
+    }
+
+    /// 后台并发异步读取与分段解码，保证窗口零延迟弹出
+    private func loadFileAsync() async {
+        let result = await Task.detached(priority: .userInitiated) {
+            // 只分段加载前 128KB（约 3000 行代码），足以应付超快速预览并防死锁卡顿
+            return FileUtils.readLimitFile(at: self.filePath, limitBytes: 128 * 1024)
+        }.value
+
+        switch result {
+        case .success(let payload):
+            self.content = payload.content
+            self.isTruncated = payload.isTruncated
+            self.isLoading = false
+        case .failure(let error):
+            self.errorMessage = error.errorDescription ?? "读取文件失败"
+            self.isLoading = false
+            self.showErrorAlert = true
         }
     }
 }

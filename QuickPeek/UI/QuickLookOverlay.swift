@@ -123,7 +123,7 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         }
     }
 
-    /// 显示预览窗口（Quick Look 动画）
+    /// 显示预览窗口（Quick Look 动画） - 秒开重构版
     func show(filePath: String) {
         let resolvedPath = FileUtils.resolveSymlink(at: filePath)
 
@@ -132,28 +132,20 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
             return
         }
 
-        switch FileUtils.readFile(at: resolvedPath) {
-        case .success(let result):
-            let renderType = FileTypeClassifier.classify(path: resolvedPath)
-            let language = FileTypeClassifier.getLanguageName(path: resolvedPath)
+        // 文件类型分类和高亮语言仅依赖扩展名字符计算，无任何磁盘I/O，微秒级完成
+        let renderType = FileTypeClassifier.classify(path: resolvedPath)
+        let language = FileTypeClassifier.getLanguageName(path: resolvedPath)
 
-            showOverlay(
-                filePath: resolvedPath,
-                renderType: renderType,
-                language: language,
-                content: result.content
-            )
-
-        case .failure(let error):
-            self.showToast(
-                message: error.errorDescription ?? "未知错误",
-                icon: "xmark.circle"
-            )
-        }
+        // 零延迟！瞬间呼出动画窗口
+        showOverlay(
+            filePath: resolvedPath,
+            renderType: renderType,
+            language: language
+        )
     }
 
     /// 创建预览面板并执行动画，不带任何黑色背景遮罩
-    private func showOverlay(filePath: String, renderType: FileRenderType, language: String?, content: String) {
+    private func showOverlay(filePath: String, renderType: FileRenderType, language: String?) {
         // 关闭旧窗口
         close()
 
@@ -202,8 +194,7 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         let contentView = ContentView(
             filePath: filePath,
             renderType: renderType,
-            language: language,
-            content: content
+            language: language
         )
         let hostingView = NSHostingView(rootView: contentView)
         hostingView.frame = targetRect
