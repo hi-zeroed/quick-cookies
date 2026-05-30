@@ -30,7 +30,7 @@ struct CodeView: NSViewRepresentable {
         textView.wantsLayer = true 
         
         // 增加四周留白
-        textView.textContainerInset = NSSize(width: 16, height: 16)
+        textView.textContainerInset = NSSize(width: 8, height: 8)
 
         scrollView.documentView = textView
 

@@ -34,6 +34,7 @@ struct ContentView: View {
 
             // 内容区域
             contentArea
+                .padding([.horizontal, .bottom], 16) // 四周加内边距，防止文本贴边
         }
         .background(Color(red: 0.09, green: 0.09, blue: 0.11))
         .alert("保存失败", isPresented: $showErrorAlert) {
