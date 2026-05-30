@@ -23,8 +23,6 @@ class ToastPanel: NSPanel {
     }
 }
 
-/// Quick Look 风格预览动画 system
-/// 使用 Core Animation + Spring 物理动画实现 macOS 原生体验
 class QuickLookOverlay: NSObject, NSWindowDelegate {
     static let shared = QuickLookOverlay()
 
@@ -32,6 +30,9 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
     private var sourceRectBackup: CGRect?
     private var activeToastPanel: NSPanel?
     private var lastDiagnosticMessage: String = ""
+    
+    // 用于通知 ContentView 状态的共享模型
+    private let previewState = PreviewState()
 
     private override init() {
         super.init()
@@ -111,52 +112,47 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
             return
         }
 
-        // 打开文件
-        switch FileDetector.getSelectedFilePath() {
-        case .success(let path):
-            show(filePath: path)
-        case .failure(let error):
-            self.showToast(
-                message: error.errorDescription ?? "未知错误",
-                icon: "xmark.circle"
+        // 零延迟！瞬间弹框
+        show(filePath: nil)
+    }
+
+    /// 显示预览窗口（Quick Look 动画） - 秒开重构版
+    func show(filePath: String?) {
+        if let path = filePath {
+            let resolvedPath = FileUtils.resolveSymlink(at: path)
+
+            if !FileTypeClassifier.isSupported(path: resolvedPath) {
+                self.showToast(message: "不支持此文件类型", icon: "xmark.circle")
+                return
+            }
+
+            let renderType = FileTypeClassifier.classify(path: resolvedPath)
+            let language = FileTypeClassifier.getLanguageName(path: resolvedPath)
+
+            showOverlay(
+                filePath: resolvedPath,
+                renderType: renderType,
+                language: language
+            )
+        } else {
+            // 没有已知路径，说明是从 Finder 触发，我们需要异步探测
+            showOverlay(
+                filePath: nil,
+                renderType: nil,
+                language: nil
             )
         }
     }
 
-    /// 显示预览窗口（Quick Look 动画） - 秒开重构版
-    func show(filePath: String) {
-        let resolvedPath = FileUtils.resolveSymlink(at: filePath)
-
-        if !FileTypeClassifier.isSupported(path: resolvedPath) {
-            self.showToast(message: "不支持此文件类型", icon: "xmark.circle")
-            return
-        }
-
-        // 文件类型分类和高亮语言仅依赖扩展名字符计算，无任何磁盘I/O，微秒级完成
-        let renderType = FileTypeClassifier.classify(path: resolvedPath)
-        let language = FileTypeClassifier.getLanguageName(path: resolvedPath)
-
-        // 零延迟！瞬间呼出动画窗口
-        showOverlay(
-            filePath: resolvedPath,
-            renderType: renderType,
-            language: language
-        )
-    }
-
-    /// 创建预览面板并执行动画，不带任何黑色背景遮罩
-    private func showOverlay(filePath: String, renderType: FileRenderType, language: String?) {
+    /// 创建预览面板并执行动画，不带任何黑色背景遮罩 - 极速响应版
+    private func showOverlay(filePath: String?, renderType: FileRenderType?, language: String?) {
         // 关闭旧窗口
         close()
 
-        // 获取触发源位置（Finder 选中文件的真实物理坐标）并备份
-        let sourceRect = getSourceRect()
-        sourceRectBackup = sourceRect
-
-        // 创建预览面板（动态尺寸）
+        // 1. 瞬间确定窗口的修长黄金比例（更窄更高，极度适合大段文本与代码深度阅读）
         let screenVisibleFrame = NSScreen.main?.visibleFrame ?? NSRect(x: 0, y: 0, width: 1920, height: 1080)
-        let windowWidth = screenVisibleFrame.width * 0.5
-        let windowHeight = screenVisibleFrame.height * 0.6
+        let windowWidth = screenVisibleFrame.width * 0.38  // 宽度调窄
+        let windowHeight = screenVisibleFrame.height * 0.88 // 高度调高
         let targetRect = NSRect(
             x: screenVisibleFrame.midX - windowWidth / 2,
             y: screenVisibleFrame.midY - windowHeight / 2,
@@ -164,74 +160,135 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
             height: windowHeight
         )
 
-        // 采用融入背景的一体化标题栏，保留左上角系统红绿灯，内容区直接填充到状态栏 (fullSizeContentView)
+        // 2. 瞬间在主线程实例化窗口并展现
         let previewPanel = QuickLookPanel(
             contentRect: targetRect,
             styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
             backing: .buffered,
             defer: false
         )
-        previewPanel.titlebarAppearsTransparent = true
-        previewPanel.titleVisibility = .hidden
         
-        // 允许用户按住预览窗口的任何背景空白区域随意拖动窗口位置
         previewPanel.isMovableByWindowBackground = true
-        
-        previewPanel.title = "QuickPeek - \(URL(fileURLWithPath: filePath).lastPathComponent)"
+        if let path = filePath {
+            previewPanel.title = "QuickPeek - \(URL(fileURLWithPath: path).lastPathComponent)"
+        } else {
+            previewPanel.title = "QuickPeek"
+        }
         previewPanel.level = .modalPanel
         previewPanel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         previewPanel.isFloatingPanel = true
         previewPanel.hidesOnDeactivate = false
         
-        // 设置窗口背景为透明，并将圆角和内容阴影交由 layer 处理
+        // 融于底色的一体化毛玻璃/纯色配置
         previewPanel.backgroundColor = .clear
         previewPanel.isOpaque = false
         previewPanel.hasShadow = true
         previewPanel.isReleasedWhenClosed = false
         previewPanel.delegate = self
+        previewPanel.titlebarAppearsTransparent = true
+        previewPanel.titleVisibility = .hidden
 
-        // SwiftUI 内容视图
-        let contentView = ContentView(
-            filePath: filePath,
-            renderType: renderType,
-            language: language
-        )
+        // 重置状态
+        previewState.reset()
+        if let path = filePath {
+            previewState.filePath = path
+            previewState.renderType = renderType
+            previewState.language = language
+            previewState.isLoadingPath = false
+        } else {
+            previewState.isLoadingPath = true
+        }
+
+        // SwiftUI 内容视图，传入共享 state
+        let contentView = ContentView(state: previewState)
         let hostingView = NSHostingView(rootView: contentView)
         hostingView.frame = targetRect
         previewPanel.contentView = hostingView
         
-        // 挂载到窗口后，立刻开启 Layer 并配置物理属性，确保处于正确的渲染上下文中（非 nil）
         hostingView.wantsLayer = true
         if let layer = hostingView.layer {
             layer.anchorPoint = CGPoint(x: 0.5, y: 0.5)
             layer.position = CGPoint(x: targetRect.width / 2, y: targetRect.height / 2)
-            layer.backgroundColor = NSColor.windowBackgroundColor.cgColor
+            layer.backgroundColor = NSColor(red: 0.09, green: 0.09, blue: 0.11, alpha: 1.0).cgColor
             layer.cornerRadius = 12
             layer.masksToBounds = true
         }
 
-        // 先让预览窗口以 0.01 的极小不透明度显示，这在视觉上完全透明，但可以强制触发 NSHostingView 进行首帧排版和渲染
+        // 先让预览窗口以极透明状态挂载，强制激活并抢占焦点
         previewPanel.alphaValue = 0.01
         previewPanel.makeKeyAndOrderFront(nil)
-        
-        // 强制激活当前 App，夺取键盘焦点，确保预览窗口能自动获得键盘焦点以接收快捷键
         NSApp.activate(ignoringOtherApps: true)
-        
-        // 诊断 Toast：实时输出获取到的选中项物理坐标，以及定位诊断信息
-        let sizeInfo = "Size: \(Int(sourceRect.size.width))x\(Int(sourceRect.size.height))"
-        let diagnosticMsg = self.lastDiagnosticMessage.isEmpty ? "" : " (\(self.lastDiagnosticMessage))"
-        self.showToast(message: "Pos: (\(Int(sourceRect.origin.x)), \(Int(sourceRect.origin.y))) \(sizeInfo)\(diagnosticMsg)")
-
-        // 延迟大约 30ms (两帧)，给系统充足的缓冲时间，确保离屏渲染的纹理数据在主线程 RunLoop 中自然完成首帧绘制并提交
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.03) {
-            self.performQuickLookAnimation(
-                previewPanel: previewPanel,
-                sourceRect: sourceRect,
-                targetRect: targetRect
-            )
-        }
-
         self.previewWindow = previewPanel
+
+        // 3. 0ms 瞬间起跳：获取鼠标位置作为打开时的初始起跳点，保证无阻塞，体验丝滑
+        let initialSourceRect = self.getMouseOrCenterSourceRect(targetRect: targetRect)
+        self.performQuickLookAnimation(
+            previewPanel: previewPanel,
+            sourceRect: initialSourceRect,
+            targetRect: targetRect
+        )
+
+        // 4. 后台执行文件路径和图标实际坐标的获取
+        DispatchQueue.global(qos: .userInteractive).async { [weak self] in
+            guard let self = self else { return }
+            
+            // a. 异步获取真实物理坐标（用于关闭时收缩飞回）
+            let realSourceRect = self.getSourceRect()
+            
+            // b. 如果 filePath 为 nil，异步从 Finder 中获取文件路径
+            var pathResult: Result<String, FileDetector.DetectError>? = nil
+            if filePath == nil {
+                pathResult = FileDetector.getSelectedFilePath()
+            }
+            
+            // c. 回到主线程更新状态
+            DispatchQueue.main.async {
+                // 保存真实物理坐标
+                self.sourceRectBackup = realSourceRect
+                
+                // 打印诊断信息
+                let sizeInfo = "Size: \(Int(realSourceRect.size.width))x\(Int(realSourceRect.size.height))"
+                let diagnosticMsg = self.lastDiagnosticMessage.isEmpty ? "" : " (\(self.lastDiagnosticMessage))"
+                self.showToast(message: "Pos: (\(Int(realSourceRect.origin.x)), \(Int(realSourceRect.origin.y))) \(sizeInfo)\(diagnosticMsg)")
+                
+                if let result = pathResult {
+                    switch result {
+                    case .success(let detectedPath):
+                        let resolvedPath = FileUtils.resolveSymlink(at: detectedPath)
+                        if !FileTypeClassifier.isSupported(path: resolvedPath) {
+                            self.previewState.errorMessage = "不支持此文件类型: \(URL(fileURLWithPath: resolvedPath).lastPathComponent)"
+                            self.previewState.isLoadingPath = false
+                        } else {
+                            let rType = FileTypeClassifier.classify(path: resolvedPath)
+                            let lang = FileTypeClassifier.getLanguageName(path: resolvedPath)
+                            
+                            // 更新窗口标题
+                            previewPanel.title = "QuickPeek - \(URL(fileURLWithPath: resolvedPath).lastPathComponent)"
+                            
+                            // 更新状态触发 ContentView 异步加载文件内容
+                            self.previewState.filePath = resolvedPath
+                            self.previewState.renderType = rType
+                            self.previewState.language = lang
+                            self.previewState.isLoadingPath = false
+                        }
+                    case .failure(let error):
+                        self.previewState.errorMessage = error.errorDescription ?? "未检测到选中文件"
+                        self.previewState.isLoadingPath = false
+                    }
+                }
+            }
+        }
+    }
+
+    /// 获取当前鼠标位置构建的起跳起始矩形，用于 0ms 秒开无阻塞动画起点
+    private func getMouseOrCenterSourceRect(targetRect: CGRect) -> CGRect {
+        let mouseLoc = NSEvent.mouseLocation
+        return CGRect(
+            x: mouseLoc.x - 5,
+            y: mouseLoc.y - 5,
+            width: 10,
+            height: 10
+        )
     }
 
     /// 模拟 macOS 原生 Space (Quick Look) 的满帧 GPU 仿射变换弹簧动画 (CASpringAnimation)

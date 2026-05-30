@@ -5,10 +5,24 @@ enum ContentMode {
     case edit       // 编辑模式
 }
 
+class PreviewState: ObservableObject {
+    @Published var filePath: String?
+    @Published var renderType: FileRenderType?
+    @Published var language: String?
+    @Published var isLoadingPath: Bool = true
+    @Published var errorMessage: String?
+    
+    func reset() {
+        filePath = nil
+        renderType = nil
+        language = nil
+        isLoadingPath = true
+        errorMessage = nil
+    }
+}
+
 struct ContentView: View {
-    let filePath: String
-    let renderType: FileRenderType
-    let language: String?
+    @ObservedObject var state: PreviewState
 
     @State private var content: String = ""
     @State private var isLoading: Bool = true
@@ -20,10 +34,8 @@ struct ContentView: View {
 
     @ObservedObject var settings = Settings.shared
 
-    init(filePath: String, renderType: FileRenderType, language: String?) {
-        self.filePath = filePath
-        self.renderType = renderType
-        self.language = language
+    init(state: PreviewState) {
+        self.state = state
     }
 
     var body: some View {
@@ -42,7 +54,17 @@ struct ContentView: View {
             Text(errorMessage)
         }
         .task {
-            await loadFileAsync()
+            if let path = state.filePath {
+                await loadFileAsync(path: path)
+            }
+        }
+        .onChange(of: state.filePath) { newPath in
+            if let path = newPath {
+                isLoading = true
+                Task {
+                    await loadFileAsync(path: path)
+                }
+            }
         }
     }
 
@@ -57,9 +79,19 @@ struct ContentView: View {
 
             // 中间文件名 + 状态修饰点
             HStack(spacing: 6) {
-                Text(URL(fileURLWithPath: filePath).lastPathComponent)
-                    .font(.system(size: 13, weight: .semibold, design: .monospaced))
-                    .foregroundColor(Color(white: 0.85))
+                if let path = state.filePath {
+                    Text(URL(fileURLWithPath: path).lastPathComponent)
+                        .font(.system(size: 13, weight: .semibold, design: .monospaced))
+                        .foregroundColor(Color(white: 0.85))
+                } else if state.errorMessage != nil {
+                    Text("获取失败")
+                        .font(.system(size: 13, weight: .semibold, design: .monospaced))
+                        .foregroundColor(.red.opacity(0.8))
+                } else {
+                    Text("定位中...")
+                        .font(.system(size: 13, weight: .semibold, design: .monospaced))
+                        .foregroundColor(Color(white: 0.5))
+                }
                 
                 // 大文件截断提示（参考极简设计）
                 if isTruncated {
@@ -72,9 +104,9 @@ struct ContentView: View {
                         .cornerRadius(3)
                 }
                 
-                // 蓝点装饰，若修改则显示亮橙色
+                // 状态修饰点
                 Circle()
-                    .fill(isModified ? Color.orange : Color.blue.opacity(0.8))
+                    .fill(isModified ? Color.orange : (state.filePath == nil ? Color.gray.opacity(0.5) : Color.blue.opacity(0.8)))
                     .frame(width: 6, height: 6)
             }
 
@@ -82,24 +114,26 @@ struct ContentView: View {
 
             // 右侧控制区域（模式切换与保存，右对齐固定 80px）
             HStack(spacing: 12) {
-                // 模式切换按钮
-                Button(action: toggleMode) {
-                    Text(mode == .preview ? "✎" : "👁")
-                        .font(.system(size: 14))
-                        .foregroundColor(Color(white: 0.7))
-                }
-                .buttonStyle(.plain)
-                .help(mode == .preview ? "进入编辑 (Cmd+E)" : "回到预览 (Esc)")
-
-                // 保存按钮
-                if mode == .edit && isModified {
-                    Button(action: saveFile) {
-                        Text("⬇")
+                if state.filePath != nil && state.errorMessage == nil {
+                    // 模式切换按钮
+                    Button(action: toggleMode) {
+                        Text(mode == .preview ? "✎" : "👁")
                             .font(.system(size: 14))
-                            .foregroundColor(.orange)
+                            .foregroundColor(Color(white: 0.7))
                     }
                     .buttonStyle(.plain)
-                    .help("保存 (Cmd+S)")
+                    .help(mode == .preview ? "进入编辑 (Cmd+E)" : "回到预览 (Esc)")
+
+                    // 保存按钮
+                    if mode == .edit && isModified {
+                        Button(action: saveFile) {
+                            Text("⬇")
+                                .font(.system(size: 14))
+                                .foregroundColor(.orange)
+                        }
+                        .buttonStyle(.plain)
+                        .help("保存 (Cmd+S)")
+                    }
                 }
             }
             .frame(width: 80, alignment: .trailing)
@@ -112,18 +146,49 @@ struct ContentView: View {
 
     @ViewBuilder
     private var contentArea: some View {
-        if isLoading {
-            VStack {
+        if let err = state.errorMessage {
+            VStack(spacing: 16) {
+                Spacer()
+                Image(systemName: "exclamationmark.triangle.fill")
+                    .font(.system(size: 32))
+                    .foregroundColor(.orange.opacity(0.8))
+                Text(err)
+                    .font(.system(size: 13, weight: .medium, design: .monospaced))
+                    .foregroundColor(.white.opacity(0.7))
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 32)
+                Text("按 Esc 键关闭窗口")
+                    .font(.system(size: 11, design: .monospaced))
+                    .foregroundColor(.white.opacity(0.3))
+                Spacer()
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .transition(.opacity)
+        } else if state.isLoadingPath && state.filePath == nil {
+            VStack(spacing: 16) {
+                Spacer()
+                ProgressView()
+                    .progressViewStyle(CircularProgressViewStyle(tint: .white.opacity(0.6)))
+                    .scaleEffect(1.2)
+                Text("正在定位 Finder 选中文件...")
+                    .font(.system(size: 13, weight: .medium, design: .monospaced))
+                    .foregroundColor(.white.opacity(0.5))
+                Spacer()
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .transition(.opacity)
+        } else if isLoading {
+            VStack(spacing: 16) {
                 Spacer()
                 ProgressView()
                     .progressViewStyle(CircularProgressViewStyle(tint: .white.opacity(0.4)))
                 Text("正在载入并高亮文本...")
                     .font(.system(size: 11, design: .monospaced))
                     .foregroundColor(.white.opacity(0.3))
-                    .padding(.top, 8)
                 Spacer()
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .transition(.opacity)
         } else {
             Group {
                 switch mode {
@@ -133,31 +198,35 @@ struct ContentView: View {
                     editView
                 }
             }
+            .transition(.opacity)
         }
     }
 
     @ViewBuilder
     private var previewView: some View {
-        switch renderType {
-        case .markdown:
-            MarkdownView(markdownText: content)
-        case .code:
-            CodeView(
-                filePath: filePath,
-                content: content,
-                language: language,
-                fontSize: settings.fontSize
-            )
-        case .plainText:
-            CodeView(
-                filePath: filePath,
-                content: content,
-                language: nil,
-                fontSize: settings.fontSize
-            )
+        if let path = state.filePath, let renderType = state.renderType {
+            switch renderType {
+            case .markdown:
+                MarkdownView(markdownText: content)
+            case .code:
+                CodeView(
+                    filePath: path,
+                    content: content,
+                    language: state.language,
+                    fontSize: settings.fontSize
+                )
+            case .plainText:
+                CodeView(
+                    filePath: path,
+                    content: content,
+                    language: nil,
+                    fontSize: settings.fontSize
+                )
+            }
         }
     }
 
+    @ViewBuilder
     private var editView: some View {
         EditorView(
             content: $content,
@@ -173,7 +242,8 @@ struct ContentView: View {
     }
 
     private func saveFile() {
-        let result = FileUtils.writeFile(at: filePath, content: content)
+        guard let path = state.filePath else { return }
+        let result = FileUtils.writeFile(at: path, content: content)
 
         switch result {
         case .success:
@@ -185,21 +255,24 @@ struct ContentView: View {
     }
 
     /// 后台并发异步读取与分段解码，保证窗口零延迟弹出
-    private func loadFileAsync() async {
+    private func loadFileAsync(path: String) async {
         let result = await Task.detached(priority: .userInitiated) {
-            // 只分段加载前 128KB（约 3000 行代码），足以应付超快速预览并防死锁卡顿
-            return FileUtils.readLimitFile(at: self.filePath, limitBytes: 128 * 1024)
+            return FileUtils.readLimitFile(at: path, limitBytes: 128 * 1024)
         }.value
 
-        switch result {
-        case .success(let payload):
-            self.content = payload.content
-            self.isTruncated = payload.isTruncated
-            self.isLoading = false
-        case .failure(let error):
-            self.errorMessage = error.errorDescription ?? "读取文件失败"
-            self.isLoading = false
-            self.showErrorAlert = true
+        await MainActor.run {
+            withAnimation(.easeOut(duration: 0.2)) {
+                switch result {
+                case .success(let payload):
+                    self.content = payload.content
+                    self.isTruncated = payload.isTruncated
+                    self.isLoading = false
+                case .failure(let error):
+                    self.errorMessage = error.errorDescription ?? "读取文件失败"
+                    self.isLoading = false
+                    self.showErrorAlert = true
+                }
+            }
         }
     }
 }
