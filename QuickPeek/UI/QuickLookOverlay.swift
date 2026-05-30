@@ -223,6 +223,9 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         previewPanel.alphaValue = 0.01
         previewPanel.makeKeyAndOrderFront(nil)
         
+        // 强制激活当前 App，夺取键盘焦点，确保预览窗口能自动获得键盘焦点以接收快捷键
+        NSApp.activate(ignoringOtherApps: true)
+        
         // 诊断 Toast：实时输出获取到的选中项物理坐标，以及定位诊断信息
         let sizeInfo = "Size: \(Int(sourceRect.size.width))x\(Int(sourceRect.size.height))"
         let diagnosticMsg = self.lastDiagnosticMessage.isEmpty ? "" : " (\(self.lastDiagnosticMessage))"

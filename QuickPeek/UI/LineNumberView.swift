@@ -31,11 +31,13 @@ class LineNumberView: NSRulerView {
         self.needsDisplay = true
     }
 
-    override func drawHashMarksAndLabels(in rect: NSRect) {
-        // 1. 用一体化暗黑色填充背景，彻底覆盖系统默认标尺边框和线条
+    override func drawBackground(in rect: NSRect) {
+        // 彻底用 TextView 相同的暗黑底色填充，物理消除系统默认的刻度背景与右侧竖向灰色边线
         NSColor(red: 0.09, green: 0.09, blue: 0.11, alpha: 1.0).set()
         rect.fill()
-        
+    }
+
+    override func drawHashMarksAndLabels(in rect: NSRect) {
         guard let textView = textView,
               let layoutManager = textView.layoutManager,
               let textStorage = textView.textStorage else { return }
