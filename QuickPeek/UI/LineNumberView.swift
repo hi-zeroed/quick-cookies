@@ -31,10 +31,13 @@ class LineNumberView: NSRulerView {
         self.needsDisplay = true
     }
 
-    override func drawBackground(in rect: NSRect) {
-        // 彻底用 TextView 相同的暗黑底色填充，物理消除系统默认的刻度背景与右侧竖向灰色边线
+    override func draw(_ rect: NSRect) {
+        // 1. 用与正文框一致的暗黑底色填充，彻底盖掉系统自带的灰色渐变与刻度标尺底色
         NSColor(red: 0.09, green: 0.09, blue: 0.11, alpha: 1.0).set()
         rect.fill()
+        
+        // 2. 仅绘制我们自定义的行号文本，不调用 super.draw(rect) 从而物理抹杀系统的竖向边线与右边框
+        drawHashMarksAndLabels(in: rect)
     }
 
     override func drawHashMarksAndLabels(in rect: NSRect) {
@@ -43,11 +46,11 @@ class LineNumberView: NSRulerView {
               let textStorage = textView.textStorage else { return }
 
         let visibleRect = textView.visibleRect
-        // 字体比正文略小 2pt，且使用 light 字重，纤细简约
-        let font = NSFont.monospacedSystemFont(ofSize: (textView.font?.pointSize ?? 12) - 2, weight: .light)
+        // 字体缩小 3.5pt 且使用 light，极其小巧秀气
+        let font = NSFont.monospacedSystemFont(ofSize: (textView.font?.pointSize ?? 12) - 3.5, weight: .light)
         
-        // 极淡的暗灰色，低调内敛，不抢夺视线
-        let textColor = NSColor(white: 0.24, alpha: 1.0)
+        // 极度暗淡的灰色（相比主背景 #18181c 仅略微显现，隐约可见即可）
+        let textColor = NSColor(white: 0.16, alpha: 1.0)
         let attributes: [NSAttributedString.Key: Any] = [
             .font: font,
             .foregroundColor: textColor
@@ -97,8 +100,8 @@ class LineNumberView: NSRulerView {
                 let lineNumberString = String(lineNumber)
                 let stringSize = lineNumberString.size(withAttributes: attributes)
                 
-                // 行号靠右绘制，只留出 6pt 的极窄呼吸边界，紧凑极简
-                let drawX = self.bounds.width - stringSize.width - 6
+                // 行号靠右绘制，只留出 4pt 的极窄呼吸边界，紧凑极简
+                let drawX = self.bounds.width - stringSize.width - 4
                 let drawY = pointInRuler.y + (lineRect.height - stringSize.height) / 2
                 
                 lineNumberString.draw(at: NSPoint(x: drawX, y: drawY), withAttributes: attributes)
@@ -109,7 +112,7 @@ class LineNumberView: NSRulerView {
     }
 
     override var requiredThickness: CGFloat {
-        return 32 // 宽度缩窄至 32px，整体视界极简化
+        return 26 // 宽度缩窄至 26px，整体视界极致精简化
     }
 
     deinit {
