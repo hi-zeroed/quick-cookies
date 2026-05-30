@@ -7,7 +7,8 @@ class SyntaxHighlighter {
             print("Failed to initialize Highlightr")
             return nil
         }
-        highlightr.setTheme(to: "atom-one-light")
+        // 默认采用高颜值 GitHub Dark 暗黑主题，完美融合本应用底色
+        highlightr.setTheme(to: "github-dark")
         return SyntaxHighlighter(highlightr: highlightr)
     }()
 
@@ -29,12 +30,16 @@ class SyntaxHighlighter {
 
     /// 支持的主题列表
     static let availableThemes = [
-        "atom-one-light",
-        "atom-one-dark",
+        "github-dark",
+        "github-dark-dimmed",
         "github",
-        "github-gist",
+        "atom-one-dark",
+        "atom-one-light",
         "monokai",
-        "solarized-light",
+        "dracula",
+        "nord",
+        "vs2015",
         "solarized-dark",
+        "solarized-light",
     ]
 }

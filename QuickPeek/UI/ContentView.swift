@@ -34,7 +34,7 @@ struct ContentView: View {
 
             // 内容区域
             contentArea
-                .padding([.horizontal, .bottom], 16) // 四周加内边距，防止文本贴边
+                .padding([.horizontal, .bottom], 28) // 进一步加大内边距，提供极高颜值的宽留白卡片视感
         }
         .background(Color(red: 0.09, green: 0.09, blue: 0.11))
         .alert("保存失败", isPresented: $showErrorAlert) {
