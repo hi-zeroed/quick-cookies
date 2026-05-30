@@ -7,8 +7,8 @@ class SyntaxHighlighter {
             print("Failed to initialize Highlightr")
             return nil
         }
-        // 默认采用高颜值 GitHub Dark 暗黑主题，完美融合本应用底色
-        highlightr.setTheme(to: "github-dark")
+        // 默认采用经典 Atom One Dark 暗黑主题，完美融入深色背景
+        highlightr.setTheme(to: "atom-one-dark")
         return SyntaxHighlighter(highlightr: highlightr)
     }()
 

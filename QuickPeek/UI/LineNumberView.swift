@@ -41,10 +41,11 @@ class LineNumberView: NSRulerView {
               let textStorage = textView.textStorage else { return }
 
         let visibleRect = textView.visibleRect
-        let font = NSFont.monospacedSystemFont(ofSize: textView.font?.pointSize ?? 12, weight: .regular)
+        // 字体比正文略小 2pt，且使用 light 字重，纤细简约
+        let font = NSFont.monospacedSystemFont(ofSize: (textView.font?.pointSize ?? 12) - 2, weight: .light)
         
-        // 优雅的暗灰色行号（参考图质感）
-        let textColor = NSColor(white: 0.35, alpha: 1.0)
+        // 极淡的暗灰色，低调内敛，不抢夺视线
+        let textColor = NSColor(white: 0.24, alpha: 1.0)
         let attributes: [NSAttributedString.Key: Any] = [
             .font: font,
             .foregroundColor: textColor
@@ -94,8 +95,8 @@ class LineNumberView: NSRulerView {
                 let lineNumberString = String(lineNumber)
                 let stringSize = lineNumberString.size(withAttributes: attributes)
                 
-                // 行号靠右绘制，留出 12pt 的呼吸边界
-                let drawX = self.bounds.width - stringSize.width - 12
+                // 行号靠右绘制，只留出 6pt 的极窄呼吸边界，紧凑极简
+                let drawX = self.bounds.width - stringSize.width - 6
                 let drawY = pointInRuler.y + (lineRect.height - stringSize.height) / 2
                 
                 lineNumberString.draw(at: NSPoint(x: drawX, y: drawY), withAttributes: attributes)
@@ -106,7 +107,7 @@ class LineNumberView: NSRulerView {
     }
 
     override var requiredThickness: CGFloat {
-        return 48 // 稍宽的行号区域，排版呼吸感更强
+        return 32 // 宽度缩窄至 32px，整体视界极简化
     }
 
     deinit {
