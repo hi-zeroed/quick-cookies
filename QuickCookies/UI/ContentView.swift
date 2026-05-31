@@ -52,6 +52,18 @@ class PreviewState: ObservableObject {
         isResetting = false
         onStateChanged?()
     }
+    
+    /// 批量原子化更新属性，防止在更新期间由于局部属性改变误发通知
+    func updateState(filePath: String?, renderType: FileRenderType?, language: String?, isLoadingPath: Bool, errorMessage: String? = nil) {
+        isResetting = true
+        self.filePath = filePath
+        self.renderType = renderType
+        self.language = language
+        self.isLoadingPath = isLoadingPath
+        self.errorMessage = errorMessage
+        isResetting = false
+        onStateChanged?()
+    }
 }
 
 struct ContentView: View {
@@ -385,7 +397,7 @@ struct ContentView: View {
 
     /// 后台并发异步读取首段，保证窗口 0ms 秒开起跳弹出
     private func loadFileAsync(path: String) async {
-        if state.renderType == .pdf || state.renderType == .image {
+        if state.renderType == .pdf || state.renderType == .image || state.renderType == .unsupported {
             await MainActor.run {
                 self.isLoading = false
             }

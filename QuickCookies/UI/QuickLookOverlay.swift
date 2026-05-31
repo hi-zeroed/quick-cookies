@@ -73,10 +73,15 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
     private func resizeWindowForErrorOrUnsupported() {
         guard let window = previewWindow else { return }
         
-        let targetWidth: CGFloat = 450
-        let targetHeight: CGFloat = 320
+        // 计算目标内容区 450x320 对应的窗口物理 Frame 大小，以兼容标题栏高度
+        let contentRect = NSRect(x: 0, y: 0, width: 450, height: 320)
+        let frameRect = window.frameRect(forContentRect: contentRect)
+        let targetWidth = frameRect.width
+        let targetHeight = frameRect.height
+        
         let currentFrame = window.frame
         
+        // 如果物理尺寸已完全匹配，直接返回，绝不执行二次 setFrame 动画
         if abs(currentFrame.width - targetWidth) < 1.0 && abs(currentFrame.height - targetHeight) < 1.0 {
             return
         }
@@ -252,15 +257,22 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         previewPanel.titlebarAppearsTransparent = true
         previewPanel.titleVisibility = .hidden
 
-        // 重置状态
+        // 重置状态并在已知路径时原子化更新，防范多余重绘
         previewState.reset()
         if let path = filePath {
-            previewState.filePath = path
-            previewState.renderType = renderType
-            previewState.language = language
-            previewState.isLoadingPath = false
+            previewState.updateState(
+                filePath: path,
+                renderType: renderType,
+                language: language,
+                isLoadingPath: false
+            )
         } else {
-            previewState.isLoadingPath = true
+            previewState.updateState(
+                filePath: nil,
+                renderType: nil,
+                language: nil,
+                isLoadingPath: true
+            )
         }
 
         // SwiftUI 内容视图，传入共享 state
