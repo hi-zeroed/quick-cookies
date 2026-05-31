@@ -49,10 +49,10 @@ struct ContentView: View {
                 .padding([.horizontal, .bottom], 28) // 进一步加大内边距，提供极高颜值的宽留白卡片视感
         }
         .background(Color.appBackground)
-        .alert("保存失败", isPresented: $showErrorAlert) {
-            Button("确定", role: .cancel) { }
+        .alert("保存失败".localized(), isPresented: $showErrorAlert) {
+            Button("确定".localized(), role: .cancel) { }
         } message: {
-            Text(errorMessage)
+            Text(errorMessage.localized())
         }
         .task {
             if let path = state.filePath {
@@ -85,18 +85,18 @@ struct ContentView: View {
                         .font(.system(size: 13, weight: .semibold, design: .monospaced))
                         .foregroundColor(Color.appText)
                 } else if state.errorMessage != nil {
-                    Text("获取失败")
+                    Text("获取失败".localized())
                         .font(.system(size: 13, weight: .semibold, design: .monospaced))
                         .foregroundColor(.red.opacity(0.8))
                 } else {
-                    Text("定位中...")
+                    Text("定位中...".localized())
                         .font(.system(size: 13, weight: .semibold, design: .monospaced))
                         .foregroundColor(Color.appText.opacity(0.6))
                 }
                 
                 // 大文件截断提示（参考极简设计）
                 if isTruncated {
-                    Text("⚠️只加载了前1000行")
+                    Text("⚠️只加载了前1000行".localized())
                         .font(.system(size: 9, weight: .medium, design: .monospaced))
                         .foregroundColor(.orange)
                         .padding(.horizontal, 4)
@@ -123,7 +123,7 @@ struct ContentView: View {
                             .foregroundColor(Color.appText.opacity(0.8))
                     }
                     .buttonStyle(.plain)
-                    .help(mode == .preview ? "进入编辑 (Cmd+E)" : "回到预览 (Esc)")
+                    .help(mode == .preview ? "进入编辑 (Cmd+E)".localized() : "回到预览 (Esc)".localized())
 
                     // 保存按钮
                     if mode == .edit && isModified {
@@ -133,7 +133,7 @@ struct ContentView: View {
                                 .foregroundColor(.orange)
                         }
                         .buttonStyle(.plain)
-                        .help("保存 (Cmd+S)")
+                        .help("保存 (Cmd+S)".localized())
                     }
                 }
             }
@@ -153,12 +153,12 @@ struct ContentView: View {
                 Image(systemName: "exclamationmark.triangle.fill")
                     .font(.system(size: 32))
                     .foregroundColor(.orange.opacity(0.8))
-                Text(err)
+                Text(err.localized())
                     .font(.system(size: 13, weight: .medium, design: .monospaced))
                     .foregroundColor(.white.opacity(0.7))
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 32)
-                Text("按 Esc 键关闭窗口")
+                Text("按 Esc 键关闭窗口".localized())
                     .font(.system(size: 11, design: .monospaced))
                     .foregroundColor(.white.opacity(0.3))
                 Spacer()
@@ -171,7 +171,7 @@ struct ContentView: View {
                 ProgressView()
                     .progressViewStyle(CircularProgressViewStyle(tint: .white.opacity(0.6)))
                     .scaleEffect(1.2)
-                Text("正在定位 Finder 选中文件...")
+                Text("正在定位 Finder 选中文件...".localized())
                     .font(.system(size: 13, weight: .medium, design: .monospaced))
                     .foregroundColor(.white.opacity(0.5))
                 Spacer()
@@ -183,7 +183,7 @@ struct ContentView: View {
                 Spacer()
                 ProgressView()
                     .progressViewStyle(CircularProgressViewStyle(tint: .white.opacity(0.4)))
-                Text("正在载入并高亮文本...")
+                Text("正在载入高亮...".localized())
                     .font(.system(size: 11, design: .monospaced))
                     .foregroundColor(.white.opacity(0.3))
                 Spacer()
@@ -216,6 +216,7 @@ struct ContentView: View {
                     content: content,
                     language: state.language,
                     fontSize: settings.fontSize,
+                    fontName: settings.editorFont,
                     isDark: isDark
                 )
             case .plainText:
@@ -224,6 +225,7 @@ struct ContentView: View {
                     content: content,
                     language: nil,
                     fontSize: settings.fontSize,
+                    fontName: settings.editorFont,
                     isDark: isDark
                 )
             }
@@ -236,6 +238,7 @@ struct ContentView: View {
             content: $content,
             isModified: $isModified,
             fontSize: settings.fontSize,
+            fontName: settings.editorFont,
             showLineNumbers: settings.showLineNumbers,
             onSave: saveFile
         )
@@ -272,7 +275,7 @@ struct ContentView: View {
                     self.isTruncated = payload.isTruncated
                     self.isLoading = false
                 case .failure(let error):
-                    self.errorMessage = error.errorDescription ?? "读取文件失败"
+                    self.errorMessage = (error.errorDescription ?? "读取文件失败").localized()
                     self.isLoading = false
                     self.showErrorAlert = true
                 }

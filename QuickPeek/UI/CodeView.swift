@@ -6,6 +6,7 @@ struct CodeView: NSViewRepresentable {
     let content: String
     let language: String?
     let fontSize: CGFloat
+    let fontName: String
     let isDark: Bool
 
     func makeCoordinator() -> Coordinator {
@@ -14,6 +15,7 @@ struct CodeView: NSViewRepresentable {
 
     class Coordinator: NSObject {
         var lastIsDark: Bool?
+        var lastFontName: String?
     }
 
     func makeNSView(context: Context) -> NSScrollView {
@@ -30,7 +32,7 @@ struct CodeView: NSViewRepresentable {
         let textView = NSTextView()
         textView.isEditable = false
         textView.isSelectable = true
-        textView.font = NSFont.monospacedSystemFont(ofSize: fontSize, weight: .regular)
+        textView.font = NSFont.editorFont(name: fontName, size: fontSize)
         textView.backgroundColor = .appBackground
         textView.textColor = .appText
         textView.isRichText = false
@@ -55,17 +57,18 @@ struct CodeView: NSViewRepresentable {
         guard let textView = scrollView.documentView as? NSTextView else { return }
 
         let contentChanged = textView.string != content
-        let fontChanged = textView.font?.pointSize != fontSize
+        let fontChanged = textView.font?.pointSize != fontSize || context.coordinator.lastFontName != fontName
         let isDarkChanged = context.coordinator.lastIsDark != isDark
 
         context.coordinator.lastIsDark = isDark
+        context.coordinator.lastFontName = fontName
 
         if contentChanged {
             textView.string = content
         }
 
         if fontChanged {
-            textView.font = NSFont.monospacedSystemFont(ofSize: fontSize, weight: .regular)
+            textView.font = NSFont.editorFont(name: fontName, size: fontSize)
         }
 
         // 动态更新背景色和文本色
@@ -118,7 +121,7 @@ struct CodeView: NSViewRepresentable {
                 // 拼接未高亮的剩余行文本，并赋予相同的等宽字体属性
                 if !remainText.isEmpty {
                     let remainAttributes: [NSAttributedString.Key: Any] = [
-                        .font: NSFont.monospacedSystemFont(ofSize: fontSize, weight: .regular),
+                        .font: NSFont.editorFont(name: fontName, size: fontSize),
                         .foregroundColor: isDark ? NSColor(white: 0.85, alpha: 1.0) : NSColor(white: 0.15, alpha: 1.0)
                     ]
                     let remainAttributed = NSAttributedString(string: remainText, attributes: remainAttributes)

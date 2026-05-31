@@ -10,14 +10,16 @@ class FinderMenuIntegration {
 
     /// 从 MenuBarExtra 打开选中的文件
     static func openSelectedFile() {
-        switch FileDetector.getSelectedFilePath() {
-        case .success(let path):
-            QuickLookOverlay.shared.show(filePath: path)
-        case .failure(let error):
-            QuickLookOverlay.shared.showToast(
-                message: error.errorDescription ?? "未知错误",
-                icon: "xmark.circle"
-            )
+        DispatchQueue.main.async {
+            switch FileDetector.getSelectedFilePath() {
+            case .success(let path):
+                QuickLookOverlay.shared.show(filePath: path)
+            case .failure(let error):
+                QuickLookOverlay.shared.showToast(
+                    message: (error.errorDescription ?? "未知错误").localized(),
+                    icon: "xmark.circle"
+                )
+            }
         }
     }
 
@@ -29,19 +31,23 @@ class FinderMenuIntegration {
             Button(action: openSelectedFile) {
                 HStack(spacing: 8) {
                     Text("📄") // doc.text.fill Unicode
-                    Text("打开选中文件")
+                    Text("打开选中文件".localized())
                 }
             }
             .buttonStyle(.plain)
-            .help("双击 Option 或点击此按钮打开 Finder 选中的文件")
+            .help("双击 Option 或点击此按钮打开 Finder 选中的文件".localized())
 
             Divider()
 
             // 设置
-            Button(action: { SettingsWindowController.shared.show() }) {
+            Button(action: {
+                DispatchQueue.main.async {
+                    SettingsWindowController.shared.show()
+                }
+            }) {
                 HStack(spacing: 8) {
                     Text("⚙") // gear Unicode
-                    Text("设置")
+                    Text("设置".localized())
                 }
             }
             .buttonStyle(.plain)
@@ -52,7 +58,7 @@ class FinderMenuIntegration {
             Button(action: { NSApplication.shared.terminate(nil) }) {
                 HStack(spacing: 8) {
                     Text("⏻") // power Unicode
-                    Text("退出")
+                    Text("退出".localized())
                 }
             }
             .buttonStyle(.plain)

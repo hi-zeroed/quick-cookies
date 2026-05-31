@@ -140,7 +140,7 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
             let resolvedPath = FileUtils.resolveSymlink(at: path)
 
             if !FileTypeClassifier.isSupported(path: resolvedPath) {
-                self.showToast(message: "不支持此文件类型", icon: "xmark.circle")
+                self.showToast(message: "不支持此文件类型".localized(), icon: "xmark.circle")
                 return
             }
 
@@ -266,16 +266,16 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
                 self.sourceRectBackup = realSourceRect
                 
                 // 打印诊断信息
-                let sizeInfo = "Size: \(Int(realSourceRect.size.width))x\(Int(realSourceRect.size.height))"
+                let sizeInfo = "\("大小".localized()): \(Int(realSourceRect.size.width))x\(Int(realSourceRect.size.height))"
                 let diagnosticMsg = self.lastDiagnosticMessage.isEmpty ? "" : " (\(self.lastDiagnosticMessage))"
-                self.showToast(message: "Pos: (\(Int(realSourceRect.origin.x)), \(Int(realSourceRect.origin.y))) \(sizeInfo)\(diagnosticMsg)")
+                self.showToast(message: "\("位置".localized()): (\(Int(realSourceRect.origin.x)), \(Int(realSourceRect.origin.y))) \(sizeInfo)\(diagnosticMsg)")
                 
                 if let result = pathResult {
                     switch result {
                     case .success(let detectedPath):
                         let resolvedPath = FileUtils.resolveSymlink(at: detectedPath)
                         if !FileTypeClassifier.isSupported(path: resolvedPath) {
-                            self.previewState.errorMessage = "不支持此文件类型: \(URL(fileURLWithPath: resolvedPath).lastPathComponent)"
+                            self.previewState.errorMessage = "\("不支持的文件类型".localized()): \(URL(fileURLWithPath: resolvedPath).lastPathComponent)"
                             self.previewState.isLoadingPath = false
                         } else {
                             let rType = FileTypeClassifier.classify(path: resolvedPath)
@@ -291,7 +291,7 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
                             self.previewState.isLoadingPath = false
                         }
                     case .failure(let error):
-                        self.previewState.errorMessage = error.errorDescription ?? "未检测到选中文件"
+                        self.previewState.errorMessage = (error.errorDescription ?? "未检测到选中文件").localized()
                         self.previewState.isLoadingPath = false
                     }
                 }
@@ -368,7 +368,7 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         
         // 1. 获取 Finder 的 PID
         guard let finderApp = NSWorkspace.shared.runningApplications.first(where: { $0.bundleIdentifier == "com.apple.finder" }) else {
-            lastDiagnosticMessage = "Finder PID 失败"
+            lastDiagnosticMessage = "Finder PID 失败".localized()
             return getDefaultSourceRect()
         }
         let pid = finderApp.processIdentifier
@@ -378,7 +378,7 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         
         // 3. 寻找选中的 UI 元素：优先从键盘聚焦 focusedElement 获取，其次通过主窗口选中项列表 AXSelectedChildren 深度兜底遍历
         var selectedElement: AXUIElement?
-        var diagnosticSource = "默认中心"
+        var diagnosticSource = "默认中心".localized()
         
         var focusedElementRef: CFTypeRef?
         if AXUIElementCopyAttributeValue(appElement, kAXFocusedUIElementAttribute as CFString, &focusedElementRef) == .success,
@@ -389,7 +389,7 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
                let role = roleRef as? String {
                 if role == "AXCell" || role == "AXRow" || role == "AXStaticText" || role == "AXImage" || role == "AXTextField" {
                     selectedElement = element
-                    diagnosticSource = "Focused (\(role))"
+                    diagnosticSource = "\("聚焦".localized()) (\(role))"
                 }
             }
         }
@@ -397,12 +397,12 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         if selectedElement == nil {
             if let found = getSelectedElementFromWindows(appElement: appElement) {
                 selectedElement = found
-                diagnosticSource = "Window 遍历成功"
+                diagnosticSource = "Window 遍历成功".localized()
             }
         }
         
         guard let element = selectedElement else {
-            lastDiagnosticMessage = "未搜寻到选中项"
+            lastDiagnosticMessage = "未搜寻到选中项".localized()
             return getDefaultSourceRect()
         }
         
@@ -415,7 +415,7 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         
         guard posResult == .success, sizeResult == .success,
               let positionVal = positionRef, let sizeVal = sizeRef else {
-            lastDiagnosticMessage = "坐标/大小属性读取失败"
+            lastDiagnosticMessage = "坐标/大小属性读取失败".localized()
             return getDefaultSourceRect()
         }
         
@@ -425,7 +425,7 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         AXValueGetValue(positionVal as! AXValue, .cgPoint, &point)
         AXValueGetValue(sizeVal as! AXValue, .cgSize, &size)
         
-        lastDiagnosticMessage = "源: \(diagnosticSource)"
+        lastDiagnosticMessage = "\("源".localized()): \(diagnosticSource)"
         
         // 5. 坐标系转换 (Accessibility 使用左上角为原点，NSScreen/AppKit 窗口使用左下角为原点)
         if let screenHeight = NSScreen.main?.frame.height {

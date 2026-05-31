@@ -96,3 +96,21 @@
   - **代码高亮缓存隔离**：为防止主题切换时直接获取错误的缓存导致“浅色模式下残留暗色代码着色”，将 `HighlightCache` 主键升级为带主题区分的隔离键（`filePath_themeName`）。
   - **高亮引擎线程锁**：高亮单例在修改主题时加上了 `NSLock` 互斥锁，彻底规避了异步渲染下发生高亮主题竞态错乱的隐患。
   - **内容与设置界面自适应**：在 `ContentView` 中引入 `@Environment(\.colorScheme)` 环境监听将 `isDark` 属性无缝下发；重构了 `CodeView`、`EditorView` 和 `MarkdownView` 的背景前景色为动态属性，使预览、编辑以及 Markdown 里的文本均能在任何主题模式下获得极高的排版易读性；在设置界面中增加了精致的分段选择控件（Segmented Picker）方便随时切换。
+- **设置页面卡片化与极简 UI 重构**：
+  - **窗口一体化设计**：设置窗口修改为宽度 460、高度 500。启用透明标题栏（`titlebarAppearsTransparent = true`），背景与窗口主体打通，带来极其高级的现代感。
+  - **模块化卡片（SettingsCard）**：参考 HTML 结构，使用 `SectionHeader` 对设置项进行大写分组（APPEARANCE、TYPOGRAPHY、KEYBINDINGS、SYSTEM），采用带细线外边框、自适应圆角的卡片容器（SettingsCard）承载各选项。
+  - **极简字号步进器**：弃用原有的 Slider 滑块，重构为由 `[ - ]` 减号、等宽字号数值、`[ + ]` 加号组成的精致步进器（Stepper），极大简化了界面。
+  - **极客风键帽（Kbd）录制**：将全局预览快捷键及编辑保存常用热键，以带灰色细线边框和暗色填充底的苹果键盘物理按键风格（KbdKeyView，如 ⌘, ⌥）拼装展出。点击录制项，完美切入录制监听态。
+  - **下拉菜单与系统开关**：将编辑器字体设计为 Picker 下拉框形式；将自启动选项渲染为原生 Switch 滑块开关。
+- **中英双语（English 与 简体中文）多语言适配**：
+  - **集中式本地化字典**：在 `Settings.swift` 中定义了极轻量、高性能的本地化翻译引擎 `Localization` 和 `String` 的扩展 `.localized()`，实现了无需在 Xcode 项目中手动引入 `.strings` 文件的安全多语言适配机制，规避了命令行编译中断风险。
+  - **应用内 0ms 无感热切换**：在设置页面的 `APPEARANCE` 卡片中新增了“语言 (Language)” Segmented Picker 选项，通过 SwiftUI 监听 `@Published var language` 状态，实现了切换语言时设置页文案、窗口标题、快捷键键帽文字、预览状态骨架、错误恢复和右上角系统菜单栏的 0 毫秒同步热刷新，无需重启应用。
+  - **智能首选语言自适应**：在初始化和重置设置时，能自动根据 macOS 系统的 `Locale.preferredLanguages` 进行智能语言检测自适应匹配。
+  - **修复多语言切换时的 SwiftUI 运行时冲突**：解决在 SwiftUI 渲染周期内读取 `@Published` 属性被隐式订阅导致 Picker 等控件重构时误向绑定发布变更而触发 `Publishing changes from within view updates is not allowed` 的运行时 Fault。通过在 `Settings` 内引入非 Observable 的静态缓存变量 `currentLanguage` 并在 `localized()` 中读取，完美规避了渲染时订阅，达成 100% 的运行时稳定性。
+- **编辑器字体安全渲染与自启动持久化打通**：
+  - **编辑器字体兜底**：扩展了 `NSFont` 方法 `editorFont(name:size:)`，实现当用户配置的自定义等宽字体（如 JetBrains Mono）未在用户系统安装时，无缝、安全地退回至系统默认 Monospace 等宽字体，避免了界面因找不到字体而出现渲染空白、错位或引发崩溃的隐患。在 `CodeView` 和 `EditorView`（包含行号标尺）中全面打通字体下发和应用。
+  - **开机自启动逻辑**：放弃了在 macOS 13+ 上被废弃的 LSSharedFileList 以及复杂的 Helper App 机制，全盘采用 macOS 13.0+ 现代 `ServiceManagement` 中的 `SMAppService.mainApp` API 接口，实现了自启动开关与 macOS 系统设置“登录项”的静默、直接注册 and 注销，且支持 UserDefaults 自动状态读取与开关同步。
+  - **设置窗口主题变色修复**：修复了在设置界面切换外观主题时设置页面自身不会实时变色的缺陷。通过在 `SettingsWindow.swift` 中为 `NSHostingView` 开启 `wantsLayer = true`，并为 `SettingsWindowController` 增加 `updateAppearance()` 机制，在 `themeMode` 的 `didSet` 改变以及设置窗口实例化时同步调用，从而实现了设置窗口及页面自身 100% 随主题切换实时刷新的完美效果。
+  - **修复菜单栏动作死锁与挂起 Bug**：修复了点击菜单栏“设置”和“打开选中文件”导致程序直接卡死的严重 Bug。成因是 AppKit 在 `NSMenu` 跟踪事件循环 (Tracking Loop) 中同步进行窗口初始化 and 抢占焦点，且在窗口还没完全加入屏幕事件层级之前便改变 `appearance` 引发了 AppKit 的重绘与线程锁死锁。通过将菜单按钮的回调逻辑使用 `DispatchQueue.main.async` 异步派发，且将 `updateAppearance()` 的调用放到 `makeKeyAndOrderFront` 之后执行，彻底根治了死锁卡死。
+  - **权限弹窗语言本地化不匹配修复**：修复了在未授予辅助功能权限时弹出权限申请窗口，文字一律显示英文而不跟随系统语言的 Bug。原因是弹窗在 App 启动生命周期最前端触发，此时惰性单例 `Settings.shared` 尚未被任何代码访问而未实例化（`Settings.currentLanguage` 默认停留在硬编码的英文值 ）。通过在 `AppDelegate` 刚启动时显式调用 `_ = Settings.shared` 强制完成初始化和语言自动适配，完美解决了该 Bug。
+  - **快捷键一致性及修改失效 Bug 修复**：修复了在设置界面修改快捷键无法生效，且录制显示的快捷键与实际生效快捷键不一致（如 S 键被错显为 B，双击 Option 模式被错显为 ⌥ A，且无法改回双击 Option）的 Bug。根本原因是：1) 录制快捷键时未过滤掉设备相关的杂质修饰键 flags，导致持久化值与 HotkeyManager 核心修饰符匹配时发生冲突；2) 原 `keyCodeToName` 计算不符合物理键码，我们将 QWERTY 键盘映射字典全表重写，并特殊处理了双击 Option 模式下的 `⌥ ⌥` 展示；3) `loadFromUserDefaults` 内部误限制 `savedKeyCode != 0` 条件导致无法重新加载恢复双击 Option (即 0) 的值，我们将其升级为了 `hasKey` 无条件安全读取。此外，我们将 Local Monitor 注册为 View 属性并在 `onDisappear` 中注销以防泄露。

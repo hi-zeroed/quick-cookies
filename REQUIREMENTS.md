@@ -11,5 +11,7 @@
 | REQ-005 | 代码语法高亮 | 支持常见代码文件（Swift, JS, Python 等）的语法高亮展示。 | 需测试 | 已在 `SyntaxHighlighter` 与 `CodeView` 实现 |
 | REQ-006 | 浮动预览窗口 | 使用 `NSPanel` 创建一个无边框、支持半透明磨砂效果、始终置顶的浮动窗口。 | 需测试 | 已实现，无边框且支持背景空白拖动，基于 AXUIElement 定位（引入 CFBoolean 安全读取与 AXMainWindow 活跃窗口过滤，彻底解决坐标卡死与中心点退化问题），保留左上角 macOS 原生红绿灯且实现一体化 Header 文件名居中对齐，彻底消除两段式闪现 Bug |
 | REQ-007 | 编辑模式与行号 | 预览窗口支持快捷键（如 `Cmd + E`）进入编辑模式，支持保存修改并显示行号。 | 需测试 | 已在 `EditorView` 实现 |
-| REQ-008 | 设置界面 | 提供设置窗口，用于配置触发快捷键、代码/文本字体大小，管理辅助功能权限。 | 需测试 | 已在 `SettingsWindow` 实现 |
+| REQ-008 | 设置界面 | 提供设置窗口，用于配置触发快捷键、代码/文本字体大小，管理辅助功能权限。 | 需测试 | 已在 SettingsWindow 实现并重构为卡片化高颜值 UI，且已打通“编辑器字体”在预览/编辑界面的动态渲染以及基于 SMAppService 的“开机自启动”自备系统注册逻辑，确保配置项完全真实可用。 |
 | REQ-009 | 权限请求与引导 | 应用运行需要 Accessibility（辅助功能）权限，未授权时需要引导用户授权。 | 需测试 | 已在 `AppDelegate` 及 `HotkeyManager` 实现 |
+| REQ-010 | 多语言适配 | 支持 English 与简体中文两套语言，提供自适应跟随系统及应用内热切换功能，瞬间刷新全案文案。 | 需测试 | 已在 Settings、SettingsWindow、ContentView、QuickLookOverlay、FinderMenuIntegration 和 AppDelegate 中完整实现。 |
+

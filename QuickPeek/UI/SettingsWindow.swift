@@ -15,23 +15,51 @@ class SettingsWindowController {
         }
 
         let panel = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 400, height: 300),
-            styleMask: [.titled, .closable],
+            contentRect: NSRect(x: 0, y: 0, width: 460, height: 500),
+            styleMask: [.titled, .closable, .fullSizeContentView],
             backing: .buffered,
             defer: false
         )
 
-        panel.title = "QuickPeek 设置"
+        panel.title = "设置".localized()
         panel.level = .normal
+        
+        // 标题栏透明，融合背景
+        panel.titlebarAppearsTransparent = true
+        panel.titleVisibility = .visible
 
         let view = SettingsView()
         let hostingView = NSHostingView(rootView: view)
+        hostingView.wantsLayer = true
         panel.contentView = hostingView
 
         panel.center()
-        panel.makeKeyAndOrderFront(nil)
-
+        
         window = panel
+        panel.makeKeyAndOrderFront(nil)
+        
+        updateAppearance()
+    }
+
+    func updateTitle() {
+        window?.title = "设置".localized()
+    }
+
+    func updateAppearance() {
+        guard let window = window else { return }
+        
+        switch Settings.shared.themeMode {
+        case .light:
+            window.appearance = NSAppearance(named: .aqua)
+        case .dark:
+            window.appearance = NSAppearance(named: .darkAqua)
+        case .system:
+            window.appearance = nil
+        }
+        
+        if let layer = window.contentView?.layer {
+            layer.backgroundColor = NSColor.appBackground.cgColor
+        }
     }
 
     func close() {
@@ -40,131 +68,346 @@ class SettingsWindowController {
     }
 }
 
+// MARK: - Helper UI Components (对齐 HTML 极简设计)
+
+struct SectionHeader: View {
+    let title: String
+    
+    var body: some View {
+        Text(title)
+            .font(.system(size: 10, weight: .bold))
+            .foregroundColor(.secondary.opacity(0.8))
+            .kerning(1.5)
+            .padding(.leading, 4)
+            .padding(.bottom, 2)
+    }
+}
+
+struct SettingsCard<Content: View>: View {
+    let content: Content
+    
+    init(@ViewBuilder content: () -> Content) {
+        self.content = content()
+    }
+    
+    var body: some View {
+        VStack(spacing: 0) {
+            content
+        }
+        .background(Color.cardBackground)
+        .cornerRadius(12)
+        .overlay(
+            RoundedRectangle(cornerRadius: 12)
+                .stroke(Color.appBorder, lineWidth: 1)
+        )
+    }
+}
+
+struct SettingsRow<RightContent: View>: View {
+    let title: String
+    let subtitle: String?
+    let rightContent: RightContent
+    
+    init(title: String, subtitle: String? = nil, @ViewBuilder rightContent: () -> RightContent) {
+        self.title = title
+        self.subtitle = subtitle
+        self.rightContent = rightContent()
+    }
+    
+    var body: some View {
+        HStack(alignment: .center) {
+            VStack(alignment: .leading, spacing: 3) {
+                Text(title)
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundColor(Color.appText)
+                if let sub = subtitle {
+                    Text(sub)
+                        .font(.system(size: 11))
+                        .foregroundColor(.secondary)
+                }
+            }
+            Spacer()
+            rightContent
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+    }
+}
+
+struct KbdKeyView: View {
+    let key: String
+    
+    var body: some View {
+        Text(key)
+            .font(.system(size: 11, weight: .medium, design: .monospaced))
+            .foregroundColor(Color.appText.opacity(0.8))
+            .padding(.horizontal, 6)
+            .padding(.vertical, 3)
+            .background(Color.kbdBackground)
+            .cornerRadius(4)
+            .overlay(
+                RoundedRectangle(cornerRadius: 4)
+                    .stroke(Color.appBorder, lineWidth: 1)
+            )
+    }
+}
+
+// MARK: - Settings Main View
+
 struct SettingsView: View {
     @ObservedObject var settings = Settings.shared
     @State private var isRecordingHotkey: Bool = false
     @State private var recordedModifiers: NSEvent.ModifierFlags = []
     @State private var recordedKeyCode: UInt16 = 0
+    @State private var hotkeyMonitor: Any? = nil
+    
+
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            // 快捷键设置
-            GroupBox(label: Text("快捷键")) {
-                VStack(alignment: .leading, spacing: 12) {
-                    HStack {
-                        Text("触发快捷键:")
-                        Spacer()
-
-                        if isRecordingHotkey {
-                            Text("按下新快捷键...")
-                                .foregroundColor(.secondary)
-                        } else {
-                            Button(hotkeyDisplay) {
-                                isRecordingHotkey = true
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                
+                // 1. Appearance Section
+                VStack(alignment: .leading, spacing: 8) {
+                    SectionHeader(title: "APPEARANCE".localized())
+                    SettingsCard {
+                        VStack(spacing: 0) {
+                            SettingsRow(title: "外观主题".localized(), subtitle: "选择您偏好的界面显示模式".localized()) {
+                                Picker("", selection: $settings.themeMode) {
+                                    ForEach(ThemeMode.allCases) { mode in
+                                        Text(mode.displayName).tag(mode)
+                                    }
+                                }
+                                .pickerStyle(.segmented)
+                                .frame(width: 180)
+                                .labelsHidden()
                             }
-                            .buttonStyle(.bordered)
-                        }
-                    }
-
-                    if let conflict = checkHotkeyConflict() {
-                        Text(conflict)
-                            .foregroundColor(.orange)
-                            .font(.caption)
-                    }
-                }
-                .padding()
-            }
-
-            // 外观设置
-            GroupBox(label: Text("外观")) {
-                VStack(alignment: .leading, spacing: 12) {
-                    HStack {
-                        Text("字体大小:")
-                        Spacer()
-                        Slider(value: $settings.fontSize, in: 10...24, step: 1)
-                            .frame(width: 100)
-                        Text("\(Int(settings.fontSize))")
-                    }
-
-                    HStack {
-                        Text("外观主题:")
-                        Spacer()
-                        Picker("", selection: $settings.themeMode) {
-                            ForEach(ThemeMode.allCases) { mode in
-                                Text(mode.displayName).tag(mode)
+                            
+                            Divider()
+                                .background(Color.appBorder)
+                                .padding(.horizontal, 16)
+                            
+                            SettingsRow(title: "语言".localized(), subtitle: "选择界面的显示语言".localized()) {
+                                Picker("", selection: $settings.language) {
+                                    ForEach(Language.allCases) { lang in
+                                        Text(lang.displayName).tag(lang)
+                                    }
+                                }
+                                .pickerStyle(.segmented)
+                                .frame(width: 180)
+                                .labelsHidden()
                             }
                         }
-                        .pickerStyle(.segmented)
-                        .frame(width: 180)
                     }
-
-                    Toggle("显示行号", isOn: $settings.showLineNumbers)
                 }
-                .padding()
-            }
-
-            Spacer()
-
-            // 底部按钮
-            HStack {
-                Spacer()
-                Button("重置默认") {
-                    resetToDefaults()
+                
+                // 2. Typography Section
+                VStack(alignment: .leading, spacing: 8) {
+                    SectionHeader(title: "TYPOGRAPHY".localized())
+                    SettingsCard {
+                        VStack(spacing: 0) {
+                            SettingsRow(title: "编辑器字体".localized(), subtitle: "预览和编辑 Markdown 与代码时采用的等宽字体".localized()) {
+                                Picker("", selection: $settings.editorFont) {
+                                    Text("System Default (Inter)".localized()).tag("System Default (Inter)")
+                                    Text("SF Pro Display").tag("SF Pro Display")
+                                    Text("JetBrains Mono").tag("JetBrains Mono")
+                                }
+                                .frame(width: 180)
+                                .labelsHidden()
+                            }
+                            
+                            Divider()
+                                .background(Color.appBorder)
+                                .padding(.horizontal, 16)
+                            
+                            SettingsRow(title: "字体大小".localized()) {
+                                HStack(spacing: 8) {
+                                    Button(action: {
+                                        if settings.fontSize > 10 {
+                                            settings.saveFontSize(settings.fontSize - 1)
+                                        }
+                                    }) {
+                                        Image(systemName: "minus")
+                                            .font(.system(size: 9, weight: .bold))
+                                            .foregroundColor(Color.appText.opacity(0.8))
+                                            .frame(width: 24, height: 24)
+                                            .background(Color.kbdBackground)
+                                            .cornerRadius(4)
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 4)
+                                                    .stroke(Color.appBorder, lineWidth: 1)
+                                            )
+                                    }
+                                    .buttonStyle(.plain)
+                                    
+                                    Text("\(Int(settings.fontSize))px")
+                                        .font(.system(size: 13, weight: .medium, design: .monospaced))
+                                        .foregroundColor(Color.appText)
+                                        .frame(width: 38, alignment: .center)
+                                    
+                                    Button(action: {
+                                        if settings.fontSize < 24 {
+                                            settings.saveFontSize(settings.fontSize + 1)
+                                        }
+                                    }) {
+                                        Image(systemName: "plus")
+                                            .font(.system(size: 9, weight: .bold))
+                                            .foregroundColor(Color.appText.opacity(0.8))
+                                            .frame(width: 24, height: 24)
+                                            .background(Color.kbdBackground)
+                                            .cornerRadius(4)
+                                            .overlay(
+                                                RoundedRectangle(cornerRadius: 4)
+                                                    .stroke(Color.appBorder, lineWidth: 1)
+                                            )
+                                    }
+                                    .buttonStyle(.plain)
+                                }
+                            }
+                        }
+                    }
                 }
-                .buttonStyle(.bordered)
+                
+                // 3. Keybindings Section
+                VStack(alignment: .leading, spacing: 8) {
+                    SectionHeader(title: "KEYBINDINGS".localized())
+                    SettingsCard {
+                        VStack(spacing: 0) {
+                            SettingsRow(title: "全局快捷预览".localized(), subtitle: "点击右侧键帽录制自定义组合快捷键".localized()) {
+                                if isRecordingHotkey {
+                                    Text("请在键盘上按下新快捷键...".localized())
+                                        .font(.system(size: 11, design: .monospaced))
+                                        .foregroundColor(.orange)
+                                        .padding(.horizontal, 8)
+                                        .padding(.vertical, 4)
+                                        .background(Color.orange.opacity(0.12))
+                                        .cornerRadius(4)
+                                } else {
+                                    Button(action: { isRecordingHotkey = true }) {
+                                        HStack(spacing: 4) {
+                                            ForEach(hotkeyKeyNames, id: \.self) { key in
+                                                KbdKeyView(key: key)
+                                            }
+                                        }
+                                    }
+                                    .buttonStyle(.plain)
+                                }
+                            }
+                            
+                            Divider()
+                                .background(Color.appBorder)
+                                .padding(.horizontal, 16)
+                            
+                            SettingsRow(title: "进入编辑模式".localized()) {
+                                HStack(spacing: 4) {
+                                    KbdKeyView(key: "⌘")
+                                    KbdKeyView(key: "E")
+                                }
+                            }
+                            
+                            Divider()
+                                .background(Color.appBorder)
+                                .padding(.horizontal, 16)
+                            
+                            SettingsRow(title: "保存文件修改".localized()) {
+                                HStack(spacing: 4) {
+                                    KbdKeyView(key: "⌘")
+                                    KbdKeyView(key: "S")
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                // 4. System Section
+                VStack(alignment: .leading, spacing: 8) {
+                    SectionHeader(title: "SYSTEM".localized())
+                    SettingsCard {
+                        SettingsRow(title: "开机自启动".localized(), subtitle: "在您登录 macOS 系统时自动静默启动 QuickPeek".localized()) {
+                            Toggle("", isOn: $settings.launchAtLogin)
+                                .toggleStyle(.switch)
+                                .labelsHidden()
+                        }
+                    }
+                }
+                
+                // 5. Restore Button
+                HStack {
+                    Spacer()
+                    Button("恢复默认设置".localized()) {
+                        resetToDefaults()
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.regular)
+                    Spacer()
+                }
+                .padding(.top, 8)
             }
+            .padding(.horizontal, 24)
+            .padding(.top, 48) // 留出顶部标题栏区域的空间
+            .padding(.bottom, 24)
         }
-        .padding()
+        .background(Color.appBackground.ignoresSafeArea())
         .onAppear {
             setupHotkeyRecording()
         }
-    }
-
-    private var hotkeyDisplay: String {
-        let modifiers = settings.hotkeyModifiers
-        var parts: [String] = []
-
-        if modifiers.contains(.command) { parts.append("⌘") }
-        if modifiers.contains(.option) { parts.append("⌥") }
-        if modifiers.contains(.control) { parts.append("⌃") }
-        if modifiers.contains(.shift) { parts.append("⇧") }
-
-        // KeyCode 转名称
-        let keyName = keyCodeToName(settings.hotkeyKeyCode)
-        parts.append(keyName)
-
-        return parts.joined()
-    }
-
-    private func keyCodeToName(_ keyCode: UInt16) -> String {
-        switch keyCode {
-        case 49: return "Space"
-        case 36: return "Return"
-        case 48: return "Tab"
-        case 51: return "Delete"
-        case 50: return "`"
-        default:
-            // 字母键
-            if keyCode >= 0 && keyCode <= 25 {
-                let letter = Character(UnicodeScalar(Int(UnicodeScalar("A").value) + Int(keyCode))!)
-                return String(letter)
+        .onDisappear {
+            if let monitor = hotkeyMonitor {
+                NSEvent.removeMonitor(monitor)
+                hotkeyMonitor = nil
             }
-            return "Key\(keyCode)"
         }
     }
 
+    private var hotkeyKeyNames: [String] {
+        let modifiers = settings.hotkeyModifiers
+        if settings.hotkeyKeyCode == 0 && modifiers == [.option] {
+            return ["⌥", "⌥"]
+        }
+        
+        var names: [String] = []
+        if modifiers.contains(.command) { names.append("⌘") }
+        if modifiers.contains(.option) { names.append("⌥") }
+        if modifiers.contains(.control) { names.append("⌃") }
+        if modifiers.contains(.shift) { names.append("⇧") }
+        
+        let keyName = keyCodeToName(settings.hotkeyKeyCode)
+        if !keyName.isEmpty && settings.hotkeyKeyCode != 0 {
+            names.append(keyName)
+        }
+        
+        return names
+    }
+
+    private func keyCodeToName(_ keyCode: UInt16) -> String {
+        let keyMap: [UInt16: String] = [
+            0: "A", 1: "S", 2: "D", 3: "F", 4: "H", 5: "G", 6: "Z", 7: "X", 8: "C", 9: "V",
+            11: "B", 12: "Q", 13: "W", 14: "E", 15: "R", 16: "Y", 17: "T", 18: "1", 19: "2",
+            20: "3", 21: "4", 22: "6", 23: "5", 24: "=", 25: "9", 26: "7", 27: "-", 28: "8",
+            29: "0", 30: "]", 31: "O", 32: "U", 33: "[", 34: "I", 35: "P", 37: "L", 38: "J",
+            39: "'", 40: "K", 41: ";", 42: "\\", 43: ",", 44: "/", 45: "N", 46: "M", 47: ".",
+            50: "`", 49: "Space", 36: "Return", 48: "Tab", 51: "Delete", 53: "Esc"
+        ]
+        return keyMap[keyCode] ?? "Key\(keyCode)"
+    }
+
     private func setupHotkeyRecording() {
-        NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+        if hotkeyMonitor != nil { return }
+        
+        hotkeyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
             if isRecordingHotkey {
                 // 忽略单独的修饰键
-                if event.keyCode == 54 || event.keyCode == 55 || // Cmd
-                   event.keyCode == 58 || event.keyCode == 59 || // Option
-                   event.keyCode == 56 || event.keyCode == 57 || // Shift
-                   event.keyCode == 59 || event.keyCode == 62 {   // Control
+                let keyCode = event.keyCode
+                if keyCode == 54 || keyCode == 55 || // Cmd (右、左)
+                   keyCode == 58 || keyCode == 61 || // Option (左、右)
+                   keyCode == 56 || keyCode == 60 || // Shift (左、右)
+                   keyCode == 59 || keyCode == 62 {  // Control (左、右)
                     return nil
                 }
 
-                recordedModifiers = event.modifierFlags
+                // 提取核心修饰键，过滤掉设备无关掩码，保证匹配一致性
+                let coreFlags: NSEvent.ModifierFlags = [.command, .option, .shift, .control]
+                recordedModifiers = event.modifierFlags.intersection(coreFlags)
                 recordedKeyCode = event.keyCode
 
                 // 保存
@@ -182,22 +425,6 @@ struct SettingsView: View {
         }
     }
 
-    private func checkHotkeyConflict() -> String? {
-        // 简单检查常见冲突
-        let modifiers = settings.hotkeyModifiers
-        let keyCode = settings.hotkeyKeyCode
-
-        if modifiers.contains(.command) && keyCode == 49 { // Cmd+Space
-            return "可能与 Spotlight 冲突"
-        }
-
-        if modifiers.contains(.control) && keyCode == 49 { // Ctrl+Space
-            return "可能与输入法切换冲突"
-        }
-
-        return nil
-    }
-
     private func resetToDefaults() {
         settings.saveHotkey(
             modifiers: Constants.defaultHotkeyModifiers,
@@ -206,6 +433,16 @@ struct SettingsView: View {
         settings.fontSize = 14
         settings.showLineNumbers = true
         settings.themeMode = .system
+        
+        let preferredLanguage = Locale.preferredLanguages.first ?? ""
+        if preferredLanguage.hasPrefix("zh") {
+            settings.language = .zhHans
+        } else {
+            settings.language = .en
+        }
+        
+        settings.editorFont = "System Default (Inter)"
+        settings.launchAtLogin = false
 
         // 重新注册热键
         HotkeyManager.shared.registerWithSettings {

@@ -2,6 +2,9 @@ import AppKit
 
 class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationDidFinishLaunching(_ notification: Notification) {
+        // 强制初始化 Settings 单例以加载用户偏好语言或根据系统自适应首选语言
+        _ = Settings.shared
+
         // 设置为后台 Agent，不显示 Dock 图标与顶部菜单栏，仅显示独立窗口
         NSApp.setActivationPolicy(.accessory)
 
@@ -29,11 +32,11 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     private func showPermissionAlert() {
         let alert = NSAlert()
-        alert.messageText = "需要辅助功能权限"
-        alert.informativeText = "QuickPeek 需要辅助功能权限来监听全局快捷键。\n请前往 系统偏好设置 → 安全性与隐私 → 辅助功能，添加 QuickPeek。"
+        alert.messageText = "需要辅助功能权限".localized()
+        alert.informativeText = "QuickPeek 需要辅助功能权限来监听全局快捷键。\n请前往 系统偏好设置 → 安全性与隐私 → 辅助功能，添加 QuickPeek。".localized()
         alert.alertStyle = .warning
-        alert.addButton(withTitle: "打开设置")
-        alert.addButton(withTitle: "稍后")
+        alert.addButton(withTitle: "打开设置".localized())
+        alert.addButton(withTitle: "稍后".localized())
 
         let response = alert.runModal()
         if response == .alertFirstButtonReturn {

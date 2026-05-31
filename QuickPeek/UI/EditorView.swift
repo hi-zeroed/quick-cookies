@@ -5,6 +5,7 @@ struct EditorView: NSViewRepresentable {
     @Binding var content: String
     @Binding var isModified: Bool
     let fontSize: CGFloat
+    let fontName: String
     let showLineNumbers: Bool
     let onSave: (() -> Void)?
 
@@ -23,7 +24,7 @@ struct EditorView: NSViewRepresentable {
         textView.delegate = context.coordinator
         textView.isEditable = true
         textView.isSelectable = true
-        textView.font = NSFont.monospacedSystemFont(ofSize: fontSize, weight: .regular)
+        textView.font = NSFont.editorFont(name: fontName, size: fontSize)
         textView.backgroundColor = .appBackground
         textView.textColor = .appText
         textView.isRichText = false
@@ -46,7 +47,7 @@ struct EditorView: NSViewRepresentable {
             textView.string = content
         }
 
-        textView.font = NSFont.monospacedSystemFont(ofSize: fontSize, weight: .regular)
+        textView.font = NSFont.editorFont(name: fontName, size: fontSize)
 
         // 动态更新背景色和文本色
         scrollView.backgroundColor = .appBackground
@@ -115,7 +116,7 @@ class LineNumberView: NSRulerView {
               let textStorage = textView.textStorage else { return }
 
         let visibleRect = textView.visibleRect
-        let font = NSFont.monospacedSystemFont(ofSize: textView.font?.pointSize ?? 12, weight: .regular)
+        let font = textView.font ?? NSFont.monospacedSystemFont(ofSize: 12, weight: .regular)
         let textColor = NSColor.secondaryLabelColor
         let attributes: [NSAttributedString.Key: Any] = [
             .font: font,

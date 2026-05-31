@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Settings - Markdown Studio</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "secondary-fixed": "#e1e0ff",
+                      "tertiary-fixed-dim": "#ffb595",
+                      "tertiary-container": "#c64f00",
+                      "surface-tint": "#005bc1",
+                      "on-primary": "#ffffff",
+                      "primary-container": "#0070eb",
+                      "surface-container-high": "#eae7e7",
+                      "inverse-surface": "#303030",
+                      "on-tertiary-fixed": "#351000",
+                      "surface-container-lowest": "#ffffff",
+                      "surface": "#fcf9f8",
+                      "on-tertiary-fixed-variant": "#7c2e00",
+                      "surface-variant": "#e5e2e1",
+                      "on-secondary": "#ffffff",
+                      "inverse-primary": "#adc6ff",
+                      "error-container": "#ffdad6",
+                      "tertiary-fixed": "#ffdbcc",
+                      "tertiary": "#9e3d00",
+                      "on-primary-fixed": "#001a41",
+                      "on-tertiary": "#ffffff",
+                      "surface-dim": "#dcd9d9",
+                      "primary-fixed-dim": "#adc6ff",
+                      "on-secondary-fixed": "#07006c",
+                      "surface-container": "#f0eded",
+                      "on-secondary-container": "#fffbff",
+                      "error": "#ba1a1a",
+                      "on-background": "#1b1b1c",
+                      "on-surface": "#1b1b1c",
+                      "outline-variant": "#c1c6d7",
+                      "inverse-on-surface": "#f3f0ef",
+                      "background": "#fcf9f8",
+                      "secondary-container": "#6063ee",
+                      "on-error": "#ffffff",
+                      "on-tertiary-container": "#fffbff",
+                      "on-secondary-fixed-variant": "#2f2ebe",
+                      "on-primary-fixed-variant": "#004493",
+                      "primary-fixed": "#d8e2ff",
+                      "surface-bright": "#fcf9f8",
+                      "surface-container-highest": "#e5e2e1",
+                      "on-error-container": "#93000a",
+                      "secondary": "#4648d4",
+                      "on-surface-variant": "#414755",
+                      "primary": "#0058bc",
+                      "on-primary-container": "#fefcff",
+                      "surface-container-low": "#f6f3f2",
+                      "outline": "#717786",
+                      "secondary-fixed-dim": "#c0c1ff",
+                      
+                      // Explicit Dark Mode Overrides based on system prompt
+                      "dark-surface": "#1e1e1e",
+                      "dark-surface-container": "#252525",
+                      "dark-surface-container-high": "#2d2d2d",
+                      "dark-on-surface": "#e5e5e5",
+                      "dark-on-surface-variant": "#a3a3a3",
+                      "dark-outline": "#333333",
+                      "dark-primary": "#007aff", // Requested accent
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.125rem",
+                      "lg": "0.25rem",
+                      "xl": "0.5rem",
+                      "full": "0.75rem"
+              },
+              "spacing": {
+                      "sidebar_width": "260px",
+                      "margin": "24px",
+                      "gutter": "16px",
+                      "toolbar_height": "48px",
+                      "editor_max_width": "800px"
+              },
+              "fontFamily": {
+                      "headline": ["Inter", "sans-serif"],
+                      "body-sm": ["Inter", "sans-serif"],
+                      "label": ["Inter", "sans-serif"],
+                      "code": ["JetBrains Mono", "monospace"],
+                      "display": ["Inter", "sans-serif"],
+                      "body-lg": ["Inter", "sans-serif"]
+              },
+              "fontSize": {
+                      "headline": ["18px", {"lineHeight": "24px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+                      "body-sm": ["13px", {"lineHeight": "18px", "fontWeight": "400"}],
+                      "label": ["11px", {"lineHeight": "16px", "letterSpacing": "0.02em", "fontWeight": "500"}],
+                      "code": ["14px", {"lineHeight": "22px", "fontWeight": "450"}],
+                      "display": ["24px", {"lineHeight": "32px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+                      "body-lg": ["15px", {"lineHeight": "24px", "fontWeight": "400"}]
+              }
+            }
+          }
+        }
+    </script>
+<style type="text/tailwindcss">
+        @layer utilities {
+            .glass-panel {
+                @apply bg-dark-surface-container border border-dark-outline rounded-xl;
+            }
+        }
+    </style>
+</head>
+<body class="bg-dark-surface text-dark-on-surface h-screen overflow-hidden flex flex-col font-body-sm selection:bg-dark-primary selection:text-white">
+<!-- TopAppBar -->
+<header class="w-full h-[48px] bg-dark-surface flex items-center px-4 border-b border-dark-outline z-10 shrink-0 relative">
+<div class="flex items-center gap-2 absolute left-4">
+<!-- Traffic Lights -->
+<div class="w-3 h-3 rounded-full bg-[#ff5f56] border border-[#e0443e]"></div>
+<div class="w-3 h-3 rounded-full bg-[#ffbd2e] border border-[#dea123]"></div>
+<div class="w-3 h-3 rounded-full bg-[#27c93f] border border-[#1aab29]"></div>
+</div>
+<div class="font-headline text-[13px] font-semibold text-dark-on-surface w-full text-center">
+    Settings
+</div>
+</header>
+<!-- Main Workspace -->
+<div class="flex flex-1 overflow-hidden">
+<!-- Content Area -->
+<main class="flex-1 overflow-y-auto bg-dark-surface p-12">
+<div class="max-w-[700px] mx-auto space-y-12 pb-12">
+<!-- Appearance Section -->
+<section class="space-y-4">
+<h3 class="font-label text-label text-dark-on-surface-variant uppercase tracking-wider mb-3">Appearance</h3>
+<div class="glass-panel p-5 space-y-5">
+<div class="flex items-center justify-between">
+<div>
+<div class="font-body-sm text-body-sm font-medium text-dark-on-surface">Color Theme</div>
+<div class="font-label text-label text-dark-on-surface-variant mt-1">Select your preferred interface mode.</div>
+</div>
+<!-- Segmented Control -->
+<div class="flex p-1 bg-dark-surface-container-high rounded-lg border border-dark-outline">
+<button class="px-4 py-1.5 font-body-sm text-body-sm text-dark-on-surface-variant rounded-DEFAULT hover:text-dark-on-surface transition-colors">Light</button>
+<button class="px-4 py-1.5 font-body-sm text-body-sm bg-dark-surface text-dark-on-surface shadow-sm rounded-DEFAULT border border-dark-outline transition-colors">Dark</button>
+<button class="px-4 py-1.5 font-body-sm text-body-sm text-dark-on-surface-variant rounded-DEFAULT hover:text-dark-on-surface transition-colors">System</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Typography Section -->
+<section class="space-y-4">
+<h3 class="font-label text-label text-dark-on-surface-variant uppercase tracking-wider mb-3">Typography</h3>
+<div class="glass-panel p-5 space-y-5">
+<div class="flex items-center justify-between border-b border-dark-outline pb-4">
+<div>
+<div class="font-body-sm text-body-sm font-medium text-dark-on-surface">Editor Font</div>
+<div class="font-label text-label text-dark-on-surface-variant mt-1">Base font for markdown content.</div>
+</div>
+<select class="bg-dark-surface border border-dark-outline text-dark-on-surface font-body-sm text-body-sm rounded-DEFAULT px-3 py-1.5 focus:ring-1 focus:ring-dark-primary focus:border-dark-primary outline-none appearance-none pr-8">
+<option>System Default (Inter)</option>
+<option>SF Pro Display</option>
+<option>JetBrains Mono</option>
+</select>
+</div>
+<div class="flex items-center justify-between">
+<div>
+<div class="font-body-sm text-body-sm font-medium text-dark-on-surface">Base Font Size</div>
+</div>
+<div class="flex items-center gap-3">
+<button class="w-7 h-7 flex items-center justify-center rounded-DEFAULT border border-dark-outline hover:bg-dark-surface-container-high text-dark-on-surface-variant transition-colors">
+<span class="material-symbols-outlined text-[16px]">remove</span>
+</button>
+<span class="font-code text-code text-dark-on-surface w-8 text-center">15px</span>
+<button class="w-7 h-7 flex items-center justify-center rounded-DEFAULT border border-dark-outline hover:bg-dark-surface-container-high text-dark-on-surface-variant transition-colors">
+<span class="material-symbols-outlined text-[16px]">add</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Shortcuts Section -->
+<section class="space-y-4">
+<h3 class="font-label text-label text-dark-on-surface-variant uppercase tracking-wider mb-3">Keybindings</h3>
+<div class="glass-panel divide-y divide-dark-outline">
+<div class="flex items-center justify-between p-4">
+<div class="font-body-sm text-body-sm text-dark-on-surface">Toggle Sidebar</div>
+<div class="flex gap-1">
+<kbd class="px-2 py-1 bg-dark-surface border border-dark-outline rounded-DEFAULT font-code text-label text-dark-on-surface-variant">⌘</kbd>
+<kbd class="px-2 py-1 bg-dark-surface border border-dark-outline rounded-DEFAULT font-code text-label text-dark-on-surface-variant">\</kbd>
+</div>
+</div>
+<div class="flex items-center justify-between p-4">
+<div class="font-body-sm text-body-sm text-dark-on-surface">Quick Open</div>
+<div class="flex gap-1">
+<kbd class="px-2 py-1 bg-dark-surface border border-dark-outline rounded-DEFAULT font-code text-label text-dark-on-surface-variant">⌘</kbd>
+<kbd class="px-2 py-1 bg-dark-surface border border-dark-outline rounded-DEFAULT font-code text-label text-dark-on-surface-variant">P</kbd>
+</div>
+</div>
+<div class="flex items-center justify-between p-4">
+<div class="font-body-sm text-body-sm text-dark-on-surface">Format Bold</div>
+<div class="flex gap-1">
+<kbd class="px-2 py-1 bg-dark-surface border border-dark-outline rounded-DEFAULT font-code text-label text-dark-on-surface-variant">⌘</kbd>
+<kbd class="px-2 py-1 bg-dark-surface border border-dark-outline rounded-DEFAULT font-code text-label text-dark-on-surface-variant">B</kbd>
+</div>
+</div>
+</div>
+</section>
+<!-- General Section -->
+<section class="space-y-4">
+<h3 class="font-label text-label text-dark-on-surface-variant uppercase tracking-wider mb-3">System</h3>
+<div class="glass-panel p-4">
+<label class="flex items-center justify-between cursor-pointer group">
+<div>
+<div class="font-body-sm text-body-sm font-medium text-dark-on-surface">Launch at Login</div>
+<div class="font-label text-label text-dark-on-surface-variant mt-1">Start Markdown Studio when you log in.</div>
+</div>
+<!-- Custom Toggle Switch -->
+<div class="relative">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-9 h-5 bg-dark-outline peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-dark-primary"></div>
+</div>
+</label>
+</div>
+</section>
+<div class="text-center pt-4">
+<button class="bg-dark-surface-container hover:bg-dark-surface-container-high border border-dark-outline text-dark-on-surface font-body-sm text-body-sm px-4 py-2 rounded-lg transition-colors">
+                        Restore Defaults
+                    </button>
+</div>
+</div>
+</main>
+</div>
+</body></html>
