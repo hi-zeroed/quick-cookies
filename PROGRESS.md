@@ -126,6 +126,7 @@
   - **Info.plist 图标配置补全**：在 [Info.plist](file:///Users/jiangwei/Git/QuickPeek/Quick Cookies/Info.plist) 中补全了 macOS 系统专属的 `<key>CFBundleIconFile</key><string>AppIcon</string>` 配置，彻底解决了由于此前仅配置了 iOS/tvOS 的 `CFBundleIconName` 导致 macOS Finder (访达) 和 LaunchServices 无法识别渲染 `.icns` 图标文件、退化为系统默认空白应用图标的 Bug。
   - **产品级 README 重构**：重新将 [README.md](file:///Users/jiangwei/Git/QuickPeek/README.md) 重写为高规格产品级示文。在顶部居中展示了全新卡通面包品牌 Logo，用生动、富有感染力的产品文案包装了 0ms 秒开、黄金比例、Space 弹簧动效、多语言热刷新等核心卖点，并重新整理了使用指南及开发规范。
   - **AppIcon 白色底座合并**：为解决透明背景在 macOS 上被系统自动填充难看灰色底座的问题，编写了 Swift 合并底图脚本 [merge_bg.swift](file:///Users/jiangwei/.gemini/antigravity/brain/a54f58af-0c5c-4ce6-86ce-17c110a150a3/scratch/merge_bg.swift) 并在 Logo 透明层下方完美平铺了纯白色底色，重新生成了 10 种分辨率图标规格并覆盖 `AppIcon.appiconset`，重新跑通了编译验证。
+  - **透明底 Logo 图标保留**：在 `QuickCookies/Resources/` 目录下单独复制并保留了一份原始的透明背景 Logo 图标 [AppIcon_transparent.png](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/Resources/AppIcon_transparent.png)，专门供 `README.md` 文档展示使用，从而在任何明暗模式的文档背景下均能完美呈现无边框、无底色的极致排版质感。
 
 
 

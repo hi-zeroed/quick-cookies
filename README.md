@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="QuickCookies/Resources/AppIcon_source.png" width="128" height="128" alt="Quick Cookies Logo">
+  <img src="QuickCookies/Resources/AppIcon_transparent.png" width="128" height="128" alt="Quick Cookies Logo">
 </p>
 
 <h1 align="center">Quick Cookies</h1>
