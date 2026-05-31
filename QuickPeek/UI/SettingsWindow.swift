@@ -1,15 +1,18 @@
 import SwiftUI
 import AppKit
 
-class SettingsWindowController {
+class SettingsWindowController: NSObject, NSWindowDelegate {
     static let shared = SettingsWindowController()
 
     private var window: NSWindow?
 
-    private init() {}
+    override private init() {
+        super.init()
+    }
 
     func show() {
         if window?.isVisible == true {
+            NSApp.activate(ignoringOtherApps: true)
             window?.makeKeyAndOrderFront(nil)
             return
         }
@@ -23,6 +26,8 @@ class SettingsWindowController {
 
         panel.title = "设置".localized()
         panel.level = .normal
+        panel.delegate = self
+        panel.isReleasedWhenClosed = false
         
         // 标题栏透明，融合背景
         panel.titlebarAppearsTransparent = true
@@ -36,6 +41,9 @@ class SettingsWindowController {
         panel.center()
         
         window = panel
+        
+        // 激活应用并让窗口获取键盘焦点
+        NSApp.activate(ignoringOtherApps: true)
         panel.makeKeyAndOrderFront(nil)
         
         updateAppearance()
@@ -64,6 +72,11 @@ class SettingsWindowController {
 
     func close() {
         window?.close()
+        window = nil
+    }
+
+    // 监听窗口关闭，确保释放强引用并清理，防范野指针
+    func windowWillClose(_ notification: Notification) {
         window = nil
     }
 }
