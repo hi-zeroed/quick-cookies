@@ -164,6 +164,18 @@ File → Add Packages → https://github.com/raspu/Highlightr.git
 - Highlightr 2.1.0+
 - WebKit（Markdown HTML 渲染）
 
+## 图标资源与版权声明
+
+### 应用图标来源
+本项目当前采用的应用图标（AppIcon）源自 [iconfont 矢量图标库（合集 ID: 15128）](https://www.iconfont.cn/collections/detail?spm=a313x.manage_type_mylikes.0.da5a778a4.77973a81n26vWj&cid=15128)。
+
+### 商用合规性评估
+针对该图标来源，在商用合规性方面作出以下评估与建议说明：
+1. **版权归属**：iconfont.cn 平台上的图标资源（除阿里巴巴官方出品外）均由独立设计师或用户上传分享，其著作权属于原上传作者。平台不拥有这些图标的版权，亦无法提供统一的商用授权。
+2. **非商用合规性**：若本项目处于个人学习、研究及非营利性开源阶段，按平台要求在 `README` 中明确标注出处即可合规引用。
+3. **商用合规隐患**：如果本项目未来有任何商业化计划（包括但不限于上架 Mac App Store 售卖、内购、收取捐赠或用于商业广告宣传等），直接使用此图标将存在侵权风险。**必须主动联系图标原作者获取书面的商用授权**。
+4. **避险方案**：在未取得作者商用授权前，如需进行商业发布，请将图标资产更换为具有 CC0、MIT 协议或其他免授权商用协议（如 Font Awesome Free、Material Design Icons、苹果官方 SF Symbols 或自研设计）的资源。
+
 ## License
 
 MIT

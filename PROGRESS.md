@@ -119,4 +119,6 @@
   - **Xcode 编译打包通道打通**：重写了 `project.pbxproj` 关联 `Assets.xcassets`，新增 `PBXResourcesBuildPhase` 资源打包编译流程并绑定到 QuickPeek 目标，配置 `ASSETCATALOG_COMPILER_APPICON_NAME` 编译项。同时在 `Info.plist` 里声明 `CFBundleIconName = AppIcon`。
   - **菜单栏图标原生升级**：重构了 `QuickPeekApp.swift` 的 `MenuBarExtra` 入口，使用系统原生的 SF Symbol 图标 `magnifyingglass` 代替之前的文字占位 `"QuickPeek 🔍"`，完美支持深浅色模式自动反色。
   - **AppIcon 品牌 Logo 升级**：根据用户提供的最新卡通网格面包/贝壳 Logo 图像，更新裁剪脚本 [generate_icons.py](file:///Users/jiangwei/.gemini/antigravity/brain/a54f58af-0c5c-4ce6-86ce-17c110a150a3/scratch/generate_icons.py)，通过 `sips` 自动生成 10 张符合 macOS HIG 规范的小分辨率图标并覆盖 `Assets.xcassets/AppIcon.appiconset`，通过 `xcodebuild` 重新构建成功。
+  - **文档更新与合规评估**：更新 [README.md](file:///Users/jiangwei/Git/QuickPeek/README.md) 明确标注应用图标来源的 iconfont 地址，对 iconfont 平台的版权机制和潜在的商用合规风险进行了深度评估，并撰写了规避和避险方案说明。
+
 
