@@ -274,6 +274,28 @@ extension Color {
 struct Localization {
     static func translate(_ key: String, lang: Language) -> String {
         let dict: [String: [Language: String]] = [
+            // Onboarding
+            "新手向导": [.en: "Onboarding", .zhHans: "新手向导"],
+            "下一步": [.en: "Next", .zhHans: "下一步"],
+            "上一步": [.en: "Back", .zhHans: "上一步"],
+            "开启 Quick Cookies": [.en: "Start Using Quick Cookies", .zhHans: "开启 Quick Cookies"],
+            "跳过": [.en: "Skip", .zhHans: "跳过"],
+            "秒级代码与文档预览": [.en: "Instant Code & Document Preview", .zhHans: "秒级代码与文档预览"],
+            "简单三步，开启效率之旅": [.en: "Three simple steps to start", .zhHans: "简单三步，开启效率之旅"],
+            "1. 在 Finder 中选中任意代码或 Markdown 文件": [.en: "1. Select any code or Markdown file in Finder", .zhHans: "1. 在 Finder 中选中任意代码或 Markdown 文件"],
+            "2. 在键盘上快速双击 Option 键（或右键选择预览）": [.en: "2. Double-press Option key (or right-click to preview)", .zhHans: "2. 在键盘上快速双击 Option 键（或右键选择预览）"],
+            "3. 预览窗口瞬间飞出，支持行号与即时编辑！": [.en: "3. The preview panel flies out with line numbers & live edit!", .zhHans: "3. 预览窗口瞬间飞出，支持行号与即时编辑！"],
+            "偏好配置": [.en: "Preferences", .zhHans: "偏好配置"],
+            "在正式使用前，您可以进行一些基础的个性化定制：": [.en: "You can customize basic settings before we start:", .zhHans: "在正式使用前，您可以进行一些基础 of 个性化定制："],
+            "默认触发快捷键": [.en: "Default Hotkey", .zhHans: "默认触发快捷键"],
+            "系统权限授权": [.en: "System Permissions", .zhHans: "系统权限授权"],
+            "请授予辅助功能权限，以便能够通过快捷键触发预览。": [.en: "Please grant accessibility permission to enable the global hotkey trigger.", .zhHans: "请授予辅助功能权限，以便能够通过快捷键触发预览。"],
+            "（选填）若不授予，您仍可通过 Finder 右键菜单及 Services 菜单直接预览文件。": [.en: "(Optional) If not granted, you can still preview files via Finder right-click and Services menu.", .zhHans: "（选填）若不授予，您仍可通过 Finder 右键菜单及 Services 菜单直接预览文件。"],
+            "去授予权限": [.en: "Grant Permission", .zhHans: "去授予权限"],
+            "已获得授权": [.en: "Permission Granted", .zhHans: "已获得授权"],
+            "授权成功！🎉": [.en: "Successfully Authorized! 🎉", .zhHans: "授权成功！🎉"],
+            "免授权降级": [.en: "Permissionless Fallback", .zhHans: "免授权降级"],
+
             // Appearance
             "APPEARANCE": [.en: "APPEARANCE", .zhHans: "外观"],
             "外观主题": [.en: "Theme Mode", .zhHans: "外观主题"],

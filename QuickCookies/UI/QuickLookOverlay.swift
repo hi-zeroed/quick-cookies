@@ -366,7 +366,19 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
     private func getSourceRect() -> CGRect {
         lastDiagnosticMessage = ""
         
-        // 1. 获取 Finder 的 PID
+        // 1. 如果没有辅助功能权限，直接优雅降级到当前鼠标位置，消除权限阻断
+        if !HotkeyManager.shared.checkAccessibilityPermission() {
+            let mouseLoc = NSEvent.mouseLocation
+            lastDiagnosticMessage = "免授权降级".localized()
+            return CGRect(
+                x: mouseLoc.x - 16,
+                y: mouseLoc.y - 16,
+                width: 32,
+                height: 32
+            )
+        }
+        
+        // 2. 获取 Finder 的 PID
         guard let finderApp = NSWorkspace.shared.runningApplications.first(where: { $0.bundleIdentifier == "com.apple.finder" }) else {
             lastDiagnosticMessage = "Finder PID 失败".localized()
             return getDefaultSourceRect()

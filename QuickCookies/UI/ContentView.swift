@@ -32,6 +32,9 @@ struct ContentView: View {
     @State private var isModified: Bool = false
     @State private var showErrorAlert: Bool = false
     @State private var errorMessage: String = ""
+    @State private var fileWatcher: FileWatcher? = nil
+    @State private var showReloadAlert: Bool = false
+    @State private var isSaving: Bool = false
 
     @ObservedObject var settings = Settings.shared
 
@@ -54,9 +57,27 @@ struct ContentView: View {
         } message: {
             Text(errorMessage.localized())
         }
+        .alert("文件已被外部修改".localized(), isPresented: $showReloadAlert) {
+            Button("重新加载".localized()) {
+                if let path = state.filePath {
+                    isLoading = true
+                    Task {
+                        await loadFileAsync(path: path)
+                    }
+                }
+            }
+            Button("忽略".localized(), role: .cancel) { }
+        } message: {
+            Text("该文件已被其他编辑器修改，是否重新加载最新内容？".localized())
+        }
+        .onDisappear {
+            fileWatcher?.stop()
+            fileWatcher = nil
+        }
         .task {
             if let path = state.filePath {
                 await loadFileAsync(path: path)
+                startWatchingFile(path: path)
             }
         }
         .onChange(of: state.filePath) { newPath in
@@ -64,7 +85,11 @@ struct ContentView: View {
                 isLoading = true
                 Task {
                     await loadFileAsync(path: path)
+                    startWatchingFile(path: path)
                 }
+            } else {
+                fileWatcher?.stop()
+                fileWatcher = nil
             }
         }
     }
@@ -115,7 +140,7 @@ struct ContentView: View {
 
             // 右侧控制区域（模式切换与保存，右对齐固定 80px）
             HStack(spacing: 12) {
-                if state.filePath != nil && state.errorMessage == nil {
+                if state.filePath != nil && state.errorMessage == nil && state.renderType != .pdf && state.renderType != .image {
                     // 模式切换按钮
                     Button(action: toggleMode) {
                         Image(mode == .preview ? "ToolbarEdit" : "ToolbarPreview")
@@ -235,6 +260,8 @@ struct ContentView: View {
                     fontName: settings.editorFont,
                     isDark: isDark
                 )
+            case .pdf, .image:
+                MediaPreviewView(filePath: path, renderType: renderType)
             }
         }
     }
@@ -257,19 +284,31 @@ struct ContentView: View {
 
     private func saveFile() {
         guard let path = state.filePath else { return }
+        isSaving = true
         let result = FileUtils.writeFile(at: path, content: content)
 
         switch result {
         case .success:
             isModified = false
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                self.isSaving = false
+            }
         case .failure(let error):
             errorMessage = error.errorDescription ?? "未知错误"
             showErrorAlert = true
+            isSaving = false
         }
     }
 
     /// 后台并发异步读取与分段解码，保证窗口零延迟弹出
     private func loadFileAsync(path: String) async {
+        if state.renderType == .pdf || state.renderType == .image {
+            await MainActor.run {
+                self.isLoading = false
+            }
+            return
+        }
+        
         let result = await Task.detached(priority: .userInitiated) {
             return FileUtils.readLimitFile(at: path, limitBytes: 128 * 1024)
         }.value
@@ -288,5 +327,18 @@ struct ContentView: View {
                 }
             }
         }
+    }
+
+    private func startWatchingFile(path: String) {
+        fileWatcher?.stop()
+        fileWatcher = nil
+        
+        let watcher = FileWatcher(url: URL(fileURLWithPath: path))
+        watcher.onFileChanged = {
+            if self.isSaving { return }
+            self.showReloadAlert = true
+        }
+        watcher.start()
+        fileWatcher = watcher
     }
 }

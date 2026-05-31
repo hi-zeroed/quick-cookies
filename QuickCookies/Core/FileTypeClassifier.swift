@@ -4,6 +4,8 @@ enum FileRenderType {
     case markdown       // Markdown 渲染为 HTML
     case code           // 代码/配置文件，语法高亮
     case plainText      // 纯文本，无高亮
+    case pdf            // PDF 预览
+    case image          // 图片预览
 }
 
 struct FileTypeClassifier {
@@ -12,6 +14,15 @@ struct FileTypeClassifier {
         let ext = URL(fileURLWithPath: path)
             .pathExtension
             .lowercased()
+
+        if ext == "pdf" {
+            return .pdf
+        }
+        
+        let imageExtensions: Set<String> = ["png", "jpg", "jpeg", "webp", "gif", "bmp"]
+        if imageExtensions.contains(ext) {
+            return .image
+        }
 
         // Markdown 文件
         if Constants.markdownExtensions.contains(ext) {
@@ -38,6 +49,15 @@ struct FileTypeClassifier {
         let ext = URL(fileURLWithPath: path)
             .pathExtension
             .lowercased()
+
+        if ext == "pdf" {
+            return true
+        }
+        
+        let imageExtensions: Set<String> = ["png", "jpg", "jpeg", "webp", "gif", "bmp"]
+        if imageExtensions.contains(ext) {
+            return true
+        }
 
         if Constants.supportedExtensions.contains(ext) {
             return true

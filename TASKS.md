@@ -18,6 +18,10 @@
 - [ ] TC-007: 编辑并保存修改
 - [ ] TC-008: 偏好设置项变更
 - [ ] TC-009: 辅助功能权限引导
+- [ ] TC-020: Finder Sync 右键菜单与免权限降级
+- [ ] TC-021: File Watcher 外部协同编辑冲突提示
+- [ ] TC-022: SwiftUI 多卡片 Onboarding 引导与彩屑
+
 
 ## 需回归 (To Regress)
 - [ ] 回归测试: 双击 Option 或 Services 唤起浮动预览，且无闪退与遮挡 Bug (合并 `PreviewWindowController` 后的功能完整性)

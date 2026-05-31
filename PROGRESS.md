@@ -127,6 +127,11 @@
   - **产品级 README 重构**：重新将 [README.md](file:///Users/jiangwei/Git/QuickPeek/README.md) 重写为高规格产品级示文。在顶部居中展示了全新卡通面包品牌 Logo，用生动、富有感染力的产品文案包装了 0ms 秒开、黄金比例、Space 弹簧动效、多语言热刷新等核心卖点，并重新整理了使用指南及开发规范。
   - **AppIcon 白色底座合并**：为解决透明背景在 macOS 上被系统自动填充难看灰色底座的问题，编写了 Swift 合并底图脚本 [merge_bg.swift](file:///Users/jiangwei/.gemini/antigravity/brain/a54f58af-0c5c-4ce6-86ce-17c110a150a3/scratch/merge_bg.swift) 并在 Logo 透明层下方完美平铺了纯白色底色，重新生成了 10 种分辨率图标规格并覆盖 `AppIcon.appiconset`，重新跑通了编译验证。
   - **透明底 Logo 图标保留**：在 `QuickCookies/Resources/` 目录下单独复制并保留了一份原始的透明背景 Logo 图标 [AppIcon_transparent.png](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/Resources/AppIcon_transparent.png)，专门供 `README.md` 文档展示使用，从而在任何明暗模式的文档背景下均能完美呈现无边框、无底色的极致排版质感。
+  - **产品级功能体验全面升级**：根据差距分析完成开发闭环，全量实现以下功能：
+    1. **Finder Sync 扩展集成**：新建独立的 `QuickCookiesFinderSync` 扩展 Target，通过沙盒合规通道免权限检索 Finder 选中项，并在 Finder 中无感集成右键“用 Quick Cookies 预览”菜单，且在 `QuickLookOverlay.swift` 支持免辅助功能授权的鼠标坐标降级策略。
+    2. **图片与 PDF 媒体预览**：通过 `MediaPreviewView.swift` 支持了 PDF 文件的翻阅与选择，以及图片（`.png`, `.jpg`, `.jpeg`, `.webp` 等）的分辨率/物理大小元数据卡片显示。
+    3. **File Watcher 冲突监听**：基于 `DispatchSourceFileSystemObject` 监听当前编辑文件的 write 信号，防多端协同编辑覆盖。
+    4. **SwiftUI 多卡片 Onboarding 引导**：主 App 自动检测首次启动并以 `.regular` 策略弹出高颜值向导窗口，支持多语言/主题热刷新、1s 轮询检测权限以及 Confetti 彩屑庆祝动画，完成后自动转换为后台 `.accessory` 模式运行。
 
 
 
