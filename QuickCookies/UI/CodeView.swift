@@ -19,6 +19,7 @@ struct CodeView: NSViewRepresentable {
         var lastIsDark: Bool?
         var lastFontName: String?
         var lastFilePath: String?
+        var lastContentLength: Int = 0   // NOTE: 用长度缓存替代 O(n) 字符串前缀比较
         var state: PreviewState?
         var onLoadMore: (() -> Void)?
         
@@ -52,6 +53,10 @@ struct CodeView: NSViewRepresentable {
         
         scrollView.backgroundColor = .appBackground
         scrollView.drawsBackground = true
+        
+        // PERF: 启用 Layer 异步合成滑动，走 GPU 层合成路径而非 legacy CPU draw-on-scroll
+        scrollView.wantsLayer = true
+        scrollView.contentView.wantsLayer = true
 
         // 创建 TextView
         let textView = NSTextView()
@@ -62,10 +67,26 @@ struct CodeView: NSViewRepresentable {
         textView.textColor = .appText
         textView.isRichText = false
         textView.string = content
-        textView.wantsLayer = true 
+        textView.wantsLayer = true
         
         // 增加四周留白
         textView.textContainerInset = NSSize(width: 8, height: 8)
+        
+        // PERF: 核心性能修复！未开启时， NSLayoutManager 必须从第 1 行开始
+        //       顺序同步计算到当前滚动位置的全部布局。大文件滚动到某行需要将该行之前
+        //       的所有内容全部先行布局，O(n) 主线程阀塞导致滚动卡顿。
+        //       开启后只对可见区域附近按需布局，滚动帧率恒保 60fps。
+        textView.layoutManager?.allowsNonContiguousLayout = true
+        
+        // PERF: 禁用所有文本自动处理特性，这些功能在布局期间对每个字符额外消耗 CPU
+        //       对于代码预览模式完全无意义
+        textView.isAutomaticSpellingCorrectionEnabled = false
+        textView.isAutomaticQuoteSubstitutionEnabled = false
+        textView.isAutomaticDashSubstitutionEnabled = false
+        textView.isAutomaticTextReplacementEnabled = false
+        textView.isAutomaticLinkDetectionEnabled = false
+        textView.isContinuousSpellCheckingEnabled = false
+        textView.isGrammarCheckingEnabled = false
 
         scrollView.documentView = textView
 
@@ -95,8 +116,10 @@ struct CodeView: NSViewRepresentable {
         context.coordinator.onLoadMore = onLoadMore
 
         let isSameFile = context.coordinator.lastFilePath == filePath
-        let textStorageCount = textView.string.count
-        let isIncremental = isSameFile && content.hasPrefix(textView.string) && content.count > textStorageCount
+        // NOTE: 用长度对比替代 O(n) 的 content.hasPrefix(textView.string)，避免大文件在 updateNSView 每次都做全量字符串扫描
+        let cachedLength = context.coordinator.lastContentLength
+        let currentLength = textView.textStorage?.length ?? 0
+        let isIncremental = isSameFile && content.count > currentLength && currentLength == cachedLength
 
         let fontChanged = textView.font?.pointSize != fontSize || context.coordinator.lastFontName != fontName
         let isDarkChanged = context.coordinator.lastIsDark != isDark
@@ -104,6 +127,7 @@ struct CodeView: NSViewRepresentable {
         context.coordinator.lastIsDark = isDark
         context.coordinator.lastFontName = fontName
         context.coordinator.lastFilePath = filePath
+        context.coordinator.lastContentLength = textView.textStorage?.length ?? 0
 
         // 动态更新背景色和文本色
         scrollView.backgroundColor = .appBackground
@@ -112,8 +136,9 @@ struct CodeView: NSViewRepresentable {
 
         if isIncremental {
             // 增量追加段落
-            let newText = String(content[content.index(content.startIndex, offsetBy: textStorageCount)...])
+            let newText = String(content[content.index(content.startIndex, offsetBy: currentLength)...])
             appendChunk(newText: newText, for: textView, isDark: isDark)
+            context.coordinator.lastContentLength = textView.textStorage?.length ?? 0
         } else if !isSameFile || isDarkChanged || fontChanged {
             // 首次加载、修改主题或字体
             textView.string = content
