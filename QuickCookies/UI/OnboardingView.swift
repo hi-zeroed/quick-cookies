@@ -101,21 +101,20 @@ struct OnboardingView: View {
                 ZStack {
                     if currentPage == 0 {
                         welcomePage
-                            .transition(.asymmetric(insertion: .move(edge: .trailing), removal: .move(edge: .leading)))
+                            .transition(.opacity)
                     } else if currentPage == 1 {
                         demoPage
-                            .transition(.asymmetric(insertion: .move(edge: .trailing), removal: .move(edge: .leading)))
+                            .transition(.opacity)
                     } else if currentPage == 2 {
                         configPage
-                            .transition(.asymmetric(insertion: .move(edge: .trailing), removal: .move(edge: .leading)))
+                            .transition(.opacity)
                     } else if currentPage == 3 {
                         permissionPage
-                            .transition(.asymmetric(insertion: .move(edge: .trailing), removal: .move(edge: .leading)))
+                            .transition(.opacity)
                     }
                 }
                 .frame(maxHeight: .infinity)
                 .padding(.horizontal, 40)
-                .animation(.spring(response: 0.45, dampingFraction: 0.82), value: currentPage)
                 
                 Divider()
                     .background(Color.appBorder)
@@ -314,7 +313,9 @@ struct OnboardingView: View {
             
             if currentPage > 0 {
                 Button(action: {
-                    currentPage -= 1
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        currentPage -= 1
+                    }
                 }) {
                     Text("上一步".localized())
                         .frame(width: 60)
@@ -324,7 +325,9 @@ struct OnboardingView: View {
             
             if currentPage < 3 {
                 Button(action: {
-                    currentPage += 1
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        currentPage += 1
+                    }
                 }) {
                     Text("下一步".localized())
                         .frame(width: 60)
