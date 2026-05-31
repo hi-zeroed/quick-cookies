@@ -173,12 +173,12 @@ class Settings: ObservableObject {
             if launchAtLogin {
                 if service.status != .enabled {
                     try service.register()
-                    print("QuickPeek registered to launch at login successfully.")
+                    print("Quick Cookies registered to launch at login successfully.")
                 }
             } else {
                 if service.status == .enabled {
                     try service.unregister()
-                    print("QuickPeek unregistered from launch at login successfully.")
+                    print("Quick Cookies unregistered from launch at login successfully.")
                 }
             }
         } catch {
@@ -300,7 +300,7 @@ struct Localization {
             // System
             "SYSTEM": [.en: "SYSTEM", .zhHans: "系统"],
             "开机自启动": [.en: "Launch at Login", .zhHans: "开机自启动"],
-            "在您登录 macOS 系统时自动静默启动 QuickPeek": [.en: "Automatically start QuickPeek in the background when you log in", .zhHans: "在您登录 macOS 系统时自动静默启动 QuickPeek"],
+            "在您登录 macOS 系统时自动静默启动 Quick Cookies": [.en: "Automatically start QuickCookies in the background when you log in", .zhHans: "在您登录 macOS 系统时自动静默启动 Quick Cookies"],
             "恢复默认设置": [.en: "Restore Default Settings", .zhHans: "恢复默认设置"],
             
             // Language
@@ -325,7 +325,7 @@ struct Localization {
             "Finder 探测失败": [.en: "Finder detection failed", .zhHans: "Finder 探测失败"],
             "权限请求": [.en: "Permission Request", .zhHans: "权限请求"],
             "需要辅助功能权限": [.en: "Accessibility Permission Required", .zhHans: "需要辅助功能权限"],
-            "QuickPeek 需要辅助功能权限来监听全局快捷键。\n请前往 系统偏好设置 → 安全性与隐私 → 辅助功能，添加 QuickPeek。": [.en: "QuickPeek requires accessibility permission to listen for global hotkeys.\nPlease go to System Settings -> Privacy & Security -> Accessibility, and enable QuickPeek.", .zhHans: "QuickPeek 需要辅助功能权限来监听全局快捷键。\n请前往 系统偏好设置 → 安全性与隐私 → 辅助功能，添加 QuickPeek。"],
+            "Quick Cookies 需要辅助功能权限来监听全局快捷键。\n请前往 系统偏好设置 → 安全性与隐私 → 辅助功能，添加 Quick Cookies。": [.en: "QuickCookies requires accessibility permission to listen for global hotkeys.\nPlease go to System Settings -> Privacy & Security -> Accessibility, and enable QuickCookies.", .zhHans: "Quick Cookies 需要辅助功能权限来监听全局快捷键。\n请前往 系统偏好设置 → 安全性与隐私 → 辅助功能，添加 Quick Cookies。"],
             "打开设置": [.en: "Open Settings", .zhHans: "打开设置"],
             "稍后": [.en: "Later", .zhHans: "稍后"],
             

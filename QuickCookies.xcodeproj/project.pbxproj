@@ -23,7 +23,7 @@
 			962C8A503D0B4CA6963E2B94 /* QuickLookOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = B76F46CEB24C42779E84EBBE /* QuickLookOverlay.swift */; };
 			71D913A0ECB64193A25A4044 /* MarkdownTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 460FA400CC4F4F828DB39EFA /* MarkdownTextView.swift */; };
 		A23C977659B0910F9D58A41B /* FileUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CB74C8B4C3A792598259E87 /* FileUtils.swift */; };
-		AAA111111111111111111111 /* QuickPeekApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB222222222222222222222 /* QuickPeekApp.swift */; };
+		AAA111111111111111111111 /* QuickCookiesApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB222222222222222222222 /* QuickCookiesApp.swift */; };
 		C2B47F163AC772A6BD9CD6B5 /* SettingsWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = B87D7CAF1B4B8FAFF363B543 /* SettingsWindow.swift */; };
 		CC3B6172EFBB3884582E6DB9 /* MarkdownView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6240A15DD8E31603B40D6CC6 /* MarkdownView.swift */; };
 		D02C04567F8A13B8EE46D917 /* ToastView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC8B9C87C1019A1BEC529314 /* ToastView.swift */; };
@@ -50,13 +50,13 @@
 		94269EDF755E0DD605801286 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		A7AA2E8A55B09BC0FF2E83A0 /* FileTypeClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileTypeClassifier.swift; sourceTree = "<group>"; };
 		B87D7CAF1B4B8FAFF363B543 /* SettingsWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsWindow.swift; sourceTree = "<group>"; };
-		BBB222222222222222222222 /* QuickPeekApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickPeekApp.swift; sourceTree = "<group>"; };
+		BBB222222222222222222222 /* QuickCookiesApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickCookiesApp.swift; sourceTree = "<group>"; };
 		C61407483B4F8F25CF2BA6C7 /* FileDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileDetector.swift; sourceTree = "<group>"; };
 		CC8B9C87C1019A1BEC529314 /* ToastView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToastView.swift; sourceTree = "<group>"; };
 		CCC333333333333333333333 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		D643EEA9D20E7A954D49ED4C /* Settings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
-		DDD444444444444444444444 /* QuickPeek.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = QuickPeek.entitlements; sourceTree = "<group>"; };
-		EEE555555555555555555555 /* QuickPeek.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = QuickPeek.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		DDD444444444444444444444 /* QuickCookies.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = QuickCookies.entitlements; sourceTree = "<group>"; };
+		EEE555555555555555555555 /* QuickCookies.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = QuickCookies.app; sourceTree = BUILT_PRODUCTS_DIR; };
 			460FA400CC4F4F828DB39EFA /* MarkdownTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownTextView.swift; sourceTree = "<group>"; };
 			B76F46CEB24C42779E84EBBE /* QuickLookOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickLookOverlay.swift; sourceTree = "<group>"; };
 		FMI000000000000000000002 /* FinderMenuIntegration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinderMenuIntegration.swift; sourceTree = "<group>"; };
@@ -76,7 +76,7 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		GGG777777777777777777777 /* QuickPeek */ = {
+		GGG777777777777777777777 /* QuickCookies */ = {
 			isa = PBXGroup;
 			children = (
 				HHH888888888888888888888 /* App */,
@@ -87,15 +87,15 @@
 				MMM131313131313131313131 /* Config */,
 				NNN141414141414141414141 /* Resources */,
 				CCC333333333333333333333 /* Info.plist */,
-				DDD444444444444444444444 /* QuickPeek.entitlements */,
+				DDD444444444444444444444 /* QuickCookies.entitlements */,
 			);
-			path = QuickPeek;
+			path = QuickCookies;
 			sourceTree = "<group>";
 		};
 		HHH888888888888888888888 /* App */ = {
 			isa = PBXGroup;
 			children = (
-				BBB222222222222222222222 /* QuickPeekApp.swift */,
+				BBB222222222222222222222 /* QuickCookiesApp.swift */,
 				753F94AD7ABEFFC057AAA2DE /* AppDelegate.swift */,
 			);
 			path = App;
@@ -167,7 +167,7 @@
 		OOO151515151515151515151 = {
 			isa = PBXGroup;
 			children = (
-				GGG777777777777777777777 /* QuickPeek */,
+				GGG777777777777777777777 /* QuickCookies */,
 				PPP161616161616161616161 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -175,7 +175,7 @@
 		PPP161616161616161616161 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				EEE555555555555555555555 /* QuickPeek.app */,
+				EEE555555555555555555555 /* QuickCookies.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -183,9 +183,9 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		QQQ171717171717171717171 /* QuickPeek */ = {
+		QQQ171717171717171717171 /* QuickCookies */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = RRR181818181818181818181 /* Build configuration list for PBXNativeTarget "QuickPeek" */;
+			buildConfigurationList = RRR181818181818181818181 /* Build configuration list for PBXNativeTarget "QuickCookies" */;
 			buildPhases = (
 				SSS191919191919191919191 /* Sources */,
 				FFF666666666666666666666 /* Frameworks */,
@@ -195,9 +195,9 @@
 			);
 			dependencies = (
 			);
-			name = QuickPeek;
-			productName = QuickPeek;
-			productReference = EEE555555555555555555555 /* QuickPeek.app */;
+			name = QuickCookies;
+			productName = QuickCookies;
+			productReference = EEE555555555555555555555 /* QuickCookies.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -226,7 +226,7 @@
 					};
 				};
 			};
-			buildConfigurationList = UUU212121212121212121212 /* Build configuration list for PBXProject "QuickPeek" */;
+			buildConfigurationList = UUU212121212121212121212 /* Build configuration list for PBXProject "QuickCookies" */;
 			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
@@ -244,7 +244,7 @@
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
-				QQQ171717171717171717171 /* QuickPeek */,
+				QQQ171717171717171717171 /* QuickCookies */,
 			);
 		};
 /* End PBXProject section */
@@ -254,7 +254,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AAA111111111111111111111 /* QuickPeekApp.swift in Sources */,
+				AAA111111111111111111111 /* QuickCookiesApp.swift in Sources */,
 				2DD3FEAD2ABF97565DA77A2C /* AppDelegate.swift in Sources */,
 				3A2E710F92BB390B19278C21 /* Constants.swift in Sources */,
 				DA83EA46F6AB177473BC0393 /* Settings.swift in Sources */,
@@ -315,7 +315,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGN_ENTITLEMENTS = QuickPeek/QuickPeek.entitlements;
+				CODE_SIGN_ENTITLEMENTS = QuickCookies/QuickCookies.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
@@ -340,8 +340,8 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = QuickPeek/Info.plist;
-				INFOPLIST_KEY_NSAppleEventsUsageDescription = "QuickPeek needs to communicate with Finder to get selected file paths.";
+				INFOPLIST_FILE = QuickCookies/Info.plist;
+				INFOPLIST_KEY_NSAppleEventsUsageDescription = "QuickCookies needs to communicate with Finder to get selected file paths.";
 				INFOPLIST_KEY_NSHighResolutionCapable = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -351,7 +351,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = com.quickpeek.app;
+				PRODUCT_BUNDLE_IDENTIFIER = com.quickcookies.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
@@ -395,7 +395,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGN_ENTITLEMENTS = QuickPeek/QuickPeek.entitlements;
+				CODE_SIGN_ENTITLEMENTS = QuickCookies/QuickCookies.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
@@ -414,8 +414,8 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = QuickPeek/Info.plist;
-				INFOPLIST_KEY_NSAppleEventsUsageDescription = "QuickPeek needs to communicate with Finder to get selected file paths.";
+				INFOPLIST_FILE = QuickCookies/Info.plist;
+				INFOPLIST_KEY_NSAppleEventsUsageDescription = "QuickCookies needs to communicate with Finder to get selected file paths.";
 				INFOPLIST_KEY_NSHighResolutionCapable = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -424,7 +424,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = com.quickpeek.app;
+				PRODUCT_BUNDLE_IDENTIFIER = com.quickcookies.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				SWIFT_COMPILATION_MODE = wholemodule;
@@ -467,7 +467,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGN_ENTITLEMENTS = QuickPeek/QuickPeek.entitlements;
+				CODE_SIGN_ENTITLEMENTS = QuickCookies/QuickCookies.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
@@ -491,8 +491,8 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = QuickPeek/Info.plist;
-				INFOPLIST_KEY_NSAppleEventsUsageDescription = "QuickPeek needs to communicate with Finder to get selected file paths.";
+				INFOPLIST_FILE = QuickCookies/Info.plist;
+				INFOPLIST_KEY_NSAppleEventsUsageDescription = "QuickCookies needs to communicate with Finder to get selected file paths.";
 				INFOPLIST_KEY_NSHighResolutionCapable = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -502,7 +502,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = com.quickpeek.app;
+				PRODUCT_BUNDLE_IDENTIFIER = com.quickcookies.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -547,7 +547,7 @@
 				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
-				CODE_SIGN_ENTITLEMENTS = QuickPeek/QuickPeek.entitlements;
+				CODE_SIGN_ENTITLEMENTS = QuickCookies/QuickCookies.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				COMBINE_HIDPI_IMAGES = YES;
 				COPY_PHASE_STRIP = NO;
@@ -565,8 +565,8 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = QuickPeek/Info.plist;
-				INFOPLIST_KEY_NSAppleEventsUsageDescription = "QuickPeek needs to communicate with Finder to get selected paths.";
+				INFOPLIST_FILE = QuickCookies/Info.plist;
+				INFOPLIST_KEY_NSAppleEventsUsageDescription = "QuickCookies needs to communicate with Finder to get selected paths.";
 				INFOPLIST_KEY_NSHighResolutionCapable = YES;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -575,7 +575,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 13.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
-				PRODUCT_BUNDLE_IDENTIFIER = com.quickpeek.app;
+				PRODUCT_BUNDLE_IDENTIFIER = com.quickcookies.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = macosx;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -589,7 +589,7 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		RRR181818181818181818181 /* Build configuration list for PBXNativeTarget "QuickPeek" */ = {
+		RRR181818181818181818181 /* Build configuration list for PBXNativeTarget "QuickCookies" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				VVV222222222222222222222 /* Debug */,
@@ -598,7 +598,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		UUU212121212121212121212 /* Build configuration list for PBXProject "QuickPeek" */ = {
+		UUU212121212121212121212 /* Build configuration list for PBXProject "QuickCookies" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				XXX343434343434343434343 /* Debug */,

@@ -33,7 +33,7 @@ class HotkeyManager {
             }
         }
 
-        // 2. 本地监听（当 QuickPeek 本身处于前台时，比如预览窗口已聚焦）
+        // 2. 本地监听（当 QuickCookies 本身处于前台时，比如预览窗口已聚焦）
         localEventMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
             guard let self = self else { return event }
             if self.matchEvent(event, modifiers: modifiers, keyCode: keyCode) {

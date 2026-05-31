@@ -16,9 +16,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "QQQ171717171717171717171"
-               BuildableName = "QuickPeek.app"
-               BlueprintName = "QuickPeek"
-               ReferencedContainer = "container:QuickPeek.xcodeproj">
+               BuildableName = "QuickCookies.app"
+               BlueprintName = "QuickCookies"
+               ReferencedContainer = "container:QuickCookies.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -45,9 +45,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "QQQ171717171717171717171"
-            BuildableName = "QuickPeek.app"
-            BlueprintName = "QuickPeek"
-            ReferencedContainer = "container:QuickPeek.xcodeproj">
+            BuildableName = "QuickCookies.app"
+            BlueprintName = "QuickCookies"
+            ReferencedContainer = "container:QuickCookies.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -62,9 +62,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "QQQ171717171717171717171"
-            BuildableName = "QuickPeek.app"
-            BlueprintName = "QuickPeek"
-            ReferencedContainer = "container:QuickPeek.xcodeproj">
+            BuildableName = "QuickCookies.app"
+            BlueprintName = "QuickCookies"
+            ReferencedContainer = "container:QuickCookies.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

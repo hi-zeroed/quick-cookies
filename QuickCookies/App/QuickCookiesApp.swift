@@ -1,7 +1,7 @@
 import SwiftUI
 
 @main
-struct QuickPeekApp: App {
+struct QuickCookiesApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
 
     var body: some Scene {

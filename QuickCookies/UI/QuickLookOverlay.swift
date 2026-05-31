@@ -188,9 +188,9 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         
         previewPanel.isMovableByWindowBackground = true
         if let path = filePath {
-            previewPanel.title = "QuickPeek - \(URL(fileURLWithPath: path).lastPathComponent)"
+            previewPanel.title = "Quick Cookies - \(URL(fileURLWithPath: path).lastPathComponent)"
         } else {
-            previewPanel.title = "QuickPeek"
+            previewPanel.title = "QuickCookies"
         }
         previewPanel.level = .modalPanel
         previewPanel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
@@ -282,7 +282,7 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
                             let lang = FileTypeClassifier.getLanguageName(path: resolvedPath)
                             
                             // 更新窗口标题
-                            previewPanel.title = "QuickPeek - \(URL(fileURLWithPath: resolvedPath).lastPathComponent)"
+                            previewPanel.title = "Quick Cookies - \(URL(fileURLWithPath: resolvedPath).lastPathComponent)"
                             
                             // 更新状态触发 ContentView 异步加载文件内容
                             self.previewState.filePath = resolvedPath

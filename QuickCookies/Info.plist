@@ -7,9 +7,9 @@
 	<key>CFBundleIconFile</key>
 	<string>AppIcon</string>
 	<key>CFBundleName</key>
-	<string>QuickPeek</string>
+	<string>Quick Cookies</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.quickpeek.app</string>
+	<string>com.quickcookies.app</string>
 	<key>CFBundleVersion</key>
 	<string>1</string>
 	<key>CFBundleShortVersionString</key>
@@ -19,19 +19,19 @@
 	<key>NSHighResolutionCapable</key>
 	<true/>
 	<key>NSAppleEventsUsageDescription</key>
-	<string>QuickPeek needs to communicate with Finder to get selected file paths.</string>
+	<string>Quick Cookies needs to communicate with Finder to get selected file paths.</string>
 	<key>NSServices</key>
 	<array>
 		<dict>
 			<key>NSMenuItem</key>
 			<dict>
 				<key>default</key>
-				<string>QuickPeek</string>
+				<string>Quick Cookies</string>
 			</dict>
 			<key>NSMessage</key>
-			<string>quickPeekService</string>
+			<string>quickCookiesService</string>
 			<key>NSPortName</key>
-			<string>QuickPeek</string>
+			<string>Quick Cookies</string>
 			<key>NSSendTypes</key>
 			<array>
 				<string>NSStringPboardType</string>

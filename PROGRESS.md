@@ -1,6 +1,6 @@
 # 项目进度记录 (PROGRESS.md)
 
-本文件用于记录 QuickPeek 项目的功能开发及迭代进度。
+本文件用于记录 Quick Cookies 项目的功能开发及迭代进度。
 
 ## 2026-05-30
 - **初始化项目骨架**：完成了项目目录的搭建，包括 `App`、`Core`、`UI`、`Renderer`、`Utils`、`Config`、`Resources`。
@@ -24,13 +24,13 @@
   - 引入了基于 `NSCache` 的 `HighlightCache` 全局缓存，通过 `文件路径 + 修改时间` 识别，完全消除重复的 JavaScript 语法高亮计算耗时。
   - 限制最大高亮长度为 500 行，解决超长代码文件的计算死锁和滑动卡顿，其余后续内容以纯文本平滑加载。
 - **Markdown 原生化秒开重构（2026-05-30）**：
-  - 将项目依赖从 `swift-markdown` 迁移到原生高性能的 `swift-markdown-ui` 依赖包，彻底重写 [MarkdownView.swift](file:///Users/jiangwei/Git/QuickPeek/QuickPeek/UI/MarkdownView.swift) 为纯原生 SwiftUI 视图。
-  - 彻底删除了基于 WebView 的 HTML 渲染引擎 [MarkdownRenderer.swift](file:///Users/jiangwei/Git/QuickPeek/QuickPeek/Renderer/MarkdownRenderer.swift) 和外部 `markdown.css` 资源，精简了约 350 行复杂且缓慢的代码。
-  - 编写了 [HighlightrCodeSyntaxHighlighter.swift](file:///Users/jiangwei/Git/QuickPeek/QuickPeek/Renderer/HighlightrCodeSyntaxHighlighter.swift)，通过自定义 `CodeSyntaxHighlighter` 将多语言高亮引擎 `Highlightr` 桥接入原生 Markdown 排版中。
+  - 将项目依赖从 `swift-markdown` 迁移到原生高性能的 `swift-markdown-ui` 依赖包，彻底重写 [MarkdownView.swift](file:///Users/jiangwei/Git/Quick Cookies/QuickCookies/UI/MarkdownView.swift) 为纯原生 SwiftUI 视图。
+  - 彻底删除了基于 WebView 的 HTML 渲染引擎 [MarkdownRenderer.swift](file:///Users/jiangwei/Git/Quick Cookies/QuickCookies/Renderer/MarkdownRenderer.swift) 和外部 `markdown.css` 资源，精简了约 350 行复杂且缓慢的代码。
+  - 编写了 [HighlightrCodeSyntaxHighlighter.swift](file:///Users/jiangwei/Git/Quick Cookies/QuickCookies/Renderer/HighlightrCodeSyntaxHighlighter.swift)，通过自定义 `CodeSyntaxHighlighter` 将多语言高亮引擎 `Highlightr` 桥接入原生 Markdown 排版中。
   - 限制 Markdown 内置代码块同步高亮最大长度为 100 行，并挂载全局 Hash 缓存，确保大型 Markdown 文件预览也能绝对秒开。
 - **快捷键路由与右键服务集成修复（2026-05-30）**：
   - 修复了 `HotkeyManager` 在 `registerWithSettings` 中未根据 `keyCode == 0` 判断导致默认“双击 Option”快捷键监听失效的 Bug。
-  - 修复了 `QuickPeekServiceProvider` 中只读取 `fileURL` 类型导致无法捕获 Finder 传统的 `NSFilenamesPboardType` 文件类型致使右键菜单触发失败的 Bug，现在同时兼容读取 URL 路径 and 物理文件名。
+  - 修复了 `Quick CookiesServiceProvider` 中只读取 `fileURL` 类型导致无法捕获 Finder 传统的 `NSFilenamesPboardType` 文件类型致使右键菜单触发失败的 Bug，现在同时兼容读取 URL 路径 and 物理文件名。
 - **窗口关闭残留与应用卡死彻底修复（2026-05-30）**：
   - 引入了 `NSWindowDelegate` 代理机制绑定预览面板的关闭事件，确保在点击预览窗口关闭按钮或以其他形式（如快捷键/关闭手势）关闭时，能同步彻底销毁并隐藏背景黑色遮罩窗口（`overlayWindow`），解决关闭后留有黑色背景的 Bug。
   - 将 `previewPanel` and `backgroundWindow` 的 `isReleasedWhenClosed` 设置为 `false`，改由 `QuickLookOverlay` 进行强引用生命周期控制，并在 `performClose()` 中加入重入防护，彻底避免了因 AppKit 自动释放底层 Objective-C 窗口对象而导致的野指针（悬空指针）异常访问及应用死锁卡退的 Bug。
@@ -116,15 +116,15 @@
   - **快捷键一致性及修改失效 Bug 修复**：修复了在设置界面修改快捷键无法生效，且录制显示的快捷键与实际生效快捷键不一致（如 S 键被错显为 B，双击 Option 模式被错显为 ⌥ A，且无法改回双击 Option）的 Bug。根本原因是：1) 录制快捷键时未过滤掉设备相关的杂质修饰键 flags，导致持久化值与 HotkeyManager 核心修饰符匹配时发生冲突；2) 原 `keyCodeToName` 计算不符合物理键码，我们将 QWERTY 键盘映射字典全表重写，并特殊处理了双击 Option 模式下的 `⌥ ⌥` 展示；3) `loadFromUserDefaults` 内部误限制 `savedKeyCode != 0` 条件导致无法重新加载恢复双击 Option (即 0) 的值，我们将其升级为了 `hasKey` 无条件安全读取。此外，我们将 Local Monitor 注册为 View 属性并在 `onDisappear` 中注销以防泄露。
 - **App 图标与状态栏图标补全**：
   - **AppIcon 裁切生成**：使用 AI 设计了微光霓虹放大镜聚焦代码卡片的高清 AppIcon 源图，编写 Python 自动化裁剪脚本，配合 macOS 的 `sips` 裁切生成全部符合 macOS HIG 规范的 10 张小分辨率图标，并配置好 `Contents.json` 属性目录。
-  - **Xcode 编译打包通道打通**：重写了 `project.pbxproj` 关联 `Assets.xcassets`，新增 `PBXResourcesBuildPhase` 资源打包编译流程并绑定到 QuickPeek 目标，配置 `ASSETCATALOG_COMPILER_APPICON_NAME` 编译项。同时在 `Info.plist` 里声明 `CFBundleIconName = AppIcon`。
-  - **菜单栏图标原生升级**：重构了 `QuickPeekApp.swift` 的 `MenuBarExtra` 入口，使用系统原生的 SF Symbol 图标 `magnifyingglass` 代替之前的文字占位 `"QuickPeek 🔍"`，完美支持深浅色模式自动反色。
+  - **Xcode 编译打包通道打通**：重写了 `project.pbxproj` 关联 `Assets.xcassets`，新增 `PBXResourcesBuildPhase` 资源打包编译流程并绑定到 Quick Cookies 目标，配置 `ASSETCATALOG_COMPILER_APPICON_NAME` 编译项。同时在 `Info.plist` 里声明 `CFBundleIconName = AppIcon`。
+  - **菜单栏图标原生升级**：重构了 `QuickCookiesApp.swift` 的 `MenuBarExtra` 入口，使用系统原生的 SF Symbol 图标 `magnifyingglass` 代替之前的文字占位 `"Quick Cookies 🔍"`，完美支持深浅色模式自动反色。
   - **AppIcon 品牌 Logo 升级**：根据用户提供的最新卡通网格面包/贝壳 Logo 图像，更新裁剪脚本 [generate_icons.py](file:///Users/jiangwei/.gemini/antigravity/brain/a54f58af-0c5c-4ce6-86ce-17c110a150a3/scratch/generate_icons.py)，通过 `sips` 自动生成 10 张符合 macOS HIG 规范的小分辨率图标并覆盖 `Assets.xcassets/AppIcon.appiconset`，通过 `xcodebuild` 重新构建成功。
-  - **文档更新与合规评估**：更新 [README.md](file:///Users/jiangwei/Git/QuickPeek/README.md) 明确标注应用图标来源的 iconfont 地址，对 iconfont 平台的版权机制和潜在的商用合规风险进行了深度评估，并撰写了规避和避险方案说明。
-  - **SVG 图标集成与全面替换**：从 `Download/icons` 目录下导入了全部自定义的 SVG 图标资产，为其编写了自动化导入脚本 [import_svgs.py](file:///Users/jiangwei/.gemini/antigravity/brain/a54f58af-0c5c-4ce6-86ce-17c110a150a3/scratch/import_svgs.py)；创建了对应的 `.imageset` 并将其配置为 `Preserve Vector Data` 矢量图单分辨率模式，且指定了 `"template-rendering-intent": "template"` 自适应渲染；重构了 [QuickPeekApp.swift](file:///Users/jiangwei/Git/QuickPeek/QuickPeek/App/QuickPeekApp.swift)、[FinderMenuIntegration.swift](file:///Users/jiangwei/Git/QuickPeek/QuickPeek/Core/FinderMenuIntegration.swift) 和 [ContentView.swift](file:///Users/jiangwei/Git/QuickPeek/QuickPeek/UI/ContentView.swift)，彻底将界面中临时的 Unicode 符号（📄、⚙、⏻、✎、👁、⬇）和 SF Symbols 占位符替换为具备自适应渲染模式的自定义矢量图片。
-  - **资源路径错位 Bug 修复**：定位并修正了 [project.pbxproj](file:///Users/jiangwei/Git/QuickPeek/QuickPeek.xcodeproj/project.pbxproj) 中 `Assets.xcassets` 的相对物理路径配置错位问题（由原本错误的 `Resources/Assets.xcassets` 修复为正确的相对路径 `Assets.xcassets`），彻底解决了 Xcode 在编译时跳过资产库、进而导致运行时抛出 `No image named 'MenuBarIcon' found in asset catalog` 的缺陷。
+  - **文档更新与合规评估**：更新 [README.md](file:///Users/jiangwei/Git/Quick Cookies/README.md) 明确标注应用图标来源的 iconfont 地址，对 iconfont 平台的版权机制和潜在的商用合规风险进行了深度评估，并撰写了规避和避险方案说明。
+  - **SVG 图标集成与全面替换**：从 `Download/icons` 目录下导入了全部自定义的 SVG 图标资产，为其编写了自动化导入脚本 [import_svgs.py](file:///Users/jiangwei/.gemini/antigravity/brain/a54f58af-0c5c-4ce6-86ce-17c110a150a3/scratch/import_svgs.py)；创建了对应的 `.imageset` 并将其配置为 `Preserve Vector Data` 矢量图单分辨率模式，且指定了 `"template-rendering-intent": "template"` 自适应渲染；重构了 [QuickCookiesApp.swift](file:///Users/jiangwei/Git/Quick Cookies/QuickCookies/App/QuickCookiesApp.swift)、[FinderMenuIntegration.swift](file:///Users/jiangwei/Git/Quick Cookies/QuickCookies/Core/FinderMenuIntegration.swift) 和 [ContentView.swift](file:///Users/jiangwei/Git/Quick Cookies/QuickCookies/UI/ContentView.swift)，彻底将界面中临时的 Unicode 符号（📄、⚙、⏻、✎、👁、⬇）和 SF Symbols 占位符替换为具备自适应渲染模式的自定义矢量图片。
+  - **资源路径错位 Bug 修复**：定位并修正了 [project.pbxproj](file:///Users/jiangwei/Git/Quick Cookies/QuickCookies.xcodeproj/project.pbxproj) 中 `Assets.xcassets` 的相对物理路径配置错位问题（由原本错误的 `Resources/Assets.xcassets` 修复为正确的相对路径 `Assets.xcassets`），彻底解决了 Xcode 在编译时跳过资产库、进而导致运行时抛出 `No image named 'MenuBarIcon' found in asset catalog` 的缺陷。
   - **设置窗口焦点与生命周期修复**：重写了 `SettingsWindowController`，使其继承自 `NSObject` 并实现 `NSWindowDelegate` 协议。通过在 `show()` 时显式调用 `NSApp.activate(ignoringOtherApps: true)`，彻底解决了应用在后台 Agent 模式下弹出设置页时窗口无法获取焦点的问题；同时实现了 `windowWillClose` 事件委托，在窗口关闭时自动清理强引用变量 `window` 并置为 `nil`，完美解决了因关闭窗口底层析构引起悬空野指针而致使再次点击无响应的生命周期 Bug。
-  - **Info.plist 图标配置补全**：在 [Info.plist](file:///Users/jiangwei/Git/QuickPeek/QuickPeek/Info.plist) 中补全了 macOS 系统专属的 `<key>CFBundleIconFile</key><string>AppIcon</string>` 配置，彻底解决了由于此前仅配置了 iOS/tvOS 的 `CFBundleIconName` 导致 macOS Finder (访达) 和 LaunchServices 无法识别渲染 `.icns` 图标文件、退化为系统默认空白应用图标的 Bug。
-  - **产品级 README 重构**：重新将 [README.md](file:///Users/jiangwei/Git/QuickPeek/README.md) 重写为高规格产品级示文。在顶部居中展示了全新卡通面包品牌 Logo，用生动、富有感染力的产品文案包装了 0ms 秒开、黄金比例、Space 弹簧动效、多语言热刷新等核心卖点，并重新整理了使用指南及开发规范。
+  - **Info.plist 图标配置补全**：在 [Info.plist](file:///Users/jiangwei/Git/Quick Cookies/Quick Cookies/Info.plist) 中补全了 macOS 系统专属的 `<key>CFBundleIconFile</key><string>AppIcon</string>` 配置，彻底解决了由于此前仅配置了 iOS/tvOS 的 `CFBundleIconName` 导致 macOS Finder (访达) 和 LaunchServices 无法识别渲染 `.icns` 图标文件、退化为系统默认空白应用图标的 Bug。
+  - **产品级 README 重构**：重新将 [README.md](file:///Users/jiangwei/Git/Quick Cookies/README.md) 重写为高规格产品级示文。在顶部居中展示了全新卡通面包品牌 Logo，用生动、富有感染力的产品文案包装了 0ms 秒开、黄金比例、Space 弹簧动效、多语言热刷新等核心卖点，并重新整理了使用指南及开发规范。
 
 
 

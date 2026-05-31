@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="QuickPeek/Resources/AppIcon_source.png" width="128" height="128" alt="QuickPeek Logo">
+  <img src="QuickCookies/Resources/AppIcon_source.png" width="128" height="128" alt="Quick Cookies Logo">
 </p>
 
-<h1 align="center">QuickPeek</h1>
+<h1 align="center">Quick Cookies</h1>
 
 <p align="center">
   <strong>极速无感、卡片式 macOS 文件预览与编辑神器</strong>
@@ -24,7 +24,7 @@
 
 ---
 
-**QuickPeek** 是一款专为 macOS 设计的极轻量、卡片式文件预览与快捷编辑工具。它旨在打破传统繁琐的打开文件步骤，通过全局热键实现文件的 0ms 瞬间预览，并支持在预览中直接编辑、保存修改。界面采用高级的卡片化磨砂视感与黄金阅读比例，与 macOS 系统深度集成，为您带来畅快无感的极速工作流。
+**Quick Cookies** 是一款专为 macOS 设计的极轻量、卡片式文件预览与快捷编辑工具。它旨在打破传统繁琐的打开文件步骤，通过全局热键实现文件的 0ms 瞬间预览，并支持在预览中直接编辑、保存修改。界面采用高级的卡片化磨砂视感与黄金阅读比例，与 macOS 系统深度集成，为您带来畅快无感的极速工作流。
 
 ---
 
@@ -50,12 +50,12 @@
 ## 🚀 快速开始
 
 ### 1. 下载与安装
-直接下载编译好的 [QuickPeek.app](file:///Users/jiangwei/Git/QuickPeek/Build/Build/Products/Debug/QuickPeek.app)，或者通过下文“开发与构建”小节自行编译后，将应用放入您的 `/Applications`（应用程序）目录。
+直接下载编译好的 [QuickCookies.app](file:///Users/jiangwei/Git/Quick Cookies/Build/Build/Products/Debug/QuickCookies.app)，或者通过下文“开发与构建”小节自行编译后，将应用放入您的 `/Applications`（应用程序）目录。
 
 ### 2. 授权辅助功能权限 (Accessibility)
-由于 QuickPeek 需要全局监听双击 `⌥ Option` 热键，并向 Finder 提取选中项目的物理坐标，因此首次启动应用时，请按照系统引导，在：
+由于 Quick Cookies 需要全局监听双击 `⌥ Option` 热键，并向 Finder 提取选中项目的物理坐标，因此首次启动应用时，请按照系统引导，在：
 > **系统设置** → **隐私与安全性** → **辅助功能** 
-中勾选并允许 **QuickPeek** 运行。
+中勾选并允许 **Quick Cookies** 运行。
 
 ---
 
@@ -87,13 +87,13 @@
 ### 命令行编译步骤
 ```bash
 # 1. 克隆项目并进入根目录
-cd QuickPeek
+cd QuickCookies
 
 # 2. 执行 clean 编译构建 Debug 版本
-xcodebuild -project QuickPeek.xcodeproj -scheme QuickPeek -configuration Debug -derivedDataPath Build/ clean build
+xcodebuild -project QuickCookies.xcodeproj -scheme QuickCookies -configuration Debug -derivedDataPath Build/ clean build
 
 # 3. 运行编译出的程序
-open Build/Build/Products/Debug/QuickPeek.app
+open Build/Build/Products/Debug/QuickCookies.app
 ```
 
 ---
@@ -107,7 +107,7 @@ open Build/Build/Products/Debug/QuickPeek.app
 **A:** 请确认在录制时是否按下了额外的设备修饰键。您可以在设置面板中随时点击“**恢复默认设置**”，即可瞬间恢复到极简的“双击 Option”物理触发模式。
 
 #### Q: 为什么双击快捷键没有反应，提示“未检测到选中文件”？
-**A:** 1. 请确认当前前台活动窗口是 Finder 访达，且已经明确选中了一个文件；2. 请确认已在系统设置中授予了 QuickPeek “辅助功能”权限，如未授权，应用将无法提取选中项目的物理路径。
+**A:** 1. 请确认当前前台活动窗口是 Finder 访达，且已经明确选中了一个文件；2. 请确认已在系统设置中授予了 Quick Cookies “辅助功能”权限，如未授权，应用将无法提取选中项目的物理路径。
 
 ---
 

@@ -336,7 +336,7 @@ struct SettingsView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     SectionHeader(title: "SYSTEM".localized())
                     SettingsCard {
-                        SettingsRow(title: "开机自启动".localized(), subtitle: "在您登录 macOS 系统时自动静默启动 QuickPeek".localized()) {
+                        SettingsRow(title: "开机自启动".localized(), subtitle: "在您登录 macOS 系统时自动静默启动 Quick Cookies".localized()) {
                             Toggle("", isOn: $settings.launchAtLogin)
                                 .toggleStyle(.switch)
                                 .labelsHidden()
