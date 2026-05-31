@@ -169,6 +169,11 @@
     - 解决了预览窗口顶部红绿灯区域与下方文件名标题/编辑按钮错开展示，导致红绿灯行显得空洞的问题。
     - 在 [ContentView.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/UI/ContentView.swift) 的主容器 `VStack` 上挂载了 `.ignoresSafeArea(edges: .top)`，从而让自定义的顶栏（Toolbar）背景直接延伸并铺满窗口的最顶端安全区域。
     - 将顶栏 `toolbar` 视图的顶部 padding 调整为 `14`，使文件名、编辑/保存等控制按钮与左侧 macOS 系统原生红黄绿控制按钮在垂直方向完美居中对齐在同一行内，实现极为紧凑的高清一体化视觉效果。
+  - **缺陷回归与体验闭环修复**：
+    - **红绿灯垂直中线对齐调优**：将 [ContentView.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/UI/ContentView.swift) 中 `toolbar` 的顶部 padding 微调为 `8`（底部亦微调为 `8`），使顶栏文字与按钮的 Y 轴重心上移，与忽略 Safe Area 顶格绘制模式下的系统原生红黄绿按钮实现 100% 垂直同行中线水平居中对齐。
+    - **不支持文件 0ms 小窗口起跳优化**：在 [QuickLookOverlay.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/UI/QuickLookOverlay.swift) 的 `showFromFinder()` 中引入了主线程快速同步探测选中项机制。如果同步成功且文件不支持，则在 0ms 弹起时直接初始化为矮窗口（450x320）渲染起跳，彻底消除了异步回传造成“先放大后缩小”的窗口抖动。若同步卡顿则安全退回异步加载。
+    - **二次打开窗口大小污染修复**：在 [ContentView.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/UI/ContentView.swift) 的 `PreviewState` 重置方法 `reset()` 中加入了 `isResetting` 屏蔽开关。完全隔离了在依次重置各个属性时，由于中间脏状态未完成清空而通过 `didSet` 误向 `QuickLookOverlay` 发送状态变更引发的二次正常文件打开直接变小的 Bug。
+
 
 
 

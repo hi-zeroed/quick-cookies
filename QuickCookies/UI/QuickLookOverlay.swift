@@ -166,8 +166,14 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
             return
         }
 
-        // 零延迟！瞬间弹框
-        show(filePath: nil)
+        // 尝试同步获取当前 Finder 选中文件路径（一般耗时很低，~5-15ms），以防不支持文件先大后小
+        var detectedPath: String? = nil
+        if case .success(let path) = FileDetector.getSelectedFilePath() {
+            detectedPath = FileUtils.resolveSymlink(at: path)
+        }
+
+        // 瞬间弹框
+        show(filePath: detectedPath)
     }
 
     /// 显示预览窗口（Quick Look 动画） - 秒开重构版

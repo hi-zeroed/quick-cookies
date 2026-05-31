@@ -6,29 +6,31 @@ enum ContentMode {
 }
 
 class PreviewState: ObservableObject {
+    private var isResetting = false
+
     @Published var filePath: String? {
         didSet {
-            onStateChanged?()
+            if !isResetting { onStateChanged?() }
         }
     }
     @Published var renderType: FileRenderType? {
         didSet {
-            onStateChanged?()
+            if !isResetting { onStateChanged?() }
         }
     }
     @Published var language: String? {
         didSet {
-            onStateChanged?()
+            if !isResetting { onStateChanged?() }
         }
     }
     @Published var isLoadingPath: Bool = true {
         didSet {
-            onStateChanged?()
+            if !isResetting { onStateChanged?() }
         }
     }
     @Published var errorMessage: String? {
         didSet {
-            onStateChanged?()
+            if !isResetting { onStateChanged?() }
         }
     }
     
@@ -39,6 +41,7 @@ class PreviewState: ObservableObject {
     var onStateChanged: (() -> Void)?
     
     func reset() {
+        isResetting = true
         filePath = nil
         renderType = nil
         language = nil
@@ -46,6 +49,8 @@ class PreviewState: ObservableObject {
         errorMessage = nil
         hasMoreChunks = false
         isIncrementalLoading = false
+        isResetting = false
+        onStateChanged?()
     }
 }
 
@@ -193,8 +198,8 @@ struct ContentView: View {
             .frame(width: 80, alignment: .trailing)
         }
         .padding(.horizontal, 16)
-        .padding(.top, 14) // 增加顶端高度，让红绿灯和文字中线对齐
-        .padding(.bottom, 10)
+        .padding(.top, 8)
+        .padding(.bottom, 8)
         .background(Color.toolbarBackground)
     }
 
