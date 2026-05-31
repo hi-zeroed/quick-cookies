@@ -50,7 +50,7 @@
 ## 🚀 快速开始
 
 ### 1. 下载与安装
-直接下载编译好的 [QuickCookies.app](file:///Users/jiangwei/Git/Quick Cookies/Build/Build/Products/Debug/QuickCookies.app)，或者通过下文“开发与构建”小节自行编译后，将应用放入您的 `/Applications`（应用程序）目录。
+直接下载编译好的 [QuickCookies.app](file:///Users/jiangwei/Git/QuickPeek/Build/Build/Products/Debug/QuickCookies.app)，或者通过下文“开发与构建”小节自行编译后，将应用放入您的 `/Applications`（应用程序）目录。
 
 ### 2. 授权辅助功能权限 (Accessibility)
 由于 Quick Cookies 需要全局监听双击 `⌥ Option` 热键，并向 Finder 提取选中项目的物理坐标，因此首次启动应用时，请按照系统引导，在：
