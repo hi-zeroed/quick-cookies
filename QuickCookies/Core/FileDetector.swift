@@ -70,23 +70,38 @@ enum FileDetector {
         }
     }
 
-    /// 执行 AppleScript 并传递详细的失败结果
+    /// 使用 Process 子进程独立运行 osascript，避开主线程 AppleEvent 死锁
     private static func runAppleScript(_ source: String) -> Result<String, DetectError> {
-        var errorInfo: NSDictionary?
-        let script = NSAppleScript(source: source)
-        guard let result = script?.executeAndReturnError(&errorInfo) else {
-            if let error = errorInfo {
-                let errorMsg = error["NSAppleScriptErrorMessage"] as? String ?? "未知 AppleScript 错误"
-                let errorNum = error["NSAppleScriptErrorNumber"] as? Int ?? 0
-                return .failure(.appleScriptError("AppleScript [\(errorNum)]: \(errorMsg)"))
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/osascript")
+        process.arguments = ["-e", source]
+        
+        let stdoutPipe = Pipe()
+        let stderrPipe = Pipe()
+        process.standardOutput = stdoutPipe
+        process.standardError = stderrPipe
+        
+        do {
+            try process.run()
+            process.waitUntilExit()
+            
+            if process.terminationStatus != 0 {
+                let errData = stderrPipe.fileHandleForReading.readDataToEndOfFile()
+                let errMsg = String(data: errData, encoding: .utf8)?
+                    .trimmingCharacters(in: .whitespacesAndNewlines) ?? "未知错误"
+                return .failure(.appleScriptError("osascript 退出码 [\(process.terminationStatus)]: \(errMsg)"))
             }
-            return .failure(.appleScriptError("执行 AppleScript 失败且无错误信息"))
+            
+            let data = stdoutPipe.fileHandleForReading.readDataToEndOfFile()
+            let output = String(data: data, encoding: .utf8)?
+                .trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+                
+            if output.isEmpty {
+                return .failure(.noFileSelected)
+            }
+            return .success(output)
+        } catch {
+            return .failure(.appleScriptError("执行 osascript 失败: \(error.localizedDescription)"))
         }
-
-        let path = result.stringValue ?? ""
-        if path.isEmpty {
-            return .failure(.noFileSelected)
-        }
-        return .success(path)
     }
 }
