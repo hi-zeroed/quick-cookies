@@ -20,6 +20,8 @@
 - [ ] TC-020: Finder Sync 右键菜单与免权限降级
 - [ ] TC-021: File Watcher 外部协同编辑冲突提示
 - [ ] TC-022: SwiftUI 多卡片 Onboarding 引导与彩屑
+- [x] TC-025: 关闭预览后 Finder 焦点自动归还测试
+- [x] TC-026: 连续键盘上下键切换预览测试
 
 ## 需回归 (To Regress)
 - [ ] 回归测试: 双击 Option 或 Services 唤起浮动预览，且无闪退与遮挡 Bug (合并 `PreviewWindowController` 后的功能完整性)
@@ -49,6 +51,7 @@
 - [ ] 回归测试: 验证不支持的文件（如 zip、二进制文件）及文件夹在打开时的起跳尺寸，确认在第 0 毫秒直接以 450x320 矮窗口弹出，没有任何先大后小的大小闪烁跳变 (0ms矮窗口起跳回归)
 - [ ] 回归测试: 验证各种格式的图片（PNG、JPG、WEBP、TIFF、HEIC 等）及 PDF 预览均能被正常加载渲染，且防范被物理二进制检测误杀 (主流图片及已知二进制格式防误杀检测)
 - [ ] 回归测试: 验证只有在前台活跃应用为 Finder（或桌面）时，快捷键双击才能拉起预览；而在其他应用前台时（如 Safari）双击不会误触发，但已打开的预览窗口仍能通过双击 Option 正常 Toggle 关闭 (前台 Finder 触发校验回归)
+- [x] 回归测试: 验证关闭预览后，Finder 窗口能够重新获得焦点，并且支持在非编辑模式下使用键盘方向上下键对 Finder 里的文件进行无缝连续预览刷新，在进入编辑模式时自动释放拦截 (Finder焦点归还与上下方向键连续切换预览)
 
 ## 已完成 (Done)
 - [x] 初始化项目骨架与 MVP源文件编写
@@ -63,4 +66,8 @@
 - [x] 重构物理二进制检测在分类时的判定次序，防范误杀图片和 PDF 预览，并完成主流图片格式 (png, jpg, jpeg, webp, gif, bmp, tiff, tif, heic, heif, ico) 扩充支持 (已知二进制预览格式防误杀与主流图片格式扩充)
 - [x] 消除 UnsupportedFileView 中弃用的 icon(forFileType:) 警告，改用 macOS 12.0 规范 API 并导入 UniformTypeIdentifiers 适配 (macOS 12.0+ 弃用警告消除与规范化 API 适配)
 - [x] 实现快捷键前台 Finder 活跃校验，阻止应用在后台时通过快捷键误触发旧文件预览，并豁免 Toggle 关闭逻辑 (快捷键前台 Finder 触发校验与误触拦截)
+- [x] 重构 Finder 选中项检测为 Scripting Bridge 内存级同步 IPC，彻底弃用 subprocess osascript 调用，解决快速切换文件时的 CPU 负载与延迟刷新问题 (高性能 Finder 选中路径检测)
+- [x] 修复连续按上下方向键切换“支持”与“不支持”文件时，大窗口变小窗口能正常缩回，而由小变大窗口大小失效的 Bug，实现 0ms 完美自适应双向窗口调整大小功能 (Finder焦点归还与上下方向键连续切换预览)
+- [x] 优化周期轮询日志，移除高频写入磁盘的 debug_log 行，防范长期运行下写爆用户磁盘的隐患 (高性能 Finder 选中路径检测)
+
 

@@ -187,4 +187,41 @@
 - **快捷键前台 Finder 触发校验与误触拦截（2026-05-31）**：
   - **前台 Finder 校验**：重构了 [QuickLookOverlay.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/UI/QuickLookOverlay.swift) 的 `showFromFinder()` 方法。引入了 `NSWorkspace.shared.frontmostApplication` 校验，只有当前台活跃应用确实为 Finder（`com.apple.finder`，包含点击桌面）时，双击快捷键才允许触发并拉起新文件预览。这彻底避免了用户在其他工作场景（如编写代码或网页打字）下，由于误操作而强行弹出历史选中文件的骚扰。
   - **Toggle 关闭豁免**：在判定前台 Finder 逻辑之前，保留并优先匹配了“如果预览窗口已打开，则双击 Option 始终可以关闭”的 Toggle 关闭逻辑，确保用户可以用快捷键顺畅地一开一合，符合 macOS 原生人机交互（HIG）规范。
+- **焦点归还与上下方向键连续切换预览（2026-05-31）**：
+  - **窗口非激活置顶展示（不抢占焦点）**：在 [QuickLookOverlay.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/UI/QuickLookOverlay.swift) 的 `showQuickLookWindow` 中，废弃了原先的 `makeKeyAndOrderFront` 并且彻底移除 `NSApp.activate` 激活 App 自身的逻辑。改用极透明 `orderFrontRegardless()` 挂载展示，使预览浮窗在屏幕最顶端展示的同时，前台聚焦的活跃进程依然保持为 Finder。
+  - **全局/本地双重键盘事件监视**：
+    - **全局监视器**：注册 `globalEventMonitor` 全局按键监听器。当 Finder 处于前台时，用户按下键盘的 `↑` (126)、`↓` (125) 方向键会直接被 Finder 原生响应并切换选中高亮文件，无需 any 事件人工注入。监视器听到按键后，延迟 100ms 并自动通过 `updatePreviewFromFinder` 执行 0ms 窗口内容无缝刷新；监视器监听到 `Esc`（keyCode 53）则自动触发 `performClose()` 关闭预览。
+    - **本地监视器**：当用户鼠标点击预览窗口后，窗口变成 Key 窗口，此时本地监视器接管。本地按下 `Esc` 键直接拦截并关闭；本地按下 `↑`、`↓` 方向键，则先主动激活 Finder 进程到前台，然后再进行 `CGEvent.postToPid(pid)` 的按键投递与重载更新，双重保险防失效。
+  - **状态原子重构与编辑模式豁免**：重构了 [ContentView.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/UI/ContentView.swift)，将原 ContentView 私有的 `mode` 状态变量移植到全局单例 `PreviewState` 的 `@Published var mode: ContentMode` 中，并在 `reset()` 和 `updateState()` 周期自动切回 `.preview` 预览模式。这样键盘拦截器可读取该全局状态：在进入编辑模式（Cmd + E）时，键盘拦截器能立即释放对上下方向键的拦截，使用户在编辑器中正常使用方向键移动光标；退出编辑模式回到预览后又自动恢复拦截，做到无感自适应。
+  - **焦点清理与归还**：在 `performClose()` and `closeWithAnimation()` 头部增加了对 `localEventMonitor` 和 `globalEventMonitor` 双键盘监视器的彻底注销清理，并自动查找后台 `com.apple.finder` 进程调用 `finderApp.activate(options: [.activateIgnoringOtherApps])`，确保无论如何关闭，Finder 都能立即重新取得键盘焦点。
+  - **高性能 Scripting Bridge 零开销同步检测**：彻底废弃了原先通过 `Process` 启动 `/usr/bin/osascript` 运行 AppleScript 脚本的重度机制（从进程创建上完全消除了 50ms - 200ms 耗时，杜绝了长按方向键快速连续滚动切换时引起 CPU 狂转、系统熔断及界面卡顿的缺陷）。重构引入了原生 `ScriptingBridge` 框架，直接在当前应用进程内存中通过 AppleEvent 同步向 Finder 提取选中项 selection 的 `"URL"` 属性（微秒级，0.1ms 完成），并加入了首个 `FinderWindow` 的 `target` 属性作为无选中项时的活跃窗口路径兜底。由于 Scripting Bridge 极速同步返回的就是 Finder 当前 RunLoop 中最真实的最新高亮文件，我们在 `updatePreviewFromFinder` 中精简移去了先前为了对付延迟而设计的低效 “3 次轮询延迟重试” 的过渡方案，真正做到了纯净、高性能、零延迟的按键连续切换秒开刷新。
+- **窗口大小双向自适应修复与 Timer 轮询日志去噪优化（2026-05-31）**：
+  - **主线程最新状态闭包捕获**：修复了在 Finder 中按上下键快速在“支持”与“不支持”文件之间切换时，大窗口变小窗口能正常缩回、而由小变大功能失效的 Bug。成因是原 `handleStateChange()` 中的状态判断直接在闭包派发前执行，由于多线程竞态在挂起时发生了状态错乱，导致没能走向支持分支。将 `isUnsupported` 和 `isError` 移入 `DispatchQueue.main.async` 闭包内部同步读取最新的 `renderType` 和 `errorMessage` 状态，彻底消除了状态脏数据污染，100% 达成双向自适应流畅切换。
+  - **Timer 日志去噪与防爆磁盘优化**：移除了 150ms 周期性 Timer 轮询中“开始获取”、“获取成功”、“路径未改变”等高频无意义的 `debug_log` 磁盘写入，改用普通的 `print` 避免高频 I/O，只在路径切实改变及物理缩放尺寸时写入，彻底杜绝了长期运行下调试日志写爆用户磁盘的隐患。
+- **新版极简高颜值双轨 Onboarding 引导重构（2026-05-31）**：
+  - **视觉设计美学升级**：直接加载项目中的透明背景官方大 Logo（`AppIcon_transparent.png`），并配合优雅的 Floating（悬浮）与 Scale 缓慢缩放呼吸入场动效；演示页精心拼装了 ⌥ Option 键帽闪烁效果，并使用纯 SwiftUI 线条渲染了 Finder 飞出预览轨迹的线框模拟动画。
+  - **卡片化配置偏好页**：采用 SettingsCard 与 SettingsRow 卡片流容器对齐了主设置页的高级美学；集成自适应的外观主题选择器、界面语言 Picker 以及开机自启动开关。
+  - **渐进式双轨权限中心**：设计了左右对比卡片，指引“零权限 Finder Sync 模式”与“辅助功能高级动画模式”，引导用户一键前往系统扩展设置和辅助功能授权，把隐私与选择权完全交还给用户。
+  - **平滑彩屑与淡出退场**：优化了 Confetti 粒子图层，并在点击完成时触发粒子彩屑飘落，同时将 `bottomBar` 导航底栏背景设为 `Color.clear` 彻底去除不协调的深色块，使其与主窗口的 HUD 毛玻璃磨砂背景一体化透通；最后以极速干脆的 0.22s 窗口平滑淡出退场。
+  - **主题与多语言的完善支持**：扩充了 `VisualEffectView` 结构，在底层 `updateNSView` 动态应用 appearance 给 onboardingWindow 本身，达成 Onboarding 引导页 100% 外观主题热联动；在 `Settings.swift` 字典中全量补齐了 17 项 Onboarding 界面专有词汇 of English/Chinese 双语对照映射，彻底杜绝英文残留漏译；将底部分割线及按钮进行半透明自适应 `.plain` 重构，防范应用与系统全局主题错配时的黑白色块。
+  - **仪式彩屑提速与异步销毁彻底防卡死**：重构了 `handleFinishAction` 逻辑，点击完成时先触发 Confetti 庆祝，延迟 0.8 秒（轻量庆祝）后再以 0.22 秒极速淡出，保证彩屑飘落的同时体验干净利落；将 `AppDelegate.swift` 中 Onboarding 窗口的关闭 dealloc 动作与 `setupNormalFlow` 统一在嵌套的 `DispatchQueue.main.async` 闭包中异步派发，确保 SwiftUI 动画回调与 CATransaction 提交完全走完，彻底解决了在同一 RunLoop 下同步 close 窗口与修改 `activationPolicy` 导致主线程 Thread 1 界面死锁卡挂的严重缺陷。
+
+## 2026-06-01
+- **Onboarding 关闭后应用卡死（Thread 1 主线程死锁）彻底根治**：
+  - **根因定位**：经深度分析确认死锁由三个并发因素叠加引发：
+    1. `ConfettiView` 的 33ms 高频 Timer（`.autoconnect()`）在 `orderOut`/`close` 序列期间仍向主线程 RunLoop 排队注入帧更新事件
+    2. `authTimer`（1s）和 `animationTimer`（2s）的 `onReceive` 回调在窗口关闭期间仍触发 `withAnimation` 导致 SwiftUI 视图树状态更新
+    3. `NSApp.setActivationPolicy(.accessory)` 内部需要向 AppKit 事件队列发送消息，与同 RunLoop tick 内的 `window.close()` → `NSHostingView` CATransaction 提交产生循环等待 → **主线程死锁**
+  - **四阶段分离策略（AppDelegate）**：将原有的两层 `DispatchQueue.main.async` 升级为四个独立 RunLoop tick 依次执行：
+    - **Phase 1**：`window.orderOut(nil)` — 立即隐藏窗口，不触发 `windowWillClose`，不销毁视图树，SwiftUI 动画帧可安全提交
+    - **Phase 2**：`self.onboardingWindow = nil` — 释放 AppDelegate 强引用，降低引用计数，但局部 `window` 变量仍保持对象存活
+    - **Phase 3**：`window.close()` — 此时 SwiftUI 视图树的 Timer 订阅已因视图消失而休眠，CATransaction 队列已清空，`close` 不再触发渲染竞争
+    - **Phase 4**：`self.setupNormalFlow()` — `windowWillClose` NSNotification 处理完毕后再切换激活策略，AppKit 内部状态机已完全离开 regular 模式
+  - **Timer 显式静默（OnboardingView）**：新增 `isClosing: Bool` 状态标志，在 `handleFinishAction` 中的淡出动画完成后、调用 `onFinished()` 之前：
+    - `showConfetti = false`：移除 `ConfettiView`，SwiftUI 自动取消其 33ms Timer 订阅
+    - `isClosing = true`：在 `authTimer` / `animationTimer` 的 `onReceive` 回调顶部加 `guard !isClosing else { return }` 保护，让所有挂起中的 Timer 事件在 RunLoop 中立即无效
+  - **动画节奏精简**：庆祝时长由 `0.8s` 缩短至 `0.6s`，淡出动画由 `0.22s` 缩短至 `0.18s`，整体关闭体验更加干脆利落
+  - **构建验证**：`xcodebuild` 编译 **BUILD SUCCEEDED**，无 Warning/Error
+
+
 

@@ -12,6 +12,7 @@
 | REQ-006 | 浮动预览窗口 | 使用 `NSPanel` 创建一个无边框、支持半透明磨砂效果、始终置顶的浮动窗口。 | 需测试 | 已实现，无边框且支持背景空白拖动，基于 AXUIElement 定位（引入 CFBoolean 安全读取与 AXMainWindow 活跃窗口过滤，彻底解决坐标卡死与中心点退化问题），保留左上角 macOS 原生红绿灯且实现一体化 Header 文件名居中对齐，彻底消除两段式闪现 Bug |
 | REQ-007 | 编辑模式与行号 | 预览窗口支持快捷键（如 `Cmd + E`）进入编辑模式，支持保存修改并显示行号。 | 需测试 | 已在 `EditorView` 实现，并集成 GCD DispatchSource File Watcher，实时监测并防止外部编辑器覆盖冲突。 |
 | REQ-008 | 设置界面 | 提供设置窗口，用于配置触发快捷键、自定义字体/字号，自启动与系统语言切换等选项。 | 已完成 | 重构为卡片化 UI，打包并内置注册了 JetBrains Mono 字体且完成 PS 名字转换映射，彻底打通字体字号的动态渲染与 SMAppService 自启动注册。 |
-| REQ-009 | 权限请求与引导 | 应用运行需要 Accessibility（辅助功能）权限，未授权时需要引导用户授权。 | 需测试 | 已重构为高颜值 SwiftUI 多卡片 Onboarding 引导流程，通过 1.0s 轮询自动检测并以 Confetti 粒子特效提示授权成功，同时支持免权限 Finder Sync 扩展与鼠标位置降级。 |
+| REQ-009 | 权限请求与引导 | 应用运行需要 Accessibility（辅助功能）权限，未授权时需要引导用户授权。 | 已完成 | 已升级为新版高颜值双轨渐进式引导（Finder Sync 零权限与辅助功能高级动画），支持 Confetti 动效与平滑淡出退场。 |
 | REQ-010 | 多语言适配 | 支持 English 与简体中文两套语言，提供自适应跟随系统及应用内热切换功能，瞬间刷新全案文案。 | 需测试 | 已在 Settings、SettingsWindow、ContentView、QuickLookOverlay、FinderMenuIntegration 和 AppDelegate 中完整实现。 |
 | REQ-011 | 图标与品牌资源 | 设计并配置符合 macOS 规范的 App 像素级图标与自适应 Template 状态栏图标。 | 需测试 | 已完成 AppIcon 的 sips 批量生成、所有自定义状态栏、菜单项及工具栏 SVG 图标的导入与代码替换，支持 Template 自适应变色；成功添加独立的 QuickCookiesFinderSync App Extension，完美无感集成 Finder 右键菜单预览。 |
+| REQ-012 | 连续键盘切换与焦点回归 | 支持在预览窗处于 Key 激活状态时按键盘上下键在 Finder 后台平滑切换选中文件，并在预览窗关闭后自动将焦点归还给 Finder，保证键盘操作的连续性。 | 已完成 | 已在 `QuickLookOverlay` 中注册键盘监听，利用 `CGEvent.postToPid` 投递上下键并轮询原子刷新，并在关闭时主动归还焦点给 Finder；已完美解决连续切换时“大窗口变小窗口能正常缩回，而由小变大功能失效”的 Bug，实现 0ms 完美双向大小自适应。 |

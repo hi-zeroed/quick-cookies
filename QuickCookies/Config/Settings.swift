@@ -295,6 +295,27 @@ struct Localization {
             "已获得授权": [.en: "Permission Granted", .zhHans: "已获得授权"],
             "授权成功！🎉": [.en: "Successfully Authorized! 🎉", .zhHans: "授权成功！🎉"],
             "免授权降级": [.en: "Permissionless Fallback", .zhHans: "免授权降级"],
+            
+            // New Onboarding Additions
+            "极速唤起预览": [.en: "Instant Preview", .zhHans: "极速唤起预览"],
+            "2. 键盘上快速双击": [.en: "2. Quickly double-press", .zhHans: "2. 键盘上快速双击"],
+            "3. 预览窗口瞬间飞出，支持即时修改与保存": [.en: "3. The preview window flies out instantly, supporting live edit & save", .zhHans: "3. 预览窗口瞬间飞出，支持即时修改与保存"],
+            "个性化定制": [.en: "Personalized Settings", .zhHans: "个性化定制"],
+            "正式使用前，您可以进行一些核心的偏好设定：": [.en: "Before getting started, you can customize some core preferences:", .zhHans: "正式使用前，您可以进行一些核心的偏好设定："],
+            "自适应匹配您的系统外观": [.en: "Adapt to your system appearance", .zhHans: "自适应匹配您的系统外观"],
+            "界面语言": [.en: "Interface Language", .zhHans: "界面语言"],
+            "支持中文与 English 热切换": [.en: "Support dynamic toggle between English & Chinese", .zhHans: "支持中文与 English 热切换"],
+            "登录系统时自动静默在后台启动": [.en: "Silently start in the background when you log in", .zhHans: "登录系统时自动静默在后台启动"],
+            "运行模式与权限配置": [.en: "Running Mode & Permissions", .zhHans: "运行模式与权限配置"],
+            "Quick Cookies 支持免系统高级权限运行，您可按需选择：": [.en: "QuickCookies supports running without high-level permissions. Choose as you need:", .zhHans: "Quick Cookies 支持免系统高级权限运行，您可按需选择："],
+            "零权限模式 (推荐)": [.en: "Zero-Permission Mode (Recommended)", .zhHans: "零权限模式 (推荐)"],
+            "借助系统 Finder 扩展，零隐私风险运行。支持右键菜单预览和默认双击起跳预览。": [.en: "Run with 0 privacy risk using Finder extension. Support right-click menu & default double-press Option.", .zhHans: "借助系统 Finder 扩展，零隐私风险运行。支持右键菜单预览和默认双击起跳预览。"],
+            "高级动画模式": [.en: "Advanced Animation Mode", .zhHans: "高级动画模式"],
+            "开启辅助功能后，预览窗将直接从 Finder 文件图标的原位飞出/缩回，交互极具连贯物理弹簧质感。": [.en: "With Accessibility enabled, the preview window will fly from the actual file icon position with spring physics.", .zhHans: "开启辅助功能后，预览窗将直接从 Finder 文件图标的原位飞出/缩回，交互极具连贯物理弹簧质感。"],
+            "已成功授权": [.en: "Permission Granted", .zhHans: "已成功授权"],
+            "授予辅助功能": [.en: "Grant Accessibility", .zhHans: "授予辅助功能"],
+            "启用 Finder 扩展": [.en: "Enable Finder Extension", .zhHans: "启用 Finder 扩展"],
+
 
             // Appearance
             "APPEARANCE": [.en: "APPEARANCE", .zhHans: "外观"],

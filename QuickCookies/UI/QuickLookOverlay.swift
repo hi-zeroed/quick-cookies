@@ -30,6 +30,8 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
     private var sourceRectBackup: CGRect?
     private var activeToastPanel: NSPanel?
     private var lastDiagnosticMessage: String = ""
+    private var localEventMonitor: Any?
+    private var pollingTimer: Timer?
     
     // 用于通知 ContentView 状态的共享模型
     private let previewState = PreviewState()
@@ -60,18 +62,28 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
     }
     
     private func handleStateChange() {
-        let isUnsupported = previewState.renderType == .unsupported
-        let isError = previewState.errorMessage != nil
-        
-        if isUnsupported || isError {
-            DispatchQueue.main.async { [weak self] in
-                self?.resizeWindowForErrorOrUnsupported()
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+            let isUnsupported = self.previewState.renderType == .unsupported
+            let isError = self.previewState.errorMessage != nil
+            let rTypeStr = self.previewState.renderType != nil ? "\(self.previewState.renderType!)" : "nil"
+            let errorStr = self.previewState.errorMessage ?? "nil"
+            
+            self.writeDebugLog("handleStateChange: renderType=\(rTypeStr), errorMessage=\(errorStr), isUnsupported=\(isUnsupported), isError=\(isError)")
+            
+            if isUnsupported || isError {
+                self.resizeWindowForErrorOrUnsupported()
+            } else {
+                self.resizeWindowForSupported()
             }
         }
     }
     
     private func resizeWindowForErrorOrUnsupported() {
-        guard let window = previewWindow else { return }
+        guard let window = previewWindow else {
+            self.writeDebugLog("resizeWindowForErrorOrUnsupported: window 为 nil，直接返回")
+            return
+        }
         
         // 计算目标内容区 450x320 对应的窗口物理 Frame 大小，以兼容标题栏高度
         let contentRect = NSRect(x: 0, y: 0, width: 450, height: 320)
@@ -80,11 +92,11 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         let targetHeight = frameRect.height
         
         let currentFrame = window.frame
-        self.writeDebugLog("resizeWindow: current=\(currentFrame), targetWidth=\(targetWidth), targetHeight=\(targetHeight)")
+        self.writeDebugLog("resizeWindowForErrorOrUnsupported: current=\(currentFrame), targetWidth=\(targetWidth), targetHeight=\(targetHeight)")
         
         // 如果物理尺寸已完全匹配，直接返回，绝不执行二次 setFrame 动画
         if abs(currentFrame.width - targetWidth) < 1.0 && abs(currentFrame.height - targetHeight) < 1.0 {
-            self.writeDebugLog("resizeWindow: 尺寸已匹配，直接 return")
+            self.writeDebugLog("resizeWindowForErrorOrUnsupported: 尺寸已匹配，直接 return")
             return
         }
         
@@ -96,6 +108,41 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
             height: targetHeight
         )
         
+        self.writeDebugLog("resizeWindowForErrorOrUnsupported: 执行 setFrame 调整为 \(newFrame)")
+        window.setFrame(newFrame, display: true, animate: true)
+    }
+
+    private func resizeWindowForSupported() {
+        guard let window = previewWindow else {
+            self.writeDebugLog("resizeWindowForSupported: window 为 nil，直接返回")
+            return
+        }
+        let screenVisibleFrame = NSScreen.main?.visibleFrame ?? NSRect(x: 0, y: 0, width: 1920, height: 1080)
+        
+        let contentWidth = screenVisibleFrame.width * 0.38
+        let contentHeight = screenVisibleFrame.height * 0.88
+        
+        let contentRect = NSRect(x: 0, y: 0, width: contentWidth, height: contentHeight)
+        let frameRect = window.frameRect(forContentRect: contentRect)
+        let targetWidth = frameRect.width
+        let targetHeight = frameRect.height
+        
+        let currentFrame = window.frame
+        self.writeDebugLog("resizeWindowForSupported: current=\(currentFrame), targetWidth=\(targetWidth), targetHeight=\(targetHeight)")
+        
+        if abs(currentFrame.width - targetWidth) < 1.0 && abs(currentFrame.height - targetHeight) < 1.0 {
+            self.writeDebugLog("resizeWindowForSupported: 尺寸已匹配，直接 return")
+            return
+        }
+        
+        let newFrame = NSRect(
+            x: screenVisibleFrame.midX - targetWidth / 2,
+            y: screenVisibleFrame.midY - targetHeight / 2,
+            width: targetWidth,
+            height: targetHeight
+        )
+        
+        self.writeDebugLog("resizeWindowForSupported: 执行 setFrame 调整为 \(newFrame)")
         window.setFrame(newFrame, display: true, animate: true)
     }
 
@@ -308,12 +355,49 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
             layer.masksToBounds = true
         }
 
-        // 先让预览窗口以极透明状态挂载，强制激活并抢占焦点
+        // 先让预览窗口以极透明状态挂载，置顶显示但不抢占焦点（保持 Finder 在前台）
         previewPanel.alphaValue = 0.01
-        previewPanel.makeKeyAndOrderFront(nil)
-        NSApp.activate(ignoringOtherApps: true)
+        previewPanel.orderFrontRegardless()
         self.previewWindow = previewPanel
         self.updateAppearance()
+
+        // 1. 注册本地键盘事件监视器（当预览窗口获得焦点成为 Key 窗口时生效）
+        self.localEventMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event -> NSEvent? in
+            guard let self = self else { return event }
+            let keyCode = event.keyCode
+            self.writeDebugLog("localEventMonitor: 按下按键 \(keyCode)")
+            
+            // Esc 键关闭窗口
+            if keyCode == 53 {
+                self.performClose()
+                return nil
+            }
+            
+            // 126 = Up Arrow, 125 = Down Arrow
+            if keyCode == 126 || keyCode == 125 {
+                if self.previewState.mode == .edit {
+                    return event
+                }
+                
+                // 既然已经是 Key 窗口，按上下键说明用户还想切换文件
+                // 我们将 Finder 重新激活到前台，投递按键以保证其能够成功切换，并刷新预览
+                if let finderApp = NSWorkspace.shared.runningApplications.first(where: { $0.bundleIdentifier == "com.apple.finder" }) {
+                    self.writeDebugLog("localEventMonitor: 激活 Finder 并投递按键")
+                    finderApp.activate(options: [.activateIgnoringOtherApps])
+                    self.sendKeyToFinder(keyCode: keyCode)
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        self.updatePreviewFromFinder()
+                    }
+                }
+                return nil // 拦截该方向键事件
+            }
+            return event
+        }
+
+        // 2. 启动 150ms 周期定时监测，利用高性能 Scripting Bridge 内存 IPC 无感拉取选中项变化
+        self.pollingTimer = Timer.scheduledTimer(withTimeInterval: 0.15, repeats: true) { [weak self] _ in
+            self?.updatePreviewFromFinder()
+        }
 
         // 3. 0ms 瞬间起跳：获取鼠标位置作为打开时的初始起跳点，保证无阻塞，体验丝滑
         let initialSourceRect = self.getMouseOrCenterSourceRect(targetRect: targetRect)
@@ -670,11 +754,82 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
     }
 
     private func performClose() {
+        // 1. 注销本地键盘监视器并销毁定时器
+        if let monitor = localEventMonitor {
+            NSEvent.removeMonitor(monitor)
+            localEventMonitor = nil
+        }
+        if let timer = pollingTimer {
+            timer.invalidate()
+            pollingTimer = nil
+        }
+
+        // 2. 关闭并清理窗口引用
         if let window = previewWindow {
             previewWindow = nil
             window.delegate = nil
             window.contentView = nil
             window.close()
+        }
+        
+        // 3. 激活并归还焦点给 Finder
+        if let finderApp = NSWorkspace.shared.runningApplications.first(where: { $0.bundleIdentifier == "com.apple.finder" }) {
+            finderApp.activate(options: [.activateIgnoringOtherApps])
+        }
+    }
+
+    private func sendKeyToFinder(keyCode: UInt16) {
+        guard let finderApp = NSWorkspace.shared.runningApplications.first(where: { $0.bundleIdentifier == "com.apple.finder" }) else {
+            return
+        }
+        let pid = finderApp.processIdentifier
+        
+        let source = CGEventSource(stateID: .combinedSessionState)
+        
+        if let keyDownEvent = CGEvent(keyboardEventSource: source, virtualKey: keyCode, keyDown: true) {
+            keyDownEvent.postToPid(pid)
+        }
+        if let keyUpEvent = CGEvent(keyboardEventSource: source, virtualKey: keyCode, keyDown: false) {
+            keyUpEvent.postToPid(pid)
+        }
+    }
+
+    private func updatePreviewFromFinder() {
+        let result = FileDetector.getSelectedFilePath()
+        switch result {
+        case .success(let path):
+            let resolvedPath = FileUtils.resolveSymlink(at: path)
+            if resolvedPath != self.previewState.filePath {
+                let renderType = FileTypeClassifier.classify(path: resolvedPath)
+                let language = FileTypeClassifier.getLanguageName(path: resolvedPath)
+                
+                // 更新窗口标题
+                if let window = self.previewWindow {
+                    window.title = "Quick Cookies - \(URL(fileURLWithPath: resolvedPath).lastPathComponent)"
+                }
+                
+                // 更新状态触发 ContentView 异步加载文件内容
+                self.writeDebugLog("updatePreviewFromFinder: 调用 updateState 更新路径为 \(resolvedPath)")
+                self.previewState.updateState(
+                    filePath: resolvedPath,
+                    renderType: renderType,
+                    language: language,
+                    isLoadingPath: false
+                )
+                
+                // 异步更新物理坐标 (用于下一次关闭时飞回)
+                DispatchQueue.global(qos: .userInteractive).async { [weak self] in
+                    guard let self = self else { return }
+                    let realSourceRect = self.getSourceRect()
+                    DispatchQueue.main.async {
+                        self.sourceRectBackup = realSourceRect
+                        self.writeDebugLog("上下键切换坐标更新: (\(Int(realSourceRect.origin.x)), \(Int(realSourceRect.origin.y)))")
+                    }
+                }
+            }
+        case .failure(let error):
+            // 静默处理，不频繁写入错误日志以防爆磁盘
+            print("updatePreviewFromFinder 获取失败: \(error.localizedDescription)")
         }
     }
 
@@ -683,6 +838,21 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         guard let window = previewWindow, let contentView = window.contentView, let layer = contentView.layer else {
             close()
             return
+        }
+
+        // 立即注销键盘事件监视器并销毁定时器，防止动画期间误触发
+        if let monitor = localEventMonitor {
+            NSEvent.removeMonitor(monitor)
+            localEventMonitor = nil
+        }
+        if let timer = pollingTimer {
+            timer.invalidate()
+            pollingTimer = nil
+        }
+
+        // 立即激活并归还焦点给 Finder，使视觉缩小动画播放的同时焦点已经回到 Finder
+        if let finderApp = NSWorkspace.shared.runningApplications.first(where: { $0.bundleIdentifier == "com.apple.finder" }) {
+            finderApp.activate(options: [.activateIgnoringOtherApps])
         }
 
         // 立即解绑全局强引用和 delegate，避免动画中重复触发快捷键

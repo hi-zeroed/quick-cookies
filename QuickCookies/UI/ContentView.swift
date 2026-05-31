@@ -33,6 +33,11 @@ class PreviewState: ObservableObject {
             if !isResetting { onStateChanged?() }
         }
     }
+    @Published var mode: ContentMode = .preview {
+        didSet {
+            if !isResetting { onStateChanged?() }
+        }
+    }
     
     // 大文件分段增量读取状态
     @Published var hasMoreChunks: Bool = false
@@ -49,6 +54,7 @@ class PreviewState: ObservableObject {
         errorMessage = nil
         hasMoreChunks = false
         isIncrementalLoading = false
+        mode = .preview
         isResetting = false
         onStateChanged?()
     }
@@ -61,6 +67,7 @@ class PreviewState: ObservableObject {
         self.language = language
         self.isLoadingPath = isLoadingPath
         self.errorMessage = errorMessage
+        self.mode = .preview
         isResetting = false
         onStateChanged?()
     }
@@ -73,7 +80,6 @@ struct ContentView: View {
     @State private var content: String = ""
     @State private var isLoading: Bool = true
     @State private var isTruncated: Bool = false
-    @State private var mode: ContentMode = .preview
     @State private var isModified: Bool = false
     @State private var showErrorAlert: Bool = false
     @State private var errorMessage: String = ""
@@ -184,17 +190,17 @@ struct ContentView: View {
                 if state.filePath != nil && state.errorMessage == nil && state.renderType != .pdf && state.renderType != .image {
                     // 模式切换按钮
                     Button(action: toggleMode) {
-                        Image(mode == .preview ? "ToolbarEdit" : "ToolbarPreview")
+                        Image(state.mode == .preview ? "ToolbarEdit" : "ToolbarPreview")
                             .renderingMode(.template)
                             .resizable()
                             .frame(width: 16, height: 16)
                             .foregroundColor(Color.appText.opacity(0.8))
                     }
                     .buttonStyle(.plain)
-                    .help(mode == .preview ? "进入编辑 (Cmd+E)".localized() : "回到预览 (Esc)".localized())
+                    .help(state.mode == .preview ? "进入编辑 (Cmd+E)".localized() : "回到预览 (Esc)".localized())
 
                     // 保存按钮
-                    if mode == .edit && isModified {
+                    if state.mode == .edit && isModified {
                         Button(action: saveFile) {
                             Image("ToolbarSave")
                                .renderingMode(.template)
@@ -277,7 +283,7 @@ struct ContentView: View {
             .transition(.opacity)
         } else {
             Group {
-                switch mode {
+                switch state.mode {
                 case .preview:
                     previewView
                 case .edit:
@@ -346,7 +352,7 @@ struct ContentView: View {
     }
 
     private func toggleMode() {
-        if mode == .preview {
+        if state.mode == .preview {
             // 准备进入编辑模式，确保后台一次性静默读完全文，以保证保存时内容的绝对完整性
             if state.hasMoreChunks, let reader = chunkReader {
                 isLoading = true
@@ -361,7 +367,7 @@ struct ContentView: View {
                             self.content += remainingText
                             self.state.hasMoreChunks = false
                             self.isLoading = false
-                            self.mode = .edit
+                            self.state.mode = .edit
                         case .failure(let error):
                             self.errorMessage = (error.errorDescription ?? "读取剩余文件失败").localized()
                             self.isLoading = false
@@ -370,10 +376,10 @@ struct ContentView: View {
                     }
                 }
             } else {
-                mode = .edit
+                state.mode = .edit
             }
         } else {
-            mode = .preview
+            state.mode = .preview
         }
     }
 

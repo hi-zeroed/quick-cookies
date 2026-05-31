@@ -42,7 +42,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     private func showOnboarding() {
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 600, height: 430),
+            contentRect: NSRect(x: 0, y: 0, width: 620, height: 450),
             styleMask: [.titled, .closable, .fullSizeContentView],
             backing: .buffered,
             defer: false
@@ -52,17 +52,43 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         window.titlebarAppearsTransparent = true
         window.isMovableByWindowBackground = true
         window.hasShadow = true
+        // NOTE: 必须设为 false，否则 close() 会触发 AppKit 额外向 ARC 已管理的对象发送多一次 release，
+        // 造成引用计数下溢 → EXC_BAD_ACCESS 野指针崩溃
+        window.isReleasedWhenClosed = false
         
         let onboardingView = OnboardingView(onFinished: { [weak self, weak window] in
             // 写入完成新手引导标识
             UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
             
-            // 关闭 Onboarding 窗口
-            window?.close()
-            self?.onboardingWindow = nil
+            // 【死锁修复 - 四阶段分离策略】
+            // 问题根源：ConfettiView/authTimer 等 Timer 仍在主线程 RunLoop 排队，
+            // window.close() 触发 NSHostingView 开始 CATransaction 提交，
+            // 同时 NSApp.setActivationPolicy(.accessory) 需要向事件队列派发，
+            // 两者在同一 RunLoop tick 内争抢主线程 → 循环等待死锁。
+            //
+            // Phase 1: 立即将窗口移出屏幕（不触发 windowWillClose，不销毁视图树）
+            //          SwiftUI 动画帧可以安全提交，避免渲染中断
+            window?.orderOut(nil)
             
-            // 初始化注册后台工作流
-            self?.setupNormalFlow()
+            // Phase 2: 下一个 RunLoop tick：释放 AppDelegate 的强引用
+            //          此时窗口引用计数降低，但窗口对象尚未销毁（window 仍有局部引用）
+            DispatchQueue.main.async {
+                self?.onboardingWindow = nil
+                
+                // Phase 3: 再下一个 tick：调用 close() 完成窗口销毁
+                //          此时 SwiftUI 视图树的 Timer/Combine 订阅均已因视图消失而休眠，
+                //          CATransaction 队列已清空，close 不会再触发渲染竞争
+                DispatchQueue.main.async {
+                    window?.close()
+                    
+                    // Phase 4: 最后一个 tick：切换激活策略并启动正常工作流
+                    //          window.close() 的 NSNotification 处理完毕后再切换，
+                    //          确保 AppKit 内部状态机已完全离开 regular 模式
+                    DispatchQueue.main.async {
+                        self?.setupNormalFlow()
+                    }
+                }
+            }
         })
         
         let hostingView = NSHostingView(rootView: onboardingView)
