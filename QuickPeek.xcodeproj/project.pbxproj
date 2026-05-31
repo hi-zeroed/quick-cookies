@@ -60,7 +60,7 @@
 			460FA400CC4F4F828DB39EFA /* MarkdownTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownTextView.swift; sourceTree = "<group>"; };
 			B76F46CEB24C42779E84EBBE /* QuickLookOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickLookOverlay.swift; sourceTree = "<group>"; };
 		FMI000000000000000000002 /* FinderMenuIntegration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinderMenuIntegration.swift; sourceTree = "<group>"; };
-		AST141414141414141414142 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Assets.xcassets; path = Resources/Assets.xcassets; sourceTree = "<group>"; };
+		AST141414141414141414142 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Assets.xcassets; path = Assets.xcassets; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
