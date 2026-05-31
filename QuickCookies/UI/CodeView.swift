@@ -53,10 +53,9 @@ struct CodeView: NSViewRepresentable {
         
         scrollView.backgroundColor = .appBackground
         scrollView.drawsBackground = true
-        
-        // PERF: 启用 Layer 异步合成滑动，走 GPU 层合成路径而非 legacy CPU draw-on-scroll
-        scrollView.wantsLayer = true
-        scrollView.contentView.wantsLayer = true
+        // NOTE: 不设置 scrollView/contentView.wantsLayer，保留 AppKit 默认的 copiesOnScroll 优化路径
+        //       Layer 合成路径需要每帧合成整个 CALayer，传统路径只需复制已渲染像素+填充新露出条带
+        //       对于 NSTextView 文本滚动，传统路径比 Layer 路径快得多
 
         // 创建 TextView
         let textView = NSTextView()
@@ -67,7 +66,8 @@ struct CodeView: NSViewRepresentable {
         textView.textColor = .appText
         textView.isRichText = false
         textView.string = content
-        textView.wantsLayer = true
+        // NOTE: 不设置 textView.wantsLayer = true，避免在非 Layer 的 NSScrollView 中产生
+        //       混合渲染上下文（Layer + 非 Layer），这会破坏 copiesOnScroll 并引入合成延迟
         
         // 增加四周留白
         textView.textContainerInset = NSSize(width: 8, height: 8)
@@ -174,10 +174,8 @@ struct CodeView: NSViewRepresentable {
                     HighlightCache.shared.set(customAttributed, for: filePath, themeName: themeName, fontName: fontName, fontSize: fontSize, modificationDate: modDate)
                     
                     DispatchQueue.main.async {
-                        let transition = CATransition()
-                        transition.type = .fade
-                        transition.duration = 0.25
-                        textView.layer?.add(transition, forKey: kCATransition)
+                        // NOTE: 直接替换，无 CATransition 动画
+                        // CATransition fade 在用户滚动时会与 scroll compositing 冲突，产生"不跟手"感
                         textView.textStorage?.setAttributedString(customAttributed)
                     }
                 }
@@ -202,10 +200,7 @@ struct CodeView: NSViewRepresentable {
                 tempFull.append(remainAttributed)
                 
                 DispatchQueue.main.async {
-                    let transition = CATransition()
-                    transition.type = .fade
-                    transition.duration = 0.20
-                    textView.layer?.add(transition, forKey: kCATransition)
+                    // NOTE: 直接替换，无 CATransition，避免与滚动动画冲突
                     textView.textStorage?.setAttributedString(tempFull)
                 }
                 
