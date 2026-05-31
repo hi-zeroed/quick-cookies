@@ -27,7 +27,7 @@
 					<key>payload</key>
 					<dict>
 						<key>relative-path</key>
-						<string>QuickPeek/Core/HotkeyManager.swift</string>
+						<string>QuickCookies/Core/HotkeyManager.swift</string>
 					</dict>
 				</dict>
 			</dict>

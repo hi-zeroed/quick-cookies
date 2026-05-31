@@ -1,4 +1,4 @@
-# QuickPeek 实现计划
+# Quick Cookies 实现计划
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
@@ -13,11 +13,11 @@
 ## 文件结构
 
 ```
-QuickPeek/
-├── QuickPeek.xcodeproj              # Xcode 项目
-├── QuickPeek/
+QuickCookies/
+├── QuickCookies.xcodeproj              # Xcode 项目
+├── QuickCookies/
 │   ├── App/
-│   │   ├── QuickPeekApp.swift       # App 入口 + SwiftUI App 结构
+│   │   ├── QuickCookiesApp.swift       # App 入口 + SwiftUI App 结构
 │   │   └── AppDelegate.swift        # NSApplicationDelegate 处理权限
 │   ├── Core/
 │   │   ├── HotkeyManager.swift      # 全局热键注册/监听
@@ -45,7 +45,7 @@ QuickPeek/
 │   │   ├── markdown.css             # Markdown 渲染样式
 │   │   ├── highlight.css            # 代码高亮样式
 │   ├── Info.plist                   # 权限声明
-│   └── QuickPeek.entitlements       # App Sandbox 权限
+│   └── QuickCookies.entitlements       # App Sandbox 权限
 └── Package.swift                    # SPM 依赖配置
 ```
 
@@ -54,22 +54,22 @@ QuickPeek/
 ## Task 1: 创建 Xcode 项目骨架
 
 **Files:**
-- Create: `QuickPeek/QuickPeek.xcodeproj`
-- Create: `QuickPeek/QuickPeek/App/QuickPeekApp.swift`
-- Create: `QuickPeek/QuickPeek/Info.plist`
-- Create: `QuickPeek/QuickPeek/QuickPeek.entitlements`
+- Create: `QuickCookies/QuickCookies.xcodeproj`
+- Create: `QuickCookies/QuickCookies/App/QuickCookiesApp.swift`
+- Create: `QuickCookies/QuickCookies/Info.plist`
+- Create: `QuickCookies/QuickCookies/QuickCookies.entitlements`
 
 - [ ] **Step 1: 使用 Xcode 命令行创建项目**
 
 ```bash
-cd /Users/jiangwei/Git/QuickPeek
-mkdir -p QuickPeek/QuickPeek/App
-mkdir -p QuickPeek/QuickPeek/Core
-mkdir -p QuickPeek/QuickPeek/UI
-mkdir -p QuickPeek/QuickPeek/Renderer
-mkdir -p QuickPeek/QuickPeek/Utils
-mkdir -p QuickPeek/QuickPeek/Config
-mkdir -p QuickPeek/QuickPeek/Resources
+cd /Users/jiangwei/Git/Quick Cookies
+mkdir -p QuickCookies/QuickCookies/App
+mkdir -p QuickCookies/QuickCookies/Core
+mkdir -p QuickCookies/QuickCookies/UI
+mkdir -p QuickCookies/QuickCookies/Renderer
+mkdir -p QuickCookies/QuickCookies/Utils
+mkdir -p QuickCookies/QuickCookies/Config
+mkdir -p QuickCookies/QuickCookies/Resources
 ```
 
 - [ ] **Step 2: 创建 Info.plist 声明权限**
@@ -80,9 +80,9 @@ mkdir -p QuickPeek/QuickPeek/Resources
 <plist version="1.0">
 <dict>
     <key>CFBundleName</key>
-    <string>QuickPeek</string>
+    <string>Quick Cookies</string>
     <key>CFBundleIdentifier</key>
-    <string>com.quickpeek.app</string>
+    <string>com.quickcookies.app</string>
     <key>CFBundleVersion</key>
     <string>1</string>
     <key>CFBundleShortVersionString</key>
@@ -92,7 +92,7 @@ mkdir -p QuickPeek/QuickPeek/Resources
     <key>NSHighResolutionCapable</key>
     <true/>
     <key>NSAppleEventsUsageDescription</key>
-    <string>QuickPeek needs to communicate with Finder to get selected file paths.</string>
+    <string>Quick Cookies needs to communicate with Finder to get selected file paths.</string>
 </dict>
 </plist>
 ```
@@ -118,11 +118,11 @@ mkdir -p QuickPeek/QuickPeek/Resources
 import SwiftUI
 
 @main
-struct QuickPeekApp: App {
+struct Quick CookiesApp: App {
     var body: some Scene {
         // 空场景，主窗口由 PreviewWindow 管理
-        MenuBarExtra("QuickPeek", systemImage: "doc.text.magnifyingglass") {
-            Text("QuickPeek is running")
+        MenuBarExtra("Quick Cookies", systemImage: "doc.text.magnifyingglass") {
+            Text("Quick Cookies is running")
             Button("Settings") {
                 // 后续实现
             }
@@ -141,7 +141,7 @@ struct QuickPeekApp: App {
 import PackageDescription
 
 let package = Package(
-    name: "QuickPeek",
+    name: "Quick Cookies",
     platforms: [.macOS(.v12)],
     dependencies: [
         .package(url: "https://github.com/apple/swift-markdown.git", from: "0.3.0"),
@@ -149,7 +149,7 @@ let package = Package(
     ],
     targets: [
         .executableTarget(
-            name: "QuickPeek",
+            name: "Quick Cookies",
             dependencies: [
                 .product(name: "Markdown", package: "swift-markdown"),
                 "Highlightr",
@@ -163,7 +163,7 @@ let package = Package(
 
 ```bash
 git add .
-git commit -m "feat: initialize QuickPeek project skeleton"
+git commit -m "feat: initialize Quick Cookies project skeleton"
 ```
 
 ---
@@ -171,8 +171,8 @@ git commit -m "feat: initialize QuickPeek project skeleton"
 ## Task 2: Constants 和 Settings 配置层
 
 **Files:**
-- Create: `QuickPeek/QuickPeek/Config/Constants.swift`
-- Create: `QuickPeek/QuickPeek/Config/Settings.swift`
+- Create: `QuickCookies/QuickCookies/Config/Constants.swift`
+- Create: `QuickCookies/QuickCookies/Config/Settings.swift`
 
 - [ ] **Step 1: 创建 Constants.swift 定义文件类型映射**
 
@@ -313,7 +313,7 @@ extension UserDefaults {
 - [ ] **Step 3: Commit**
 
 ```bash
-git add QuickPeek/QuickPeek/Config/
+git add QuickCookies/QuickCookies/Config/
 git commit -m "feat: add Constants and Settings configuration layer"
 ```
 
@@ -322,8 +322,8 @@ git commit -m "feat: add Constants and Settings configuration layer"
 ## Task 3: FileUtils 文件读写工具
 
 **Files:**
-- Create: `QuickPeek/QuickPeek/Utils/FileUtils.swift`
-- Create: `QuickPeek/QuickPeek/Utils/EncodingDetector.swift`
+- Create: `QuickCookies/QuickCookies/Utils/FileUtils.swift`
+- Create: `QuickCookies/QuickCookies/Utils/EncodingDetector.swift`
 
 - [ ] **Step 1: 创建 EncodingDetector.swift 检测文件编码**
 
@@ -505,7 +505,7 @@ enum FileUtils {
 - [ ] **Step 3: Commit**
 
 ```bash
-git add QuickPeek/QuickPeek/Utils/
+git add QuickCookies/QuickCookies/Utils/
 git commit -m "feat: add FileUtils and EncodingDetector for file operations"
 ```
 
@@ -514,7 +514,7 @@ git commit -m "feat: add FileUtils and EncodingDetector for file operations"
 ## Task 4: FileTypeClassifier 文件类型分类器
 
 **Files:**
-- Create: `QuickPeek/QuickPeek/Core/FileTypeClassifier.swift`
+- Create: `QuickCookies/QuickCookies/Core/FileTypeClassifier.swift`
 
 - [ ] **Step 1: 创建 FileTypeClassifier.swift**
 
@@ -583,7 +583,7 @@ struct FileTypeClassifier {
 - [ ] **Step 2: Commit**
 
 ```bash
-git add QuickPeek/QuickPeek/Core/FileTypeClassifier.swift
+git add QuickCookies/QuickCookies/Core/FileTypeClassifier.swift
 git commit -m "feat: add FileTypeClassifier for render type detection"
 ```
 
@@ -592,7 +592,7 @@ git commit -m "feat: add FileTypeClassifier for render type detection"
 ## Task 5: FileDetector Finder 文件检测
 
 **Files:**
-- Create: `QuickPeek/QuickPeek/Core/FileDetector.swift`
+- Create: `QuickCookies/QuickCookies/Core/FileDetector.swift`
 
 - [ ] **Step 1: 创建 FileDetector.swift 使用 AppleScript**
 
@@ -675,7 +675,7 @@ enum FileDetector {
 - [ ] **Step 2: Commit**
 
 ```bash
-git add QuickPeek/QuickPeek/Core/FileDetector.swift
+git add QuickCookies/QuickCookies/Core/FileDetector.swift
 git commit -m "feat: add FileDetector using AppleScript to get Finder selection"
 ```
 
@@ -684,7 +684,7 @@ git commit -m "feat: add FileDetector using AppleScript to get Finder selection"
 ## Task 6: HotkeyManager 全局热键管理
 
 **Files:**
-- Create: `QuickPeek/QuickPeek/Core/HotkeyManager.swift`
+- Create: `QuickCookies/QuickCookies/Core/HotkeyManager.swift`
 
 - [ ] **Step 1: 创建 HotkeyManager.swift**
 
@@ -763,7 +763,7 @@ class HotkeyManager {
 - [ ] **Step 2: Commit**
 
 ```bash
-git add QuickPeek/QuickPeek/Core/HotkeyManager.swift
+git add QuickCookies/QuickCookies/Core/HotkeyManager.swift
 git commit -m "feat: add HotkeyManager for global keyboard monitoring"
 ```
 
@@ -772,8 +772,8 @@ git commit -m "feat: add HotkeyManager for global keyboard monitoring"
 ## Task 7: MarkdownRenderer Markdown 渲染引擎
 
 **Files:**
-- Create: `QuickPeek/QuickPeek/Renderer/MarkdownRenderer.swift`
-- Create: `QuickPeek/QuickPeek/Resources/markdown.css`
+- Create: `QuickCookies/QuickCookies/Renderer/MarkdownRenderer.swift`
+- Create: `QuickCookies/QuickCookies/Resources/markdown.css`
 
 - [ ] **Step 1: 创建 markdown.css 样式文件**
 
@@ -1071,8 +1071,8 @@ private class HTMLRenderer: MarkupVisitor {
 - [ ] **Step 3: Commit**
 
 ```bash
-git add QuickPeek/QuickPeek/Renderer/MarkdownRenderer.swift
-git add QuickPeek/QuickPeek/Resources/markdown.css
+git add QuickCookies/QuickCookies/Renderer/MarkdownRenderer.swift
+git add QuickCookies/QuickCookies/Resources/markdown.css
 git commit -m "feat: add MarkdownRenderer with CSS styling"
 ```
 
@@ -1081,7 +1081,7 @@ git commit -m "feat: add MarkdownRenderer with CSS styling"
 ## Task 8: SyntaxHighlighter 语法高亮引擎
 
 **Files:**
-- Create: `QuickPeek/QuickPeek/Renderer/SyntaxHighlighter.swift`
+- Create: `QuickCookies/QuickCookies/Renderer/SyntaxHighlighter.swift`
 
 - [ ] **Step 1: 创建 SyntaxHighlighter.swift（Highlightr 包装）**
 
@@ -1131,7 +1131,7 @@ class SyntaxHighlighter {
 - [ ] **Step 2: Commit**
 
 ```bash
-git add QuickPeek/QuickPeek/Renderer/SyntaxHighlighter.swift
+git add QuickCookies/QuickCookies/Renderer/SyntaxHighlighter.swift
 git commit -m "feat: add SyntaxHighlighter using Highlightr"
 ```
 
@@ -1140,7 +1140,7 @@ git commit -m "feat: add SyntaxHighlighter using Highlightr"
 ## Task 9: ToastView 提示组件
 
 **Files:**
-- Create: `QuickPeek/QuickPeek/UI/ToastView.swift`
+- Create: `QuickCookies/QuickCookies/UI/ToastView.swift`
 
 - [ ] **Step 1: 创建 ToastView.swift**
 
@@ -1213,7 +1213,7 @@ extension View {
 - [ ] **Step 2: Commit**
 
 ```bash
-git add QuickPeek/QuickPeek/UI/ToastView.swift
+git add QuickCookies/QuickCookies/UI/ToastView.swift
 git commit -m "feat: add ToastView for lightweight notifications"
 ```
 
@@ -1222,7 +1222,7 @@ git commit -m "feat: add ToastView for lightweight notifications"
 ## Task 10: MarkdownView Markdown 显示视图
 
 **Files:**
-- Create: `QuickPeek/QuickPeek/UI/MarkdownView.swift`
+- Create: `QuickCookies/QuickCookies/UI/MarkdownView.swift`
 
 - [ ] **Step 1: 创建 MarkdownView.swift**
 
@@ -1271,7 +1271,7 @@ struct MarkdownView: NSViewRepresentable {
 - [ ] **Step 2: Commit**
 
 ```bash
-git add QuickPeek/QuickPeek/UI/MarkdownView.swift
+git add QuickCookies/QuickCookies/UI/MarkdownView.swift
 git commit -m "feat: add MarkdownView using WKWebView for rendering"
 ```
 
@@ -1280,7 +1280,7 @@ git commit -m "feat: add MarkdownView using WKWebView for rendering"
 ## Task 11: CodeView 代码高亮视图
 
 **Files:**
-- Create: `QuickPeek/QuickPeek/UI/CodeView.swift`
+- Create: `QuickCookies/QuickCookies/UI/CodeView.swift`
 
 - [ ] **Step 1: 创建 CodeView.swift**
 
@@ -1329,7 +1329,7 @@ struct CodeView: NSViewRepresentable {
 - [ ] **Step 2: Commit**
 
 ```bash
-git add QuickPeek/QuickPeek/UI/CodeView.swift
+git add QuickCookies/QuickCookies/UI/CodeView.swift
 git commit -m "feat: add CodeView for syntax-highlighted code display"
 ```
 
@@ -1338,7 +1338,7 @@ git commit -m "feat: add CodeView for syntax-highlighted code display"
 ## Task 12: EditorView 可编辑视图
 
 **Files:**
-- Create: `QuickPeek/QuickPeek/UI/EditorView.swift`
+- Create: `QuickCookies/QuickCookies/UI/EditorView.swift`
 
 - [ ] **Step 1: 创建 EditorView.swift**
 
@@ -1479,7 +1479,7 @@ class LineNumberView: NSRulerView {
 - [ ] **Step 2: Commit**
 
 ```bash
-git add QuickPeek/QuickPeek/UI/EditorView.swift
+git add QuickCookies/QuickCookies/UI/EditorView.swift
 git commit -m "feat: add EditorView with line numbers support"
 ```
 
@@ -1488,7 +1488,7 @@ git commit -m "feat: add EditorView with line numbers support"
 ## Task 13: ContentView 主内容视图
 
 **Files:**
-- Create: `QuickPeek/QuickPeek/UI/ContentView.swift`
+- Create: `QuickCookies/QuickCookies/UI/ContentView.swift`
 
 - [ ] **Step 1: 创建 ContentView.swift**
 
@@ -1636,7 +1636,7 @@ struct ContentView: View {
 - [ ] **Step 2: Commit**
 
 ```bash
-git add QuickPeek/QuickPeek/UI/ContentView.swift
+git add QuickCookies/QuickCookies/UI/ContentView.swift
 git commit -m "feat: add ContentView as main content router"
 ```
 
@@ -1645,7 +1645,7 @@ git commit -m "feat: add ContentView as main content router"
 ## Task 14: PreviewWindow 浮动预览窗口
 
 **Files:**
-- Create: `QuickPeek/QuickPeek/UI/PreviewWindow.swift`
+- Create: `QuickCookies/QuickCookies/UI/PreviewWindow.swift`
 
 - [ ] **Step 1: 创建 PreviewWindow.swift**
 
@@ -1740,7 +1740,7 @@ class PreviewWindowController {
             defer: false
         )
         
-        panel.title = "QuickPeek - \(URL(fileURLWithPath: filePath).lastPathComponent)"
+        panel.title = "Quick Cookies - \(URL(fileURLWithPath: filePath).lastPathComponent)"
         panel.level = .floating
         panel.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
         panel.isFloatingPanel = true
@@ -1789,7 +1789,7 @@ class PreviewWindowController {
 - [ ] **Step 2: Commit**
 
 ```bash
-git add QuickPeek/QuickPeek/UI/PreviewWindow.swift
+git add QuickCookies/QuickCookies/UI/PreviewWindow.swift
 git commit -m "feat: add PreviewWindow as floating panel controller"
 ```
 
@@ -1798,7 +1798,7 @@ git commit -m "feat: add PreviewWindow as floating panel controller"
 ## Task 15: SettingsWindow 设置窗口
 
 **Files:**
-- Create: `QuickPeek/QuickPeek/UI/SettingsWindow.swift`
+- Create: `QuickCookies/QuickCookies/UI/SettingsWindow.swift`
 
 - [ ] **Step 1: 创建 SettingsWindow.swift**
 
@@ -1826,7 +1826,7 @@ class SettingsWindowController {
             defer: false
         )
         
-        panel.title = "QuickPeek 设置"
+        panel.title = "Quick Cookies 设置"
         panel.level = .normal
         
         let view = SettingsView()
@@ -2022,7 +2022,7 @@ extension PreviewWindowController {
 - [ ] **Step 2: Commit**
 
 ```bash
-git add QuickPeek/QuickPeek/UI/SettingsWindow.swift
+git add QuickCookies/QuickCookies/UI/SettingsWindow.swift
 git commit -m "feat: add SettingsWindow for hotkey and appearance configuration"
 ```
 
@@ -2031,7 +2031,7 @@ git commit -m "feat: add SettingsWindow for hotkey and appearance configuration"
 ## Task 16: AppDelegate 应用生命周期
 
 **Files:**
-- Create: `QuickPeek/QuickPeek/App/AppDelegate.swift`
+- Create: `QuickCookies/QuickCookies/App/AppDelegate.swift`
 
 - [ ] **Step 1: 创建 AppDelegate.swift**
 
@@ -2051,7 +2051,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             PreviewWindowController.shared.showFromFinder()
         }
         
-        print("QuickPeek started. Press \(hotkeyDescription) to preview files.")
+        print("Quick Cookies started. Press \(hotkeyDescription) to preview files.")
     }
     
     func applicationWillTerminate(_ notification: Notification) {
@@ -2061,7 +2061,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private func showPermissionAlert() {
         let alert = NSAlert()
         alert.messageText = "需要辅助功能权限"
-        alert.informativeText = "QuickPeek 需要辅助功能权限来监听全局快捷键。\n请前往 系统偏好设置 → 安全性与隐私 → 辅助功能，添加 QuickPeek。"
+        alert.informativeText = "Quick Cookies 需要辅助功能权限来监听全局快捷键。\n请前往 系统偏好设置 → 安全性与隐私 → 辅助功能，添加 Quick Cookies。"
         alert.alertStyle = .warning
         alert.addButton(withTitle: "打开设置")
         alert.addButton(withTitle: "稍后")
@@ -2089,18 +2089,18 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 }
 ```
 
-- [ ] **Step 2: 更新 QuickPeekApp.swift 引入 AppDelegate**
+- [ ] **Step 2: 更新 QuickCookiesApp.swift 引入 AppDelegate**
 
 ```swift
 import SwiftUI
 
 @main
-struct QuickPeekApp: App {
+struct Quick CookiesApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     
     var body: some Scene {
-        MenuBarExtra("QuickPeek", systemImage: "doc.text.magnifyingglass") {
-            Text("QuickPeek is running")
+        MenuBarExtra("Quick Cookies", systemImage: "doc.text.magnifyingglass") {
+            Text("Quick Cookies is running")
             Button("Settings") {
                 SettingsWindowController.shared.show()
             }
@@ -2117,7 +2117,7 @@ struct QuickPeekApp: App {
 - [ ] **Step 3: Commit**
 
 ```bash
-git add QuickPeek/QuickPeek/App/
+git add QuickCookies/QuickCookies/App/
 git commit -m "feat: add AppDelegate for lifecycle and permission handling"
 ```
 
@@ -2126,7 +2126,7 @@ git commit -m "feat: add AppDelegate for lifecycle and permission handling"
 ## Task 17: 创建 Xcode 项目文件
 
 **Files:**
-- Create: `QuickPeek/QuickPeek.xcodeproj/project.pbxproj`
+- Create: `QuickCookies/QuickCookies.xcodeproj/project.pbxproj`
 
 - [ ] **Step 1: 使用 Xcode 创建项目**
 
@@ -2135,12 +2135,12 @@ git commit -m "feat: add AppDelegate for lifecycle and permission handling"
 ```bash
 # 打开 Xcode，创建新项目：
 # 1. 选择 macOS → App
-# 2. 产品名称：QuickPeek
+# 2. 产品名称：Quick Cookies
 # 3. 团队：选择你的开发团队
-# 4. 组织标识符：com.quickpeek
+# 4. 组织标识符：com.quickcookies
 # 5. 界面：SwiftUI
 # 6. 语言：Swift
-# 7. 保存到：/Users/jiangwei/Git/QuickPeek
+# 7. 保存到：/Users/jiangwei/Git/Quick Cookies
 #
 # 然后将已创建的源文件拖入项目中
 ```
@@ -2175,7 +2175,7 @@ git commit -m "feat: configure Xcode project with dependencies"
 
 ```bash
 # 在 Xcode 中编译，或使用命令行
-xcodebuild -project QuickPeek.xcodeproj -scheme QuickPeek -configuration Debug build
+xcodebuild -project QuickCookies.xcodeproj -scheme Quick Cookies -configuration Debug build
 ```
 
 预期：编译成功，无错误

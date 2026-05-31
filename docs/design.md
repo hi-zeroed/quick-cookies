@@ -1,10 +1,10 @@
-# QuickPeek 设计文档
+# Quick Cookies 设计文档
 
 > macOS 轻量级文件预览/编辑应用
 
 ## 项目概述
 
-**名称**：QuickPeek
+**名称**：Quick Cookies
 **定位**：一个 Swift macOS App，通过可自定义全局快捷键触发，弹出浮动窗口预览/编辑文本类文件，解决 macOS Quick Look 对开发者常用文件类型支持不足的问题。
 
 ### 解决的痛点
@@ -20,7 +20,7 @@
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│                    QuickPeek App                     │
+│                    Quick Cookies App                     │
 ├─────────────────────────────────────────────────────┤
 │  ┌─────────────┐    ┌─────────────┐    ┌──────────┐ │
 │  │ HotkeyMgr   │───▶│ FileDetector│───▶│ Preview  │ │
@@ -234,9 +234,9 @@ Editor 更新文本状态，标题栏显示修改标记 (●)
 ### 项目结构
 
 ```
-QuickPeek/
+QuickCookies/
 ├── App/
-│   ├── QuickPeekApp.swift          # App 入口
+│   ├── QuickCookiesApp.swift          # App 入口
 │   └── AppDelegate.swift           # 生命周期管理
 ├── Core/
 │   ├── HotkeyManager.swift         # 热键管理
