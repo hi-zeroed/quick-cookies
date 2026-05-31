@@ -168,14 +168,21 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
     /// 从 Finder 触发预览（双击 Option 或 Services 菜单）
     func showFromFinder() {
         writeDebugLog("=== showFromFinder triggered ===")
-        // 如果预览窗口已经打开，按快捷键应快速关闭 (Toggle 交互)
+        // 1. 如果预览窗口已经打开且可见，按快捷键应快速关闭 (Toggle 关闭豁免前台 Finder 限制)
         if let window = previewWindow, window.isVisible {
             writeDebugLog("showFromFinder: 窗口已在显示，执行 closeWithAnimation()")
             closeWithAnimation()
             return
         }
 
-        // 尝试同步获取当前 Finder 选中文件路径（一般耗时很低，~5-15ms），以防不支持文件先大后小
+        // 2. 增加前台应用校验：仅当前台活跃应用为 Finder (com.apple.finder) 时才响应快捷键拉起新预览
+        guard let frontApp = NSWorkspace.shared.frontmostApplication,
+              frontApp.bundleIdentifier == "com.apple.finder" else {
+            writeDebugLog("showFromFinder: Finder 不在前台，忽略拉起。当前前台: \(NSWorkspace.shared.frontmostApplication?.bundleIdentifier ?? "unknown")")
+            return
+        }
+
+        // 3. 尝试同步获取当前 Finder 选中文件路径（一般耗时很低，~5-15ms），以防不支持文件先大后小
         var detectedPath: String? = nil
         let result = FileDetector.getSelectedFilePath()
         switch result {

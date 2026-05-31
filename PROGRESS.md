@@ -184,4 +184,7 @@
   - **主流图片格式扩充**：在 `isSupported` and `classify` 中，将支持的图片种类从原来的 `["png", "jpg", "jpeg", "webp", "gif", "bmp"]` 扩充到了全套主流图片格式：包括 `tiff`, `tif`, `heic`, `heif` 和 `ico`。
 - **macOS 12.0+ 弃用警告消除与规范化 API 适配（2026-05-31）**：
   - **API 规范化**：在 [UnsupportedFileView.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/UI/UnsupportedFileView.swift) 中，将已被弃用的 `NSWorkspace.shared.icon(forFileType:)` 替换为 macOS 12.0 推荐的 `NSWorkspace.shared.icon(for: UTType)` 接口，引入 `UniformTypeIdentifiers` 框架并传入 `.item` 获得默认未知文件图标，消除了编译期警告。
+- **快捷键前台 Finder 触发校验与误触拦截（2026-05-31）**：
+  - **前台 Finder 校验**：重构了 [QuickLookOverlay.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/UI/QuickLookOverlay.swift) 的 `showFromFinder()` 方法。引入了 `NSWorkspace.shared.frontmostApplication` 校验，只有当前台活跃应用确实为 Finder（`com.apple.finder`，包含点击桌面）时，双击快捷键才允许触发并拉起新文件预览。这彻底避免了用户在其他工作场景（如编写代码或网页打字）下，由于误操作而强行弹出历史选中文件的骚扰。
+  - **Toggle 关闭豁免**：在判定前台 Finder 逻辑之前，保留并优先匹配了“如果预览窗口已打开，则双击 Option 始终可以关闭”的 Toggle 关闭逻辑，确保用户可以用快捷键顺畅地一开一合，符合 macOS 原生人机交互（HIG）规范。
 
