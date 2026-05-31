@@ -17,6 +17,11 @@ struct FileTypeClassifier {
             return .unsupported
         }
 
+        // 快速进行物理二进制检测 (只读取最前 1KB 字节检查 null 字节)
+        if isBinaryFileFastCheck(path: resolvedPath) {
+            return .unsupported
+        }
+
         let ext = URL(fileURLWithPath: resolvedPath)
             .pathExtension
             .lowercased()
@@ -52,6 +57,16 @@ struct FileTypeClassifier {
 
     /// 判断文件是否支持
     static func isSupported(path: String) -> Bool {
+        // 1. 过滤文件夹目录类型
+        var isDir: ObjCBool = false
+        if FileManager.default.fileExists(atPath: path, isDirectory: &isDir) {
+            if isDir.boolValue {
+                return false
+            }
+        } else {
+            return false
+        }
+
         let ext = URL(fileURLWithPath: path)
             .pathExtension
             .lowercased()
@@ -72,6 +87,26 @@ struct FileTypeClassifier {
 
         // 其它一切未知扩展名默认放行支持（读取文件时如检测为二进制会优雅报错）
         return true
+    }
+
+    /// 快速同步二进制检测（限制前 1KB，主线程高防）
+    private static func isBinaryFileFastCheck(path: String) -> Bool {
+        let url = URL(fileURLWithPath: path)
+        guard let fileHandle = try? FileHandle(forReadingFrom: url) else {
+            return false
+        }
+        defer {
+            try? fileHandle.close()
+        }
+        
+        let data: Data
+        if #available(macOS 10.15, *) {
+            data = (try? fileHandle.read(upToCount: 1024)) ?? Data()
+        } else {
+            data = fileHandle.readData(ofLength: 1024)
+        }
+        
+        return data.contains(0x00)
     }
 
     /// 获取 Highlightr 语言名称

@@ -176,3 +176,7 @@
 - **彻底清除测试 Toast 遗留与调试信息静默化（2026-05-31）**：
   - **移除位置/创窗大小 Toast 提示**：在 [QuickLookOverlay.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/UI/QuickLookOverlay.swift) 中，将之前用于开发调试的“创窗大小: WxH isUnsupported: Bool”以及“位置: (X, Y) 大小: WxH”两个 `showToast` 的调用全部移除，替换为静默的本地调试日志写入（`writeDebugLog`）。
   - **防止业务 Toast 被覆盖**：彻底解决了由于频繁触发物理位置定位 Toast 导致系统正常的业务或错误 Toast（例如“不支持的文件类型”或“读取文件失败”）被覆盖或无法正常展示的问题。
+- **不支持文件 0ms 矮窗口精准起跳修复（2026-05-31）**：
+  - **文件夹物理类型拦截**：在 [FileTypeClassifier.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/Core/FileTypeClassifier.swift) 中，重构了 `isSupported` 的前置判断逻辑，首选使用 `FileManager` 检测路径是否为文件夹目录。如果选中项为文件夹（如 Xcode 项目 `.xcodeproj`、App 包或常规文件夹），直接判定为不支持类型，从而让其在起跳的第 0 毫秒就以 450x320 矮窗口呈现。
+  - **同步轻量二进制检测**：在 `FileTypeClassifier.classify` 阶段，在主线程同步快速读取文件最前面的 1KB 字节并检测是否包含 NULL 字节（`0x00`）。这确保了对未加入后缀黑名单的二进制文件（如 Zip 压缩包、可执行文件等）在起跳阶段就能瞬间识别为不支持，彻底根治了不支持文件在打开时“先以大窗口弹起，随后在后台加载失败后才收缩为小窗口”的大小闪烁跳变问题。
+
