@@ -173,8 +173,6 @@
     - **红绿灯垂直中线对齐调优**：将 [ContentView.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/UI/ContentView.swift) 中 `toolbar` 的顶部 padding 微调为 `8`（底部亦微调为 `8`），使顶栏文字与按钮的 Y 轴重心上移，与忽略 Safe Area 顶格绘制模式下的系统原生红黄绿按钮实现 100% 垂直同行中线水平居中对齐。
     - **不支持文件 0ms 小窗口起跳优化与 AppleEvent 死锁根除**：将 [FileDetector.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/Core/FileDetector.swift) 的 AppleScript 执行机制由 `NSAppleScript` 同步执行重构为通过 `Process` 子进程独立调起 `/usr/bin/osascript`。这彻底根治了在 AppKit 主线程同步发送 AppleEvent 控制 Finder 导致主线程与 Finder 之间死锁卡顿并固定返回 failure 的隐患，保证了在 [QuickLookOverlay.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/UI/QuickLookOverlay.swift) 的 `showFromFinder()` 中快速同步探测选中文件路径 100% 获得成功。对于不支持的文件，直接在 0ms 以 450x320 的矮窗口起跳展现动画，彻底消除了“先大后小”的视觉抖动。
     - **二次打开窗口大小污染修复**：在 [ContentView.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/UI/ContentView.swift) 的 `PreviewState` 重置方法 `reset()` 中加入了 `isResetting` 屏蔽开关。完全隔离了在依次重置各个属性时，由于中间脏状态未完成清空而通过 `didSet` 误向 `QuickLookOverlay` 发送状态变更引发的二次正常文件打开直接变小的 Bug。
-
-
-
-
-
+- **彻底清除测试 Toast 遗留与调试信息静默化（2026-05-31）**：
+  - **移除位置/创窗大小 Toast 提示**：在 [QuickLookOverlay.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/UI/QuickLookOverlay.swift) 中，将之前用于开发调试的“创窗大小: WxH isUnsupported: Bool”以及“位置: (X, Y) 大小: WxH”两个 `showToast` 的调用全部移除，替换为静默的本地调试日志写入（`writeDebugLog`）。
+  - **防止业务 Toast 被覆盖**：彻底解决了由于频繁触发物理位置定位 Toast 导致系统正常的业务或错误 Toast（例如“不支持的文件类型”或“读取文件失败”）被覆盖或无法正常展示的问题。

@@ -80,9 +80,11 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         let targetHeight = frameRect.height
         
         let currentFrame = window.frame
+        self.writeDebugLog("resizeWindow: current=\(currentFrame), targetWidth=\(targetWidth), targetHeight=\(targetHeight)")
         
         // 如果物理尺寸已完全匹配，直接返回，绝不执行二次 setFrame 动画
         if abs(currentFrame.width - targetWidth) < 1.0 && abs(currentFrame.height - targetHeight) < 1.0 {
+            self.writeDebugLog("resizeWindow: 尺寸已匹配，直接 return")
             return
         }
         
@@ -165,16 +167,23 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
 
     /// 从 Finder 触发预览（双击 Option 或 Services 菜单）
     func showFromFinder() {
+        writeDebugLog("=== showFromFinder triggered ===")
         // 如果预览窗口已经打开，按快捷键应快速关闭 (Toggle 交互)
         if let window = previewWindow, window.isVisible {
+            writeDebugLog("showFromFinder: 窗口已在显示，执行 closeWithAnimation()")
             closeWithAnimation()
             return
         }
 
         // 尝试同步获取当前 Finder 选中文件路径（一般耗时很低，~5-15ms），以防不支持文件先大后小
         var detectedPath: String? = nil
-        if case .success(let path) = FileDetector.getSelectedFilePath() {
+        let result = FileDetector.getSelectedFilePath()
+        switch result {
+        case .success(let path):
             detectedPath = FileUtils.resolveSymlink(at: path)
+            writeDebugLog("showFromFinder: 同步探测成功: \(path)")
+        case .failure(let error):
+            writeDebugLog("showFromFinder: 同步探测失败: \(error.localizedDescription)")
         }
 
         // 瞬间弹框
@@ -229,8 +238,7 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
             height: windowHeight
         )
 
-        // 唯一保留的诊断 Toast，用于查看创窗时的尺寸和是否被识别为不支持类型
-        self.showToast(message: "DEBUG: 创窗大小: \(Int(targetRect.width))x\(Int(targetRect.height)) isUnsupported: \(isUnsupported)")
+        writeDebugLog("showOverlay: targetRect=\(targetRect), isUnsupported=\(isUnsupported)")
 
         // 2. 瞬间在主线程实例化窗口并展现
         let previewPanel = QuickLookPanel(
@@ -326,10 +334,10 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
                 // 保存真实物理坐标
                 self.sourceRectBackup = realSourceRect
                 
-                // 打印诊断信息
-                let sizeInfo = "\("大小".localized()): \(Int(realSourceRect.size.width))x\(Int(realSourceRect.size.height))"
+                // 打印诊断信息并记录日志，彻底移除屏幕 Toast
+                let sizeInfo = "大小: \(Int(realSourceRect.size.width))x\(Int(realSourceRect.size.height))"
                 let diagnosticMsg = self.lastDiagnosticMessage.isEmpty ? "" : " (\(self.lastDiagnosticMessage))"
-                self.showToast(message: "\("位置".localized()): (\(Int(realSourceRect.origin.x)), \(Int(realSourceRect.origin.y))) \(sizeInfo)\(diagnosticMsg)")
+                self.writeDebugLog("showOverlay 异步坐标定位: (\(Int(realSourceRect.origin.x)), \(Int(realSourceRect.origin.y))) \(sizeInfo)\(diagnosticMsg)")
                 
                 if let result = pathResult {
                     switch result {
@@ -734,5 +742,23 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
     /// 窗口是否可见
     var isVisible: Bool {
         return previewWindow?.isVisible == true
+    }
+    
+    private func writeDebugLog(_ message: String) {
+        let logPath = "/Users/jiangwei/.gemini/antigravity/brain/13d0a525-4253-443b-bb17-d5690797acc7/scratch/debug_log.txt"
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd HH:mm:ss.SSS"
+        let timeStr = formatter.string(from: Date())
+        let fullMsg = "[\(timeStr)] \(message)\n"
+        
+        if let fileHandle = FileHandle(forWritingAtPath: logPath) {
+            fileHandle.seekToEndOfFile()
+            if let data = fullMsg.data(using: .utf8) {
+                fileHandle.write(data)
+            }
+            fileHandle.closeFile()
+        } else {
+            try? fullMsg.write(toFile: logPath, atomically: true, encoding: .utf8)
+        }
     }
 }
