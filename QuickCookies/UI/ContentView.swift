@@ -90,7 +90,9 @@ struct ContentView: View {
     // 状态化分段文件读取器
     @State private var chunkReader: FileChunkReader? = nil
 
-    @ObservedObject var settings = Settings.shared
+    // NOTE: 不在 ContentView 根节点订阅 Settings.shared，
+    //       避免任意设置变化触发整个视图树 invalidate + CodeView.updateNSView 冒餐调用。
+    //       fontSize / editorFont 只在 previewView / editView 子节点内读取，训练范围最小化。
 
     init(state: PreviewState) {
         self.state = state
@@ -302,33 +304,27 @@ struct ContentView: View {
             case .markdown:
                 MarkdownView(filePath: path, markdownText: content)
             case .code:
-                CodeView(
-                    filePath: path,
+                // NOTE: 将 settings 订阅下沉到 PreviewCodeView 内部，
+                //       防止 Settings 变化导致 ContentView 根节点重绘触发 CodeView.updateNSView
+                PreviewCodeView(
+                    path: path,
                     content: content,
                     language: state.language,
-                    fontSize: settings.fontSize,
-                    fontName: settings.editorFont,
                     isDark: isDark,
                     state: state,
                     onLoadMore: {
-                        Task {
-                            await loadNextChunkAsync()
-                        }
+                        Task { await loadNextChunkAsync() }
                     }
                 )
             case .plainText:
-                CodeView(
-                    filePath: path,
+                PreviewCodeView(
+                    path: path,
                     content: content,
                     language: nil,
-                    fontSize: settings.fontSize,
-                    fontName: settings.editorFont,
                     isDark: isDark,
                     state: state,
                     onLoadMore: {
-                        Task {
-                            await loadNextChunkAsync()
-                        }
+                        Task { await loadNextChunkAsync() }
                     }
                 )
             case .pdf, .image:
@@ -341,12 +337,10 @@ struct ContentView: View {
 
     @ViewBuilder
     private var editView: some View {
-        EditorView(
+        // NOTE: 将 settings 订阅下沉到 EditContentView 内部，训练范围最小化
+        EditContentView(
             content: $content,
             isModified: $isModified,
-            fontSize: settings.fontSize,
-            fontName: settings.editorFont,
-            showLineNumbers: settings.showLineNumbers,
             onSave: saveFile
         )
     }
@@ -493,5 +487,57 @@ struct ContentView: View {
         }
         watcher.start()
         fileWatcher = watcher
+    }
+}
+
+// MARK: - Settings 订阅隔离子视图
+
+/// 代码预览的 Settings 隔离包装视图
+/// NOTE: 将 Settings.shared 订阅下沉到此独立结构体，
+///       避免 Settings 任意属性变化（如主题/语言切换）触发 ContentView 根节点重绘，
+///       进而避免 CodeView.updateNSView 被冗余调用导致滚动卡顿
+private struct PreviewCodeView: View {
+    let path: String
+    let content: String
+    let language: String?
+    let isDark: Bool
+    let state: PreviewState
+    let onLoadMore: () -> Void
+
+    // Settings 订阅限定在此子视图范围内
+    @ObservedObject private var settings = Settings.shared
+
+    var body: some View {
+        CodeView(
+            filePath: path,
+            content: content,
+            language: language,
+            fontSize: settings.fontSize,
+            fontName: settings.editorFont,
+            isDark: isDark,
+            state: state,
+            onLoadMore: onLoadMore
+        )
+    }
+}
+
+/// 编辑器的 Settings 隔离包装视图
+/// NOTE: 同上，将 Settings 订阅下沉到此子视图
+private struct EditContentView: View {
+    @Binding var content: String
+    @Binding var isModified: Bool
+    let onSave: () -> Void
+
+    @ObservedObject private var settings = Settings.shared
+
+    var body: some View {
+        EditorView(
+            content: $content,
+            isModified: $isModified,
+            fontSize: settings.fontSize,
+            fontName: settings.editorFont,
+            showLineNumbers: settings.showLineNumbers,
+            onSave: onSave
+        )
     }
 }

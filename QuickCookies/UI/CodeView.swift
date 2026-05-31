@@ -191,14 +191,12 @@ struct CodeView: NSViewRepresentable {
                     
                     HighlightCache.shared.set(customFull, for: filePath, themeName: themeName, fontName: fontName, fontSize: fontSize, modificationDate: modDate)
                     
-                    DispatchQueue.main.async {
+                DispatchQueue.main.async {
                         guard textView.string == fullContent else { return }
-                        let textStorage = textView.textStorage
-                        textStorage?.beginEditing()
-                        customFull.enumerateAttributes(in: NSRange(location: 0, length: customFull.length), options: []) { attrs, range, _ in
-                            textStorage?.setAttributes(attrs, range: range)
-                        }
-                        textStorage?.endEditing()
+                        // NOTE: 使用 setAttributedString 一次性整体替换，
+                        // 性能远优于 enumerateAttributes 逐 range setAttributes（O(n) 主线程阻塞）
+                        // NSTextStorage 内部会自动做最小化 diff 优化
+                        textView.textStorage?.setAttributedString(customFull)
                     }
                 }
             }
