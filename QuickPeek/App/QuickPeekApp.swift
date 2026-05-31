@@ -10,7 +10,8 @@ struct QuickPeekApp: App {
             // 使用 FinderMenuIntegration 提供的菜单内容
             FinderMenuIntegration.getMenuBarMenu()
         } label: {
-            Image(systemName: "magnifyingglass")
+            Image("MenuBarIcon")
+                .renderingMode(.template)
         }
         .menuBarExtraStyle(.menu)
     }

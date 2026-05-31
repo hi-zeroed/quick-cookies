@@ -14,5 +14,4 @@
 | REQ-008 | 设置界面 | 提供设置窗口，用于配置触发快捷键、代码/文本字体大小，管理辅助功能权限。 | 需测试 | 已在 SettingsWindow 实现并重构为卡片化高颜值 UI，且已打通“编辑器字体”在预览/编辑界面的动态渲染以及基于 SMAppService 的“开机自启动”自备系统注册逻辑，确保配置项完全真实可用。 |
 | REQ-009 | 权限请求与引导 | 应用运行需要 Accessibility（辅助功能）权限，未授权时需要引导用户授权。 | 需测试 | 已在 `AppDelegate` 及 `HotkeyManager` 实现 |
 | REQ-010 | 多语言适配 | 支持 English 与简体中文两套语言，提供自适应跟随系统及应用内热切换功能，瞬间刷新全案文案。 | 需测试 | 已在 Settings、SettingsWindow、ContentView、QuickLookOverlay、FinderMenuIntegration 和 AppDelegate 中完整实现。 |
-| REQ-011 | 图标与品牌资源 | 设计并配置符合 macOS 规范的 App 像素级图标与自适应 Template 状态栏图标。 | 需测试 | 已完成 AppIcon 各种规格的 xcassets 编译构建及 MenuBarExtra 对 magnifyingglass 系统图标的自适应替换。 |
-
+| REQ-011 | 图标与品牌资源 | 设计并配置符合 macOS 规范的 App 像素级图标与自适应 Template 状态栏图标。 | 需测试 | 已完成 AppIcon 的 sips 批量生成、所有自定义状态栏、菜单项及工具栏 SVG 图标的导入与代码替换，支持 Template 自适应变色。 |

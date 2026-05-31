@@ -30,7 +30,10 @@ class FinderMenuIntegration {
             // 快速打开选中文件（使用 Unicode 字符替代图标）
             Button(action: openSelectedFile) {
                 HStack(spacing: 8) {
-                    Text("📄") // doc.text.fill Unicode
+                    Image("MenuOpen")
+                        .renderingMode(.template)
+                        .resizable()
+                        .frame(width: 16, height: 16)
                     Text("打开选中文件".localized())
                 }
             }
@@ -46,7 +49,10 @@ class FinderMenuIntegration {
                 }
             }) {
                 HStack(spacing: 8) {
-                    Text("⚙") // gear Unicode
+                    Image("MenuSettings")
+                        .renderingMode(.template)
+                        .resizable()
+                        .frame(width: 16, height: 16)
                     Text("设置".localized())
                 }
             }
@@ -57,7 +63,10 @@ class FinderMenuIntegration {
             // 退出
             Button(action: { NSApplication.shared.terminate(nil) }) {
                 HStack(spacing: 8) {
-                    Text("⏻") // power Unicode
+                    Image("MenuQuit")
+                        .renderingMode(.template)
+                        .resizable()
+                        .frame(width: 16, height: 16)
                     Text("退出".localized())
                 }
             }

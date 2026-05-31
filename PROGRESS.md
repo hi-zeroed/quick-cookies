@@ -120,5 +120,4 @@
   - **菜单栏图标原生升级**：重构了 `QuickPeekApp.swift` 的 `MenuBarExtra` 入口，使用系统原生的 SF Symbol 图标 `magnifyingglass` 代替之前的文字占位 `"QuickPeek 🔍"`，完美支持深浅色模式自动反色。
   - **AppIcon 品牌 Logo 升级**：根据用户提供的最新卡通网格面包/贝壳 Logo 图像，更新裁剪脚本 [generate_icons.py](file:///Users/jiangwei/.gemini/antigravity/brain/a54f58af-0c5c-4ce6-86ce-17c110a150a3/scratch/generate_icons.py)，通过 `sips` 自动生成 10 张符合 macOS HIG 规范的小分辨率图标并覆盖 `Assets.xcassets/AppIcon.appiconset`，通过 `xcodebuild` 重新构建成功。
   - **文档更新与合规评估**：更新 [README.md](file:///Users/jiangwei/Git/QuickPeek/README.md) 明确标注应用图标来源的 iconfont 地址，对 iconfont 平台的版权机制和潜在的商用合规风险进行了深度评估，并撰写了规避和避险方案说明。
-
-
+  - **SVG 图标集成与全面替换**：从 `Download/icons` 目录下导入了全部自定义的 SVG 图标资产，为其编写了自动化导入脚本 [import_svgs.py](file:///Users/jiangwei/.gemini/antigravity/brain/a54f58af-0c5c-4ce6-86ce-17c110a150a3/scratch/import_svgs.py)；创建了对应的 `.imageset` 并将其配置为 `Preserve Vector Data` 矢量图单分辨率模式，且指定了 `"template-rendering-intent": "template"` 自适应渲染；重构了 [QuickPeekApp.swift](file:///Users/jiangwei/Git/QuickPeek/QuickPeek/App/QuickPeekApp.swift)、[FinderMenuIntegration.swift](file:///Users/jiangwei/Git/QuickPeek/QuickPeek/Core/FinderMenuIntegration.swift) 和 [ContentView.swift](file:///Users/jiangwei/Git/QuickPeek/QuickPeek/UI/ContentView.swift)，彻底将界面中临时的 Unicode 符号（📄、⚙、⏻、✎、👁、⬇）和 SF Symbols 占位符替换为具备自适应渲染模式的自定义矢量图片。

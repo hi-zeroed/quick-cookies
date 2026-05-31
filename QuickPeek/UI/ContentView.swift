@@ -118,8 +118,10 @@ struct ContentView: View {
                 if state.filePath != nil && state.errorMessage == nil {
                     // 模式切换按钮
                     Button(action: toggleMode) {
-                        Text(mode == .preview ? "✎" : "👁")
-                            .font(.system(size: 14))
+                        Image(mode == .preview ? "ToolbarEdit" : "ToolbarPreview")
+                            .renderingMode(.template)
+                            .resizable()
+                            .frame(width: 16, height: 16)
                             .foregroundColor(Color.appText.opacity(0.8))
                     }
                     .buttonStyle(.plain)
@@ -128,8 +130,10 @@ struct ContentView: View {
                     // 保存按钮
                     if mode == .edit && isModified {
                         Button(action: saveFile) {
-                            Text("⬇")
-                                .font(.system(size: 14))
+                            Image("ToolbarSave")
+                                .renderingMode(.template)
+                                .resizable()
+                                .frame(width: 16, height: 16)
                                 .foregroundColor(.orange)
                         }
                         .buttonStyle(.plain)
@@ -150,8 +154,11 @@ struct ContentView: View {
         if let err = state.errorMessage {
             VStack(spacing: 16) {
                 Spacer()
-                Image(systemName: "exclamationmark.triangle.fill")
-                    .font(.system(size: 32))
+                Image("StatusWarning")
+                    .renderingMode(.template)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 32, height: 32)
                     .foregroundColor(.orange.opacity(0.8))
                 Text(err.localized())
                     .font(.system(size: 13, weight: .medium, design: .monospaced))
