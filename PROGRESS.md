@@ -124,6 +124,8 @@
   - **资源路径错位 Bug 修复**：定位并修正了 [project.pbxproj](file:///Users/jiangwei/Git/QuickPeek/QuickPeek.xcodeproj/project.pbxproj) 中 `Assets.xcassets` 的相对物理路径配置错位问题（由原本错误的 `Resources/Assets.xcassets` 修复为正确的相对路径 `Assets.xcassets`），彻底解决了 Xcode 在编译时跳过资产库、进而导致运行时抛出 `No image named 'MenuBarIcon' found in asset catalog` 的缺陷。
   - **设置窗口焦点与生命周期修复**：重写了 `SettingsWindowController`，使其继承自 `NSObject` 并实现 `NSWindowDelegate` 协议。通过在 `show()` 时显式调用 `NSApp.activate(ignoringOtherApps: true)`，彻底解决了应用在后台 Agent 模式下弹出设置页时窗口无法获取焦点的问题；同时实现了 `windowWillClose` 事件委托，在窗口关闭时自动清理强引用变量 `window` 并置为 `nil`，完美解决了因关闭窗口底层析构引起悬空野指针而致使再次点击无响应的生命周期 Bug。
   - **Info.plist 图标配置补全**：在 [Info.plist](file:///Users/jiangwei/Git/QuickPeek/QuickPeek/Info.plist) 中补全了 macOS 系统专属的 `<key>CFBundleIconFile</key><string>AppIcon</string>` 配置，彻底解决了由于此前仅配置了 iOS/tvOS 的 `CFBundleIconName` 导致 macOS Finder (访达) 和 LaunchServices 无法识别渲染 `.icns` 图标文件、退化为系统默认空白应用图标的 Bug。
+  - **产品级 README 重构**：重新将 [README.md](file:///Users/jiangwei/Git/QuickPeek/README.md) 重写为高规格产品级示文。在顶部居中展示了全新卡通面包品牌 Logo，用生动、富有感染力的产品文案包装了 0ms 秒开、黄金比例、Space 弹簧动效、多语言热刷新等核心卖点，并重新整理了使用指南及开发规范。
+
 
 
 
