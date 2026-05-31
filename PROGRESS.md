@@ -179,4 +179,7 @@
 - **不支持文件 0ms 矮窗口精准起跳修复（2026-05-31）**：
   - **文件夹物理类型拦截**：在 [FileTypeClassifier.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/Core/FileTypeClassifier.swift) 中，重构了 `isSupported` 的前置判断逻辑，首选使用 `FileManager` 检测路径是否为文件夹目录。如果选中项为文件夹（如 Xcode 项目 `.xcodeproj`、App 包或常规文件夹），直接判定为不支持类型，从而让其在起跳的第 0 毫秒就以 450x320 矮窗口呈现。
   - **同步轻量二进制检测**：在 `FileTypeClassifier.classify` 阶段，在主线程同步快速读取文件最前面的 1KB 字节并检测是否包含 NULL 字节（`0x00`）。这确保了对未加入后缀黑名单的二进制文件（如 Zip 压缩包、可执行文件等）在起跳阶段就能瞬间识别为不支持，彻底根治了不支持文件在打开时“先以大窗口弹起，随后在后台加载失败后才收缩为小窗口”的大小闪烁跳变问题。
+- **已知二进制预览格式防误杀与主流图片格式扩充（2026-05-31）**：
+  - **已知二进制格式防误杀**：重构了 [FileTypeClassifier.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/Core/FileTypeClassifier.swift) 中的 `classify` 执行顺序。将 PDF 格式和图片已知扩展名的判定逻辑移动至 `isBinaryFileFastCheck` 物理检测**之前**，彻底避免了由于 PNG、JPG 等图片及 PDF 物理上包含 NULL 字节而被判定为不支持类型的 Bug，使得图片和 PDF 预览功能恢复正常。
+  - **主流图片格式扩充**：在 `isSupported` and `classify` 中，将支持的图片种类从原来的 `["png", "jpg", "jpeg", "webp", "gif", "bmp"]` 扩充到了全套主流图片格式：包括 `tiff`, `tif`, `heic`, `heif` 和 `ico`。
 
