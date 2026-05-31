@@ -182,4 +182,6 @@
 - **已知二进制预览格式防误杀与主流图片格式扩充（2026-05-31）**：
   - **已知二进制格式防误杀**：重构了 [FileTypeClassifier.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/Core/FileTypeClassifier.swift) 中的 `classify` 执行顺序。将 PDF 格式和图片已知扩展名的判定逻辑移动至 `isBinaryFileFastCheck` 物理检测**之前**，彻底避免了由于 PNG、JPG 等图片及 PDF 物理上包含 NULL 字节而被判定为不支持类型的 Bug，使得图片和 PDF 预览功能恢复正常。
   - **主流图片格式扩充**：在 `isSupported` and `classify` 中，将支持的图片种类从原来的 `["png", "jpg", "jpeg", "webp", "gif", "bmp"]` 扩充到了全套主流图片格式：包括 `tiff`, `tif`, `heic`, `heif` 和 `ico`。
+- **macOS 12.0+ 弃用警告消除与规范化 API 适配（2026-05-31）**：
+  - **API 规范化**：在 [UnsupportedFileView.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/UI/UnsupportedFileView.swift) 中，将已被弃用的 `NSWorkspace.shared.icon(forFileType:)` 替换为 macOS 12.0 推荐的 `NSWorkspace.shared.icon(for: UTType)` 接口，引入 `UniformTypeIdentifiers` 框架并传入 `.item` 获得默认未知文件图标，消除了编译期警告。
 

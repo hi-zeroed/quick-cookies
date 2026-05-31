@@ -1,5 +1,6 @@
 import SwiftUI
 import AppKit
+import UniformTypeIdentifiers
 
 struct UnsupportedFileView: View {
     @Environment(\.colorScheme) var colorScheme
@@ -12,7 +13,7 @@ struct UnsupportedFileView: View {
             return NSWorkspace.shared.icon(forFile: path)
         }
         // 如果文件不存在或路径为空，返回默认的未知文件图标
-        return NSWorkspace.shared.icon(forFileType: "")
+        return NSWorkspace.shared.icon(for: .item)
     }
     
     // 获取文件大小

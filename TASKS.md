@@ -60,3 +60,4 @@
 - [x] 彻底清除调试测试 Toast 遗留，将物理位置定位和创窗大小的 Toast 统一重构为静默写入本地 debug_log.txt，以防止覆盖正常的业务或错误 Toast (修复测试 Toast 遗留覆盖正常 Toast 的 Bug)
 - [x] 实现起跳阶段对文件夹及二进制文件的物理过滤，使其在 0ms 直接以 450x320 矮窗口起跳，解决大小闪烁跳变问题 (不支持文件 0ms 矮窗口精准起跳修复)
 - [x] 重构物理二进制检测在分类时的判定次序，防范误杀图片和 PDF 预览，并完成主流图片格式 (png, jpg, jpeg, webp, gif, bmp, tiff, tif, heic, heif, ico) 扩充支持 (已知二进制预览格式防误杀与主流图片格式扩充)
+- [x] 消除 UnsupportedFileView 中弃用的 icon(forFileType:) 警告，改用 macOS 12.0 规范 API 并导入 UniformTypeIdentifiers 适配 (macOS 12.0+ 弃用警告消除与规范化 API 适配)
