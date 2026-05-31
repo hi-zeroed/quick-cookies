@@ -6,11 +6,37 @@ enum ContentMode {
 }
 
 class PreviewState: ObservableObject {
-    @Published var filePath: String?
-    @Published var renderType: FileRenderType?
-    @Published var language: String?
-    @Published var isLoadingPath: Bool = true
-    @Published var errorMessage: String?
+    @Published var filePath: String? {
+        didSet {
+            onStateChanged?()
+        }
+    }
+    @Published var renderType: FileRenderType? {
+        didSet {
+            onStateChanged?()
+        }
+    }
+    @Published var language: String? {
+        didSet {
+            onStateChanged?()
+        }
+    }
+    @Published var isLoadingPath: Bool = true {
+        didSet {
+            onStateChanged?()
+        }
+    }
+    @Published var errorMessage: String? {
+        didSet {
+            onStateChanged?()
+        }
+    }
+    
+    // 大文件分段增量读取状态
+    @Published var hasMoreChunks: Bool = false
+    @Published var isIncrementalLoading: Bool = false
+    
+    var onStateChanged: (() -> Void)?
     
     func reset() {
         filePath = nil
@@ -18,6 +44,8 @@ class PreviewState: ObservableObject {
         language = nil
         isLoadingPath = true
         errorMessage = nil
+        hasMoreChunks = false
+        isIncrementalLoading = false
     }
 }
 
@@ -35,6 +63,9 @@ struct ContentView: View {
     @State private var fileWatcher: FileWatcher? = nil
     @State private var showReloadAlert: Bool = false
     @State private var isSaving: Bool = false
+    
+    // 状态化分段文件读取器
+    @State private var chunkReader: FileChunkReader? = nil
 
     @ObservedObject var settings = Settings.shared
 
@@ -47,10 +78,10 @@ struct ContentView: View {
             // 工具栏
             toolbar
 
-            // 内容区域
+            // 内容区域（去除原本的 padding，改在 contentArea 内部 ZStack 包装）
             contentArea
-                .padding([.horizontal, .bottom], 28) // 进一步加大内边距，提供极高颜值的宽留白卡片视感
         }
+        .ignoresSafeArea(edges: .top)
         .background(Color.appBackground)
         .alert("保存失败".localized(), isPresented: $showErrorAlert) {
             Button("确定".localized(), role: .cancel) { }
@@ -73,6 +104,8 @@ struct ContentView: View {
         .onDisappear {
             fileWatcher?.stop()
             fileWatcher = nil
+            chunkReader?.close()
+            chunkReader = nil
         }
         .task {
             if let path = state.filePath {
@@ -90,6 +123,8 @@ struct ContentView: View {
             } else {
                 fileWatcher?.stop()
                 fileWatcher = nil
+                chunkReader?.close()
+                chunkReader = nil
             }
         }
     }
@@ -119,17 +154,6 @@ struct ContentView: View {
                         .foregroundColor(Color.appText.opacity(0.6))
                 }
                 
-                // 大文件截断提示（参考极简设计）
-                if isTruncated {
-                    Text("⚠️只加载了前1000行".localized())
-                        .font(.system(size: 9, weight: .medium, design: .monospaced))
-                        .foregroundColor(.orange)
-                        .padding(.horizontal, 4)
-                        .padding(.vertical, 1)
-                        .background(Color.orange.opacity(0.12))
-                        .cornerRadius(3)
-                }
-                
                 // 状态修饰点
                 Circle()
                     .fill(isModified ? Color.orange : (state.filePath == nil ? Color.gray.opacity(0.5) : Color.blue.opacity(0.8)))
@@ -156,10 +180,10 @@ struct ContentView: View {
                     if mode == .edit && isModified {
                         Button(action: saveFile) {
                             Image("ToolbarSave")
-                                .renderingMode(.template)
-                                .resizable()
-                                .frame(width: 16, height: 16)
-                                .foregroundColor(.orange)
+                               .renderingMode(.template)
+                               .resizable()
+                               .frame(width: 16, height: 16)
+                               .foregroundColor(.orange)
                         }
                         .buttonStyle(.plain)
                         .help("保存 (Cmd+S)".localized())
@@ -169,34 +193,46 @@ struct ContentView: View {
             .frame(width: 80, alignment: .trailing)
         }
         .padding(.horizontal, 16)
-        .padding(.top, 10) // 增加顶端高度，让红绿灯和文字中线对齐
+        .padding(.top, 14) // 增加顶端高度，让红绿灯和文字中线对齐
         .padding(.bottom, 10)
         .background(Color.toolbarBackground)
     }
 
     @ViewBuilder
     private var contentArea: some View {
-        if let err = state.errorMessage {
-            VStack(spacing: 16) {
-                Spacer()
-                Image("StatusWarning")
-                    .renderingMode(.template)
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .frame(width: 32, height: 32)
-                    .foregroundColor(.orange.opacity(0.8))
-                Text(err.localized())
-                    .font(.system(size: 13, weight: .medium, design: .monospaced))
-                    .foregroundColor(.white.opacity(0.7))
-                    .multilineTextAlignment(.center)
-                    .padding(.horizontal, 32)
-                Text("按 Esc 键关闭窗口".localized())
-                    .font(.system(size: 11, design: .monospaced))
-                    .foregroundColor(.white.opacity(0.3))
-                Spacer()
+        ZStack(alignment: .bottom) {
+            // 主展示内容
+            mainContent
+                .padding([.horizontal, .bottom], 28) // 保留精美的大内边距
+            
+            // 增量加载悬浮条
+            if state.isIncrementalLoading {
+                HStack(spacing: 8) {
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle(tint: .white.opacity(0.8)))
+                        .scaleEffect(0.8)
+                    Text("正在载入后续内容...".localized())
+                        .font(.system(size: 11, design: .monospaced))
+                        .foregroundColor(.white.opacity(0.9))
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 8)
+                .background(
+                    VisualEffectView(material: .hudWindow, blendingMode: .withinWindow)
+                        .cornerRadius(12)
+                )
+                .shadow(color: Color.black.opacity(0.35), radius: 6, y: 3)
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+                .padding(.bottom, 20)
             }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .transition(.opacity)
+        }
+    }
+
+    @ViewBuilder
+    private var mainContent: some View {
+        if let err = state.errorMessage {
+            UnsupportedFileView(filePath: state.filePath, errorMessage: err)
+                .transition(.opacity)
         } else if state.isLoadingPath && state.filePath == nil {
             VStack(spacing: 16) {
                 Spacer()
@@ -215,7 +251,7 @@ struct ContentView: View {
                 Spacer()
                 ProgressView()
                     .progressViewStyle(CircularProgressViewStyle(tint: .white.opacity(0.4)))
-                Text("正在载入高亮...".localized())
+                Text("正在载入内容...".localized())
                     .font(.system(size: 11, design: .monospaced))
                     .foregroundColor(.white.opacity(0.3))
                 Spacer()
@@ -241,7 +277,7 @@ struct ContentView: View {
             let isDark = colorScheme == .dark
             switch renderType {
             case .markdown:
-                MarkdownView(markdownText: content)
+                MarkdownView(filePath: path, markdownText: content)
             case .code:
                 CodeView(
                     filePath: path,
@@ -249,7 +285,13 @@ struct ContentView: View {
                     language: state.language,
                     fontSize: settings.fontSize,
                     fontName: settings.editorFont,
-                    isDark: isDark
+                    isDark: isDark,
+                    state: state,
+                    onLoadMore: {
+                        Task {
+                            await loadNextChunkAsync()
+                        }
+                    }
                 )
             case .plainText:
                 CodeView(
@@ -258,10 +300,18 @@ struct ContentView: View {
                     language: nil,
                     fontSize: settings.fontSize,
                     fontName: settings.editorFont,
-                    isDark: isDark
+                    isDark: isDark,
+                    state: state,
+                    onLoadMore: {
+                        Task {
+                            await loadNextChunkAsync()
+                        }
+                    }
                 )
             case .pdf, .image:
                 MediaPreviewView(filePath: path, renderType: renderType)
+            case .unsupported:
+                UnsupportedFileView(filePath: path, errorMessage: state.errorMessage)
             }
         }
     }
@@ -279,7 +329,35 @@ struct ContentView: View {
     }
 
     private func toggleMode() {
-        mode = mode == .preview ? .edit : .preview
+        if mode == .preview {
+            // 准备进入编辑模式，确保后台一次性静默读完全文，以保证保存时内容的绝对完整性
+            if state.hasMoreChunks, let reader = chunkReader {
+                isLoading = true
+                Task {
+                    let result = await Task.detached(priority: .userInitiated) { () -> Result<String, FileUtils.FileError> in
+                        return reader.readRemaining()
+                    }.value
+                    
+                    await MainActor.run {
+                        switch result {
+                        case .success(let remainingText):
+                            self.content += remainingText
+                            self.state.hasMoreChunks = false
+                            self.isLoading = false
+                            self.mode = .edit
+                        case .failure(let error):
+                            self.errorMessage = (error.errorDescription ?? "读取剩余文件失败").localized()
+                            self.isLoading = false
+                            self.showErrorAlert = true
+                        }
+                    }
+                }
+            } else {
+                mode = .edit
+            }
+        } else {
+            mode = .preview
+        }
     }
 
     private func saveFile() {
@@ -300,7 +378,7 @@ struct ContentView: View {
         }
     }
 
-    /// 后台并发异步读取与分段解码，保证窗口零延迟弹出
+    /// 后台并发异步读取首段，保证窗口 0ms 秒开起跳弹出
     private func loadFileAsync(path: String) async {
         if state.renderType == .pdf || state.renderType == .image {
             await MainActor.run {
@@ -309,21 +387,73 @@ struct ContentView: View {
             return
         }
         
-        let result = await Task.detached(priority: .userInitiated) {
-            return FileUtils.readLimitFile(at: path, limitBytes: 128 * 1024)
+        // 1. 在后台初始化 chunkReader 并快速读取前 256KB
+        let result = await Task.detached(priority: .userInitiated) { () -> Result<(FileChunkReader, String, Bool), FileUtils.FileError> in
+            do {
+                let reader = try FileChunkReader(path: path)
+                let res = reader.readNextChunk(limitBytes: Constants.chunkSize)
+                switch res {
+                case .success(let payload):
+                    return .success((reader, payload.content, payload.hasMore))
+                case .failure(let error):
+                    return .failure(error)
+                }
+            } catch let error as FileUtils.FileError {
+                return .failure(error)
+            } catch {
+                return .failure(.readFailed(path: path, reason: error.localizedDescription))
+            }
         }.value
 
         await MainActor.run {
             withAnimation(.easeOut(duration: 0.2)) {
                 switch result {
                 case .success(let payload):
-                    self.content = payload.content
-                    self.isTruncated = payload.isTruncated
+                    self.chunkReader = payload.0
+                    self.content = payload.1
+                    self.state.hasMoreChunks = payload.2
                     self.isLoading = false
                 case .failure(let error):
                     self.errorMessage = (error.errorDescription ?? "读取文件失败").localized()
                     self.isLoading = false
-                    self.showErrorAlert = true
+                    self.state.errorMessage = self.errorMessage
+                    if case .binaryFile = error {
+                        self.state.renderType = .unsupported
+                    }
+                }
+            }
+        }
+    }
+
+    /// 后台线程增量读取后续段落，并通过 state.isIncrementalLoading 提示加载中
+    private func loadNextChunkAsync() async {
+        guard let reader = chunkReader, state.hasMoreChunks, !state.isIncrementalLoading else { return }
+        
+        await MainActor.run {
+            state.isIncrementalLoading = true
+        }
+        
+        let result = await Task.detached(priority: .userInitiated) { () -> Result<(String, Bool), FileUtils.FileError> in
+            let res = reader.readNextChunk(limitBytes: Constants.chunkSize)
+            switch res {
+            case .success(let payload):
+                return .success((payload.content, payload.hasMore))
+            case .failure(let error):
+                return .failure(error)
+            }
+        }.value
+        
+        await MainActor.run {
+            withAnimation(.easeOut(duration: 0.2)) {
+                switch result {
+                case .success(let payload):
+                    self.content += payload.0
+                    self.state.hasMoreChunks = payload.1
+                    self.state.isIncrementalLoading = false
+                case .failure(let error):
+                    self.errorMessage = (error.errorDescription ?? "载入后续文本失败").localized()
+                    self.state.isIncrementalLoading = false
+                    QuickLookOverlay.shared.showToast(message: self.errorMessage, icon: "xmark.circle")
                 }
             }
         }

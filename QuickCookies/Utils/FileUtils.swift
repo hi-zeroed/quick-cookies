@@ -140,12 +140,8 @@ enum FileUtils {
     /// 解析符号链接的真实路径
     static func resolveSymlink(at path: String) -> String {
         let url = URL(fileURLWithPath: path)
-        do {
-            let resolved = url.resolvingSymlinksInPath()
-            return resolved.path
-        } catch {
-            return path
-        }
+        let resolved = url.resolvingSymlinksInPath()
+        return resolved.path
     }
 
     /// 获取文件最后修改时间

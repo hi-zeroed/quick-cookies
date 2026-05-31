@@ -21,11 +21,15 @@ struct HighlightrCodeSyntaxHighlighter: CodeSyntaxHighlighter {
         }
         let themeName = isDark ? "atom-one-dark" : "atom-one-light"
 
-        // 利用全局缓存 HighlightCache，以代码内容的 Hash 值作为标识进行匹配
+        // 获取用户配置的编辑器字体与代码块字号（略小于普通正文以适配排版）
+        let fontName = Settings.shared.editorFont
+        let fontSize = Settings.shared.fontSize * 0.9
+
+        // 利用全局缓存 HighlightCache，隔离缓存主键（包含字体、字号、和内容 Hash）
         let cacheKey = "markdown_block_\(code.hashValue)"
         let fixedDate = Date(timeIntervalSince1970: 0) // hash 变化会自动变更 key，因此使用固定日期
 
-        if let cached = HighlightCache.shared.get(for: cacheKey, themeName: themeName, modificationDate: fixedDate) {
+        if let cached = HighlightCache.shared.get(for: cacheKey, themeName: themeName, fontName: fontName, fontSize: fontSize, modificationDate: fixedDate) {
             return Text(AttributedString(cached))
         }
 
@@ -36,8 +40,10 @@ struct HighlightrCodeSyntaxHighlighter: CodeSyntaxHighlighter {
         }
 
         if let attributed = highlighter.highlight(code: code, language: language, theme: themeName) {
-            HighlightCache.shared.set(attributed, for: cacheKey, themeName: themeName, modificationDate: fixedDate)
-            return Text(AttributedString(attributed))
+            // 对高亮产生的富文本应用字体及字号，保留粗斜体
+            let customAttributed = attributed.applyingEditorFont(name: fontName, size: fontSize)
+            HighlightCache.shared.set(customAttributed, for: cacheKey, themeName: themeName, fontName: fontName, fontSize: fontSize, modificationDate: fixedDate)
+            return Text(AttributedString(customAttributed))
         }
 
         return Text(code)

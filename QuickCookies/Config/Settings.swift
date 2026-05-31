@@ -390,7 +390,11 @@ extension NSFont {
         if name == "System Default (Inter)" {
             return NSFont.monospacedSystemFont(ofSize: size, weight: .regular)
         }
-        if let font = NSFont(name: name, size: size) {
+        var targetName = name
+        if name == "JetBrains Mono" {
+            targetName = "JetBrainsMono-Regular"
+        }
+        if let font = NSFont(name: targetName, size: size) {
             return font
         }
         return NSFont.monospacedSystemFont(ofSize: size, weight: .regular)

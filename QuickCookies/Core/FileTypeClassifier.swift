@@ -6,12 +6,18 @@ enum FileRenderType {
     case plainText      // 纯文本，无高亮
     case pdf            // PDF 预览
     case image          // 图片预览
+    case unsupported    // 不支持预览的文件
 }
 
 struct FileTypeClassifier {
     /// 根据文件路径判断渲染类型
     static func classify(path: String) -> FileRenderType {
-        let ext = URL(fileURLWithPath: path)
+        let resolvedPath = FileUtils.resolveSymlink(at: path)
+        if !isSupported(path: resolvedPath) {
+            return .unsupported
+        }
+
+        let ext = URL(fileURLWithPath: resolvedPath)
             .pathExtension
             .lowercased()
 
@@ -35,12 +41,12 @@ struct FileTypeClassifier {
         }
 
         // 特殊文件名（无后缀）
-        let filename = URL(fileURLWithPath: path).lastPathComponent.lowercased()
+        let filename = URL(fileURLWithPath: resolvedPath).lastPathComponent.lowercased()
         if filename == "makefile" || filename == "dockerfile" {
             return .code
         }
 
-        // 其他文本文件
+        // 其它一切未知扩展名均默认判定为纯文本模式
         return .plainText
     }
 
@@ -59,13 +65,13 @@ struct FileTypeClassifier {
             return true
         }
 
-        if Constants.supportedExtensions.contains(ext) {
-            return true
+        // 如果扩展名在二进制黑名单中，直接拦截
+        if Constants.binaryBlacklistExtensions.contains(ext) {
+            return false
         }
 
-        // 特殊文件名
-        let filename = URL(fileURLWithPath: path).lastPathComponent.lowercased()
-        return filename == "makefile" || filename == "dockerfile"
+        // 其它一切未知扩展名默认放行支持（读取文件时如检测为二进制会优雅报错）
+        return true
     }
 
     /// 获取 Highlightr 语言名称

@@ -8,6 +8,8 @@ struct CodeView: NSViewRepresentable {
     let fontSize: CGFloat
     let fontName: String
     let isDark: Bool
+    let state: PreviewState
+    let onLoadMore: () -> Void
 
     func makeCoordinator() -> Coordinator {
         Coordinator()
@@ -16,6 +18,29 @@ struct CodeView: NSViewRepresentable {
     class Coordinator: NSObject {
         var lastIsDark: Bool?
         var lastFontName: String?
+        var lastFilePath: String?
+        var state: PreviewState?
+        var onLoadMore: (() -> Void)?
+        
+        @objc func handleScroll(_ notification: Notification) {
+            guard let clipView = notification.object as? NSClipView,
+                  let scrollView = clipView.superview as? NSScrollView,
+                  let documentView = scrollView.documentView else { return }
+            
+            let visibleRect = clipView.documentVisibleRect
+            let documentHeight = documentView.frame.height
+            
+            // 将状态判断与闭包调用派发至下一个 RunLoop，彻底根治 SwiftUI 渲染周期内同步更新状态的 Fault
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self, let state = self.state else { return }
+                
+                if visibleRect.maxY >= documentHeight - 150 {
+                    if state.hasMoreChunks && !state.isIncrementalLoading {
+                        self.onLoadMore?()
+                    }
+                }
+            }
+        }
     }
 
     func makeNSView(context: Context) -> NSScrollView {
@@ -47,8 +72,17 @@ struct CodeView: NSViewRepresentable {
         // 滚动到顶部（显示首行）
         textView.scrollRangeToVisible(NSRange(location: 0, length: 0))
 
-        // 尝试加载语法高亮
-        loadSyntaxHighlightAsync(for: textView, isDark: isDark, forced: true)
+        // 注册滚动监听
+        scrollView.contentView.postsBoundsChangedNotifications = true
+        NotificationCenter.default.addObserver(
+            context.coordinator,
+            selector: #selector(Coordinator.handleScroll(_:)),
+            name: NSView.boundsDidChangeNotification,
+            object: scrollView.contentView
+        )
+
+        // 首次加载语法高亮
+        loadSyntaxHighlightFirstTime(for: textView, isDark: isDark)
 
         return scrollView
     }
@@ -56,92 +90,209 @@ struct CodeView: NSViewRepresentable {
     func updateNSView(_ scrollView: NSScrollView, context: Context) {
         guard let textView = scrollView.documentView as? NSTextView else { return }
 
-        let contentChanged = textView.string != content
+        // 传递最新的回调与状态引用给 Coordinator
+        context.coordinator.state = state
+        context.coordinator.onLoadMore = onLoadMore
+
+        let isSameFile = context.coordinator.lastFilePath == filePath
+        let textStorageCount = textView.string.count
+        let isIncremental = isSameFile && content.hasPrefix(textView.string) && content.count > textStorageCount
+
         let fontChanged = textView.font?.pointSize != fontSize || context.coordinator.lastFontName != fontName
         let isDarkChanged = context.coordinator.lastIsDark != isDark
 
         context.coordinator.lastIsDark = isDark
         context.coordinator.lastFontName = fontName
-
-        if contentChanged {
-            textView.string = content
-        }
-
-        if fontChanged {
-            textView.font = NSFont.editorFont(name: fontName, size: fontSize)
-        }
+        context.coordinator.lastFilePath = filePath
 
         // 动态更新背景色和文本色
         scrollView.backgroundColor = .appBackground
         textView.backgroundColor = .appBackground
         textView.textColor = .appText
 
-        if contentChanged || isDarkChanged {
+        if isIncremental {
+            // 增量追加段落
+            let newText = String(content[content.index(content.startIndex, offsetBy: textStorageCount)...])
+            appendChunk(newText: newText, for: textView, isDark: isDark)
+        } else if !isSameFile || isDarkChanged || fontChanged {
+            // 首次加载、修改主题或字体
+            textView.string = content
             textView.scrollRangeToVisible(NSRange(location: 0, length: 0))
-            loadSyntaxHighlightAsync(for: textView, isDark: isDark, forced: true)
-        } else if fontChanged {
-            loadSyntaxHighlightAsync(for: textView, isDark: isDark, forced: false)
+            loadSyntaxHighlightFirstTime(for: textView, isDark: isDark)
         }
     }
 
-    /// 异步加载语法高亮（带 500 行截断、缓存检测与平滑 Crossfade 渐变）
-    private func loadSyntaxHighlightAsync(for textView: NSTextView, isDark: Bool, forced: Bool) {
+    /// 首次异步语法高亮（首屏 500 行秒开展示 + 后台全量高亮平滑刷入）
+    private func loadSyntaxHighlightFirstTime(for textView: NSTextView, isDark: Bool) {
         guard let language = language else { return }
         
         let modDate = FileUtils.getModificationDate(at: filePath)
         let themeName = isDark ? "atom-one-dark" : "atom-one-light"
         
-        // 1. 尝试从内存缓存中直接匹配高亮文本
-        if let cached = HighlightCache.shared.get(for: filePath, themeName: themeName, modificationDate: modDate) {
-            // 缓存命中：同步渲染（秒开）
+        // 尝试从内存缓存中直接匹配高亮文本
+        if let cached = HighlightCache.shared.get(for: filePath, themeName: themeName, fontName: fontName, fontSize: fontSize, modificationDate: modDate) {
             textView.textStorage?.setAttributedString(cached)
             return
         }
 
-        // 2. 如果强制更新或未命中缓存，在后台运行语法高亮
+        let fullContent = content
+        
         DispatchQueue.global(qos: .userInteractive).async {
-            // 按行拆分，限制高亮仅针对前 500 行，解决超长文件解析性能问题
-            let lines = content.components(separatedBy: "\n")
-            let highlightText: String
-            let remainText: String
+            let lines = fullContent.components(separatedBy: "\n")
             
-            if lines.count > 500 {
-                highlightText = lines[0..<500].joined(separator: "\n")
-                remainText = "\n" + lines[500...].joined(separator: "\n")
-            } else {
-                highlightText = content
-                remainText = ""
-            }
-
-            if let highlighter = SyntaxHighlighter.shared,
-               let attributed = highlighter.highlight(code: highlightText, language: language, theme: themeName) {
-                
-                let finalAttributed = NSMutableAttributedString(attributedString: attributed)
-                
-                // 拼接未高亮的剩余行文本，并赋予相同的等宽字体属性
-                if !remainText.isEmpty {
-                    let remainAttributes: [NSAttributedString.Key: Any] = [
-                        .font: NSFont.editorFont(name: fontName, size: fontSize),
-                        .foregroundColor: isDark ? NSColor(white: 0.85, alpha: 1.0) : NSColor(white: 0.15, alpha: 1.0)
-                    ]
-                    let remainAttributed = NSAttributedString(string: remainText, attributes: remainAttributes)
-                    finalAttributed.append(remainAttributed)
+            if lines.count <= 1000 {
+                // 中小文件：直接一次性后台高亮并缓存，极速呈现
+                if let highlighter = SyntaxHighlighter.shared,
+                   let attributed = highlighter.highlight(code: fullContent, language: language, theme: themeName) {
+                    let customAttributed = attributed.applyingEditorFont(name: fontName, size: fontSize)
+                    
+                    HighlightCache.shared.set(customAttributed, for: filePath, themeName: themeName, fontName: fontName, fontSize: fontSize, modificationDate: modDate)
+                    
+                    DispatchQueue.main.async {
+                        let transition = CATransition()
+                        transition.type = .fade
+                        transition.duration = 0.25
+                        textView.layer?.add(transition, forKey: kCATransition)
+                        textView.textStorage?.setAttributedString(customAttributed)
+                    }
                 }
-
-                // 写入内存缓存
-                HighlightCache.shared.set(finalAttributed, for: filePath, themeName: themeName, modificationDate: modDate)
-
-                // 回到主线程平滑淡入呈现高亮文本
+            } else {
+                // 超大文件首段：先高亮前 500 行，剩下普通文本显示，实现窗口 0ms 秒开
+                let firstPart = lines[0..<500].joined(separator: "\n")
+                let remainPart = "\n" + lines[500...].joined(separator: "\n")
+                
+                guard let highlighter = SyntaxHighlighter.shared,
+                      let firstAttributed = highlighter.highlight(code: firstPart, language: language, theme: themeName) else {
+                    return
+                }
+                
+                let customFirst = firstAttributed.applyingEditorFont(name: fontName, size: fontSize)
+                let tempFull = NSMutableAttributedString(attributedString: customFirst)
+                
+                let remainAttributes: [NSAttributedString.Key: Any] = [
+                    .font: NSFont.editorFont(name: fontName, size: fontSize),
+                    .foregroundColor: isDark ? NSColor(white: 0.85, alpha: 1.0) : NSColor(white: 0.15, alpha: 1.0)
+                ]
+                let remainAttributed = NSAttributedString(string: remainPart, attributes: remainAttributes)
+                tempFull.append(remainAttributed)
+                
                 DispatchQueue.main.async {
                     let transition = CATransition()
                     transition.type = .fade
-                    transition.duration = 0.25
-                    transition.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+                    transition.duration = 0.20
                     textView.layer?.add(transition, forKey: kCATransition)
+                    textView.textStorage?.setAttributedString(tempFull)
+                }
+                
+                // 随后在后台默默做首段文本的全量高亮
+                DispatchQueue.global(qos: .utility).async {
+                    guard let fullAttributed = highlighter.highlight(code: fullContent, language: language, theme: themeName) else { return }
+                    let customFull = fullAttributed.applyingEditorFont(name: fontName, size: fontSize)
                     
-                    textView.textStorage?.setAttributedString(finalAttributed)
+                    HighlightCache.shared.set(customFull, for: filePath, themeName: themeName, fontName: fontName, fontSize: fontSize, modificationDate: modDate)
+                    
+                    DispatchQueue.main.async {
+                        guard textView.string == fullContent else { return }
+                        let textStorage = textView.textStorage
+                        textStorage?.beginEditing()
+                        customFull.enumerateAttributes(in: NSRange(location: 0, length: customFull.length), options: []) { attrs, range, _ in
+                            textStorage?.setAttributes(attrs, range: range)
+                        }
+                        textStorage?.endEditing()
+                    }
                 }
             }
         }
+    }
+
+    /// 增量追加新片段（新文本在主线程追加呈现，后台头部起算高亮以保证完美着色，完成后刷入属性）
+    private func appendChunk(newText: String, for textView: NSTextView, isDark: Bool) {
+        guard let textStorage = textView.textStorage else { return }
+        
+        let originalLength = textStorage.length
+        let previousFullText = textView.string
+        
+        // 1. 瞬间在主线程把普通文本追加上去，使滚动区域变大，滚动条拉长，体验不卡顿
+        let font = NSFont.editorFont(name: fontName, size: fontSize)
+        let attributes: [NSAttributedString.Key: Any] = [
+            .font: font,
+            .foregroundColor: isDark ? NSColor(white: 0.85, alpha: 1.0) : NSColor(white: 0.15, alpha: 1.0)
+        ]
+        let appendedAttrString = NSAttributedString(string: newText, attributes: attributes)
+        
+        textStorage.append(appendedAttrString)
+        
+        // 如果没有 language，说明是 plainText 模式，无需高亮
+        guard let language = language else { return }
+        
+        // 2. 后台从文件头部（0字节）起算执行全量高亮，保障边界着色完美连续
+        let themeName = isDark ? "atom-one-dark" : "atom-one-light"
+        let modDate = FileUtils.getModificationDate(at: filePath)
+        let fullText = previousFullText + newText
+        
+        DispatchQueue.global(qos: .userInteractive).async {
+            guard let highlighter = SyntaxHighlighter.shared,
+                  let fullAttributed = highlighter.highlight(code: fullText, language: language, theme: themeName) else {
+                return
+            }
+            
+            // 3. 裁剪出新加入的片段的高亮属性
+            let newPartRange = NSRange(location: previousFullText.count, length: newText.count)
+            let highlightedNewPart = fullAttributed.attributedSubstring(from: newPartRange).applyingEditorFont(name: fontName, size: fontSize)
+            
+            // 4. 将高亮完的 fullText 富文本覆盖写入缓存，以便下一次秒开
+            let customFull = fullAttributed.applyingEditorFont(name: fontName, size: fontSize)
+            HighlightCache.shared.set(customFull, for: filePath, themeName: themeName, fontName: fontName, fontSize: fontSize, modificationDate: modDate)
+            
+            // 5. 主线程中在原地仅以 setAttributes 刷入新的属性
+            DispatchQueue.main.async {
+                guard textView.string == fullText else { return }
+                
+                textStorage.beginEditing()
+                highlightedNewPart.enumerateAttributes(in: NSRange(location: 0, length: highlightedNewPart.length), options: []) { attrs, range, _ in
+                    let translatedRange = NSRange(location: originalLength + range.location, length: range.length)
+                    textStorage.setAttributes(attrs, range: translatedRange)
+                }
+                textStorage.endEditing()
+            }
+        }
+    }
+}
+
+extension NSAttributedString {
+    /// 遍历富文本属性，将默认高亮字体替换为指定的编辑器字体与字号，同时通过 NSFontManager 保留原有的粗体/斜体特征
+    func applyingEditorFont(name: String, size: CGFloat) -> NSAttributedString {
+        let mutable = NSMutableAttributedString(attributedString: self)
+        mutable.beginEditing()
+        
+        let targetBaseFont = NSFont.editorFont(name: name, size: size)
+        
+        mutable.enumerateAttribute(.font, in: NSRange(location: 0, length: mutable.length), options: []) { value, range, _ in
+            guard let oldFont = value as? NSFont else { return }
+            
+            // 使用 NSFontManager 检测字体的 bold/italic traits，避免直接读取 symbolicTraits 发生转换丢失
+            let traits = NSFontManager.shared.traits(of: oldFont)
+            let isBold = traits.contains(.boldFontMask)
+            let isItalic = traits.contains(.italicFontMask)
+            
+            var newFont = targetBaseFont
+            
+            if isBold && isItalic {
+                newFont = NSFontManager.shared.convert(newFont, toHaveTrait: [.boldFontMask, .italicFontMask])
+            } else if isBold {
+                newFont = NSFontManager.shared.convert(newFont, toHaveTrait: .boldFontMask)
+            } else if isItalic {
+                newFont = NSFontManager.shared.convert(newFont, toHaveTrait: .italicFontMask)
+            }
+            
+            if newFont.pointSize != size {
+                newFont = NSFontManager.shared.convert(newFont, toSize: size)
+            }
+            
+            mutable.addAttribute(.font, value: newFont, range: range)
+        }
+        
+        mutable.endEditing()
+        return mutable
     }
 }

@@ -44,7 +44,7 @@ struct ToastModifier: ViewModifier {
                     if isShowing {
                         ToastView(message: message, icon: icon)
                             .transition(.opacity)
-                            .animation(.easeInOut(duration: 0.2))
+                            .animation(.easeInOut(duration: 0.2), value: isShowing)
                             .onAppear {
                                 DispatchQueue.main.asyncAfter(deadline: .now() + Constants.toastDuration) {
                                     withAnimation {

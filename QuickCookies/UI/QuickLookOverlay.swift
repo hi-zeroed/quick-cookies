@@ -54,6 +54,42 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
 
     private override init() {
         super.init()
+        previewState.onStateChanged = { [weak self] in
+            self?.handleStateChange()
+        }
+    }
+    
+    private func handleStateChange() {
+        let isUnsupported = previewState.renderType == .unsupported
+        let isError = previewState.errorMessage != nil
+        
+        if isUnsupported || isError {
+            DispatchQueue.main.async { [weak self] in
+                self?.resizeWindowForErrorOrUnsupported()
+            }
+        }
+    }
+    
+    private func resizeWindowForErrorOrUnsupported() {
+        guard let window = previewWindow else { return }
+        
+        let targetWidth: CGFloat = 450
+        let targetHeight: CGFloat = 320
+        let currentFrame = window.frame
+        
+        if abs(currentFrame.width - targetWidth) < 1.0 && abs(currentFrame.height - targetHeight) < 1.0 {
+            return
+        }
+        
+        let screenVisibleFrame = NSScreen.main?.visibleFrame ?? NSRect(x: 0, y: 0, width: 1920, height: 1080)
+        let newFrame = NSRect(
+            x: screenVisibleFrame.midX - targetWidth / 2,
+            y: screenVisibleFrame.midY - targetHeight / 2,
+            width: targetWidth,
+            height: targetHeight
+        )
+        
+        window.setFrame(newFrame, display: true, animate: true)
     }
 
     /// 显示 Toast 提示（合并自 PreviewWindowController）
@@ -138,12 +174,6 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
     func show(filePath: String?) {
         if let path = filePath {
             let resolvedPath = FileUtils.resolveSymlink(at: path)
-
-            if !FileTypeClassifier.isSupported(path: resolvedPath) {
-                self.showToast(message: "不支持此文件类型".localized(), icon: "xmark.circle")
-                return
-            }
-
             let renderType = FileTypeClassifier.classify(path: resolvedPath)
             let language = FileTypeClassifier.getLanguageName(path: resolvedPath)
 
@@ -167,10 +197,20 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         // 关闭旧窗口
         close()
 
-        // 1. 瞬间确定窗口的修长黄金比例（更窄更高，极度适合大段文本与代码深度阅读）
+        // 1. 瞬间确定窗口比例（若已知为不支持类型，则使用较矮的原生 Quick Look 风格卡片尺寸）
         let screenVisibleFrame = NSScreen.main?.visibleFrame ?? NSRect(x: 0, y: 0, width: 1920, height: 1080)
-        let windowWidth = screenVisibleFrame.width * 0.38  // 宽度调窄
-        let windowHeight = screenVisibleFrame.height * 0.88 // 高度调高
+        let isUnsupported = renderType == .unsupported
+        
+        let windowWidth: CGFloat
+        let windowHeight: CGFloat
+        if isUnsupported {
+            windowWidth = 450
+            windowHeight = 320
+        } else {
+            windowWidth = screenVisibleFrame.width * 0.38  // 宽度调窄
+            windowHeight = screenVisibleFrame.height * 0.88 // 高度调高
+        }
+        
         let targetRect = NSRect(
             x: screenVisibleFrame.midX - windowWidth / 2,
             y: screenVisibleFrame.midY - windowHeight / 2,
@@ -276,6 +316,7 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
                         let resolvedPath = FileUtils.resolveSymlink(at: detectedPath)
                         if !FileTypeClassifier.isSupported(path: resolvedPath) {
                             self.previewState.errorMessage = "\("不支持的文件类型".localized()): \(URL(fileURLWithPath: resolvedPath).lastPathComponent)"
+                            self.previewState.renderType = .unsupported
                             self.previewState.isLoadingPath = false
                         } else {
                             let rType = FileTypeClassifier.classify(path: resolvedPath)
@@ -510,7 +551,7 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
             
             // 获取窗口的 Title
             var titleRef: CFTypeRef?
-            let hasTitle = AXUIElementCopyAttributeValue(window, kAXTitleAttribute as CFString, &titleRef) == .success
+            _ = AXUIElementCopyAttributeValue(window, kAXTitleAttribute as CFString, &titleRef) == .success
             let title = titleRef as? String ?? ""
             
             // 排除明确不是主窗口且不是聚焦窗口的普通有标题 Finder 窗口，防止其残留的 AXSelectedChildren 状态污染

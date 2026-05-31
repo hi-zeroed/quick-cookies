@@ -132,6 +132,43 @@
     2. **图片与 PDF 媒体预览**：通过 `MediaPreviewView.swift` 支持了 PDF 文件的翻阅与选择，以及图片（`.png`, `.jpg`, `.jpeg`, `.webp` 等）的分辨率/物理大小元数据卡片显示。
     3. **File Watcher 冲突监听**：基于 `DispatchSourceFileSystemObject` 监听当前编辑文件的 write 信号，防多端协同编辑覆盖。
     4. **SwiftUI 多卡片 Onboarding 引导**：主 App 自动检测首次启动并以 `.regular` 策略弹出高颜值向导窗口，支持多语言/主题热刷新、1s 轮询检测权限以及 Confetti 彩屑庆祝动画，完成后自动转换为后台 `.accessory` 模式运行。
+- **修复设置中字体与字号在预览窗口无效的 Bug**：
+  - 在 [CodeView.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/UI/CodeView.swift) 中实现 `NSAttributedString` 的扩展方法 `applyingEditorFont`。该方法使用 `NSFontManager` 动态遍历语法高亮产生的富文本，将默认字体替换为用户设置的自定义字体与字号，同时通过 `NSFontManager.shared.traits` 与 `convert` 保留了各字符原有的粗体（Bold）和斜体（Italic）物理特征。
+  - 重构了 [HighlightCache.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/Renderer/HighlightCache.swift)，在缓存键（Cache Key）中引入 `fontName` 和 `fontSize` 变量，实现不同字体/字号设置下的缓存隔离，彻底消除了由于直接从缓存加载旧富文本导致设置字号失效的问题。
+- **大文件分段增量读取与完美语法高亮覆盖**：
+  - **未知后缀文件宽容放行与拦截**：重构了 [FileTypeClassifier.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/Core/FileTypeClassifier.swift) 的过滤逻辑，仅拦截黑名单中明确的二进制类型，其它未知扩展名 `.xx` 均默认支持，并在后台通过 NULL 字节检测机制实现安全的二进制文件拦截。
+  - **滚动按需增量加载**：在 [CodeView.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/UI/CodeView.swift) 中通过滚动监听，当视口快滚到底部（不足 150px）时自动触发 [ContentView.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/UI/ContentView.swift) 的增量加载。界面底部浮现高颜值的磨砂悬浮 Loading 条，加载完成后使用 `NSTextStorage.append()` 拼接，保持极高的流畅度与滚动条正常延展。
+  - **头部起算增量高亮完美着色**：大文件增量高亮时在后台始终以 `0 字节到当前总长` 进行整体高亮，以确保跨物理分段边界的代码元素（如多行注释、多行字符串）状态连续、着色 100% 完美，没有任何缺失与错乱。
+  - **编辑模式全量静默加载**：进入编辑模式（Cmd + E）时，自动在后台 [ContentView.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/UI/ContentView.swift) 触发一次性读完后续所有内容，从而在编辑保存时保障文件内容的绝对完整性。
+  - **Markdown 预览渲染与自适应主题优化**：
+    - **GitHub 主题完美集成**：以 `Theme.gitHub` 为蓝本，利用继承机制避免了手写 heading 样式造成的底部分割线及排版丢失。
+    - **透明背景融合**：将 Markdown 整体文本的 `BackgroundColor` 设为 `nil`，行内代码 `code` 背景设为 `nil`，代码块 `codeBlock` 背景设为 `Color.clear`，彻底消除了顽固的灰色背景残留，完美融入应用的暗黑色/亮色毛玻璃背景。
+    - **全文字号与字体动态联动**：在 `.text` 基础样式中绑定 `settings.fontSize` 与 `settings.editorFont`（支持系统默认和已安装的自定义等宽字体），使所有使用相对比例（`.em`）的标题、代码段、引用块能够同步、无延迟跟随偏好设置的调整进行 0ms 热刷新。
+    - **编译异常修复**：修正了 `heading1` 到 `heading3` 块级配置的 API 拼写错误（由 `.markdownStyle` 修正为 `.markdownTextStyle`），顺利通过了编译器检查与完整构建验证。
+  - **JetBrains Mono 内置字体打包与激活**：
+    - **物理字体集成**：解压并提取了 `JetBrainsMono-Regular.ttf`、`JetBrainsMono-Bold.ttf`、`JetBrainsMono-Italic.ttf`、`JetBrainsMono-BoldItalic.ttf` 四款核心等宽字体文件，并放入项目目录下的 `QuickCookies/Resources/Fonts/`。
+    - **系统注册配置**：在 `Info.plist` 中添加了 `ATSApplicationFontsPath = Fonts` 注册内置字体，免除了用户系统需要全局安装该字体的强依赖。
+    - **Xcode 构建流程打通**：在 `project.pbxproj` 中添加了对 `Fonts` 的 Folder Reference，并挂载于 `PBXResourcesBuildPhase` 阶段，实现了编译时字体向应用包内 `Contents/Resources/Fonts/` 路径的安全拷贝。
+    - **字体 PostScript 映射与加载统一**：
+      - 在 `Settings.swift` 中为 `NSFont.editorFont` 的加载方法增加了映射保护，当请求加载 `"JetBrains Mono"` 这一 Picker 中的 Family Name 时，自动映射为其 PostScript 内部标志符 `"JetBrainsMono-Regular"` 进而由 AppKit 成功解析并显示。
+      - 重构了 `CodeView.swift` 中的 `applyingEditorFont` 富文本属性遍历方法，统一调用并复用 `NSFont.editorFont(name:size:)` 方法，彻底解决了此前因直接调用 `NSFont(name: "JetBrains Mono")` 返回 `nil` 导致字体配置失效的缺陷。
+  - **Markdown HTML 内联标签解析与优化**：
+    - **高性能正则预处理**：设计并集成了 `MarkdownHTMLPreprocessor` 模块。在 Markdown 文档渲染前，进行微秒级纯正则替换，智能识别并清洗不兼容的 HTML 标签，防止其以难看的明文形式在预览窗口中直接输出。
+    - **图片与超链接格式还原**：自动捕获 `<img ...>` 并还原为 `![](URL)` 标准 Markdown 图片，使底层 MarkdownUI 能够正常抓取并渲染插图；同步将 `<a href="...">` 链接还原为 Markdown 标准超链接 `[TEXT](URL)`，确保超链接交互完整。
+    - **版式与容器标签剔除**：直接将 GitHub 常见的排版容器（如 `<div[^>]*>`、`</div>`、`<p[^>]*>`、`</p>` 等）清洗抹除，仅保留内部的有效排版内容，达成完美的纯净原生渲染。
+    - **数学公式零误伤防线**：正则设计中仅匹配合规的标签签名 `<(\/?[a-zA-Z0-9]+[^>]*)>`，100% 避免误伤文档中如 `x < y` 和 `10 > 5` 等带有单侧大于/小于号的普通数学表达式。
+  - **Markdown 表格排版美化与相对路径图片引用解析**：
+    - **表格圆角与半透明交替行背景**：在 `customMarkdownTheme` 自定义扩展中设计并挂载了 `.table` 表格样式：
+      - 将表格交替背景设置为第一行完全透明 `Color.clear`，第二行应用超轻度透明 `Color.appText.opacity(0.045)`，使得表格能完美融入 `#18181c` 暗色或亮色磨砂窗口背景。
+      - 引入 `.clipShape(RoundedRectangle(cornerRadius: 8))` 和细线外边框 `.overlay`，将表格修剪出优雅的圆角。
+    - **相对路径图片与链接解析（Base URL）**：
+      - 重构了 `MarkdownView.swift`，引入 `filePath` 物理路径属性，并在内部利用 `deletingLastPathComponent()` 实时推算其父级目录的 file URL 作为 `baseDirectoryURL`。
+      - 修改了 `ContentView.swift`，在实例化 `MarkdownView` 时下发当前文件的绝对路径 `path` 变量。
+      - 在 `Markdown` 视图的初始化中绑定了 `baseURL: baseDirectoryURL` 参数，使 MarkdownUI 能自动对类似 `docs/images/logo.png` 的相对图片或相对文本超链接进行完整性路径拼装加载，打通了本地相对图片渲染与本地工作区导航。
+  - **一体化顶栏与红绿灯完美水平对齐**：
+    - 解决了预览窗口顶部红绿灯区域与下方文件名标题/编辑按钮错开展示，导致红绿灯行显得空洞的问题。
+    - 在 [ContentView.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/UI/ContentView.swift) 的主容器 `VStack` 上挂载了 `.ignoresSafeArea(edges: .top)`，从而让自定义的顶栏（Toolbar）背景直接延伸并铺满窗口的最顶端安全区域。
+    - 将顶栏 `toolbar` 视图的顶部 padding 调整为 `14`，使文件名、编辑/保存等控制按钮与左侧 macOS 系统原生红黄绿控制按钮在垂直方向完美居中对齐在同一行内，实现极为紧凑的高清一体化视觉效果。
 
 
 

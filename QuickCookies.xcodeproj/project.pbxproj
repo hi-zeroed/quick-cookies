@@ -1,1706 +1,795 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-<plist version="1.0">
-<dict>
-	<key>archiveVersion</key>
-	<string>1</string>
-	<key>classes</key>
-	<dict/>
-	<key>objectVersion</key>
-	<string>56</string>
-	<key>objects</key>
-	<dict>
-		<key>031B5AD657BAE17A14E65A87</key>
-		<dict>
-			<key>isa</key>
-			<string>PBXFileReference</string>
-			<key>lastKnownFileType</key>
-			<string>sourcecode.swift</string>
-			<key>path</key>
-			<string>HotkeyManager.swift</string>
-			<key>sourceTree</key>
-			<string>&lt;group&gt;</string>
-		</dict>
-		<key>04C42AD9B8657A3924158DE2</key>
-		<dict>
-			<key>fileRef</key>
-			<string>860647CBF168ADB4692AFB63</string>
-			<key>isa</key>
-			<string>PBXBuildFile</string>
-		</dict>
-		<key>21D2DE1178C6759287E735C5</key>
-		<dict>
-			<key>fileRef</key>
-			<string>55E3A065B775ACFE729BDE15</string>
-			<key>isa</key>
-			<string>PBXBuildFile</string>
-		</dict>
-		<key>2724C2DCD3C66C24CC15D6E7</key>
-		<dict>
-			<key>isa</key>
-			<string>PBXFileReference</string>
-			<key>lastKnownFileType</key>
-			<string>sourcecode.swift</string>
-			<key>path</key>
-			<string>EncodingDetector.swift</string>
-			<key>sourceTree</key>
-			<string>&lt;group&gt;</string>
-		</dict>
-		<key>2DD3FEAD2ABF97565DA77A2C</key>
-		<dict>
-			<key>fileRef</key>
-			<string>753F94AD7ABEFFC057AAA2DE</string>
-			<key>isa</key>
-			<string>PBXBuildFile</string>
-		</dict>
-		<key>374B0AA0DBFB3768D498AD14</key>
-		<dict>
-			<key>fileRef</key>
-			<string>031B5AD657BAE17A14E65A87</string>
-			<key>isa</key>
-			<string>PBXBuildFile</string>
-		</dict>
-		<key>391364AE6149F12AED4BFFFC</key>
-		<dict>
-			<key>isa</key>
-			<string>PBXFileReference</string>
-			<key>lastKnownFileType</key>
-			<string>sourcecode.swift</string>
-			<key>path</key>
-			<string>EditorView.swift</string>
-			<key>sourceTree</key>
-			<string>&lt;group&gt;</string>
-		</dict>
-		<key>3A2E710F92BB390B19278C21</key>
-		<dict>
-			<key>fileRef</key>
-			<string>94269EDF755E0DD605801286</string>
-			<key>isa</key>
-			<string>PBXBuildFile</string>
-		</dict>
-		<key>4282BAE5CE686021AF7F3F5C</key>
-		<dict>
-			<key>isa</key>
-			<string>PBXFileReference</string>
-			<key>lastKnownFileType</key>
-			<string>sourcecode.swift</string>
-			<key>path</key>
-			<string>SyntaxHighlighter.swift</string>
-			<key>sourceTree</key>
-			<string>&lt;group&gt;</string>
-		</dict>
-		<key>460FA400CC4F4F828DB39EFA</key>
-		<dict>
-			<key>isa</key>
-			<string>PBXFileReference</string>
-			<key>lastKnownFileType</key>
-			<string>sourcecode.swift</string>
-			<key>path</key>
-			<string>MarkdownTextView.swift</string>
-			<key>sourceTree</key>
-			<string>&lt;group&gt;</string>
-		</dict>
-		<key>55E3A065B775ACFE729BDE15</key>
-		<dict>
-			<key>isa</key>
-			<string>PBXFileReference</string>
-			<key>lastKnownFileType</key>
-			<string>sourcecode.swift</string>
-			<key>path</key>
-			<string>CodeView.swift</string>
-			<key>sourceTree</key>
-			<string>&lt;group&gt;</string>
-		</dict>
-		<key>598A4CD295296410FDE95ABE</key>
-		<dict>
-			<key>fileRef</key>
-			<string>C61407483B4F8F25CF2BA6C7</string>
-			<key>isa</key>
-			<string>PBXBuildFile</string>
-		</dict>
-		<key>6240A15DD8E31603B40D6CC6</key>
-		<dict>
-			<key>isa</key>
-			<string>PBXFileReference</string>
-			<key>lastKnownFileType</key>
-			<string>sourcecode.swift</string>
-			<key>path</key>
-			<string>MarkdownView.swift</string>
-			<key>sourceTree</key>
-			<string>&lt;group&gt;</string>
-		</dict>
-		<key>641CE1BE77D1A872196AB165</key>
-		<dict>
-			<key>fileRef</key>
-			<string>A7AA2E8A55B09BC0FF2E83A0</string>
-			<key>isa</key>
-			<string>PBXBuildFile</string>
-		</dict>
-		<key>71D913A0ECB64193A25A4044</key>
-		<dict>
-			<key>fileRef</key>
-			<string>460FA400CC4F4F828DB39EFA</string>
-			<key>isa</key>
-			<string>PBXBuildFile</string>
-		</dict>
-		<key>753F94AD7ABEFFC057AAA2DE</key>
-		<dict>
-			<key>isa</key>
-			<string>PBXFileReference</string>
-			<key>lastKnownFileType</key>
-			<string>sourcecode.swift</string>
-			<key>path</key>
-			<string>AppDelegate.swift</string>
-			<key>sourceTree</key>
-			<string>&lt;group&gt;</string>
-		</dict>
-		<key>835FB60E2FCA94E800D2395C</key>
-		<dict>
-			<key>isa</key>
-			<string>XCRemoteSwiftPackageReference</string>
-			<key>repositoryURL</key>
-			<string>https://github.com/gonzalezreal/swift-markdown-ui.git</string>
-			<key>requirement</key>
-			<dict>
-				<key>kind</key>
-				<string>upToNextMajorVersion</string>
-				<key>minimumVersion</key>
-				<string>2.4.0</string>
-			</dict>
-		</dict>
-		<key>835FB60F2FCA94E800D2395C</key>
-		<dict>
-			<key>isa</key>
-			<string>XCSwiftPackageProductDependency</string>
-			<key>package</key>
-			<string>835FB60E2FCA94E800D2395C</string>
-			<key>productName</key>
-			<string>MarkdownUI</string>
-		</dict>
-		<key>835FB6102FCA94E800D2395C</key>
-		<dict>
-			<key>isa</key>
-			<string>PBXBuildFile</string>
-			<key>productRef</key>
-			<string>835FB60F2FCA94E800D2395C</string>
-		</dict>
-		<key>835FB6112FCA950400D2395C</key>
-		<dict>
-			<key>isa</key>
-			<string>XCRemoteSwiftPackageReference</string>
-			<key>repositoryURL</key>
-			<string>https://github.com/raspu/Highlightr.git</string>
-			<key>requirement</key>
-			<dict>
-				<key>kind</key>
-				<string>upToNextMajorVersion</string>
-				<key>minimumVersion</key>
-				<string>2.1.0</string>
-			</dict>
-		</dict>
-		<key>835FB6122FCA950400D2395C</key>
-		<dict>
-			<key>isa</key>
-			<string>XCSwiftPackageProductDependency</string>
-			<key>package</key>
-			<string>835FB6112FCA950400D2395C</string>
-			<key>productName</key>
-			<string>Highlightr</string>
-		</dict>
-		<key>835FB6132FCA950400D2395C</key>
-		<dict>
-			<key>isa</key>
-			<string>PBXBuildFile</string>
-			<key>productRef</key>
-			<string>835FB6122FCA950400D2395C</string>
-		</dict>
-		<key>835FB6152FCA950400D2395D</key>
-		<dict>
-			<key>isa</key>
-			<string>PBXFileReference</string>
-			<key>lastKnownFileType</key>
-			<string>sourcecode.swift</string>
-			<key>path</key>
-			<string>HighlightCache.swift</string>
-			<key>sourceTree</key>
-			<string>&lt;group&gt;</string>
-		</dict>
-		<key>835FB6162FCA950400D2395D</key>
-		<dict>
-			<key>fileRef</key>
-			<string>835FB6152FCA950400D2395D</string>
-			<key>isa</key>
-			<string>PBXBuildFile</string>
-		</dict>
-		<key>835FB6172FCA950400D2395E</key>
-		<dict>
-			<key>isa</key>
-			<string>PBXFileReference</string>
-			<key>lastKnownFileType</key>
-			<string>sourcecode.swift</string>
-			<key>path</key>
-			<string>HighlightrCodeSyntaxHighlighter.swift</string>
-			<key>sourceTree</key>
-			<string>&lt;group&gt;</string>
-		</dict>
-		<key>835FB6182FCA950400D2395E</key>
-		<dict>
-			<key>fileRef</key>
-			<string>835FB6172FCA950400D2395E</string>
-			<key>isa</key>
-			<string>PBXBuildFile</string>
-		</dict>
-		<key>835FB6192FCA950400D2395F</key>
-		<dict>
-			<key>isa</key>
-			<string>PBXFileReference</string>
-			<key>lastKnownFileType</key>
-			<string>sourcecode.swift</string>
-			<key>path</key>
-			<string>QuickLookOverlayModifier.swift</string>
-			<key>sourceTree</key>
-			<string>&lt;group&gt;</string>
-		</dict>
-		<key>835FB61A2FCA950400D2395F</key>
-		<dict>
-			<key>fileRef</key>
-			<string>835FB6192FCA950400D2395F</string>
-			<key>isa</key>
-			<string>PBXBuildFile</string>
-		</dict>
-		<key>860647CBF168ADB4692AFB63</key>
-		<dict>
-			<key>isa</key>
-			<string>PBXFileReference</string>
-			<key>lastKnownFileType</key>
-			<string>sourcecode.swift</string>
-			<key>path</key>
-			<string>ContentView.swift</string>
-			<key>sourceTree</key>
-			<string>&lt;group&gt;</string>
-		</dict>
-		<key>8CB74C8B4C3A792598259E87</key>
-		<dict>
-			<key>isa</key>
-			<string>PBXFileReference</string>
-			<key>lastKnownFileType</key>
-			<string>sourcecode.swift</string>
-			<key>path</key>
-			<string>FileUtils.swift</string>
-			<key>sourceTree</key>
-			<string>&lt;group&gt;</string>
-		</dict>
-		<key>8EA7E2FA49A52C6CB2AE5A5E</key>
-		<dict>
-			<key>fileRef</key>
-			<string>391364AE6149F12AED4BFFFC</string>
-			<key>isa</key>
-			<string>PBXBuildFile</string>
-		</dict>
-		<key>94269EDF755E0DD605801286</key>
-		<dict>
-			<key>isa</key>
-			<string>PBXFileReference</string>
-			<key>lastKnownFileType</key>
-			<string>sourcecode.swift</string>
-			<key>path</key>
-			<string>Constants.swift</string>
-			<key>sourceTree</key>
-			<string>&lt;group&gt;</string>
-		</dict>
-		<key>962C8A503D0B4CA6963E2B94</key>
-		<dict>
-			<key>fileRef</key>
-			<string>B76F46CEB24C42779E84EBBE</string>
-			<key>isa</key>
-			<string>PBXBuildFile</string>
-		</dict>
-		<key>A23C977659B0910F9D58A41B</key>
-		<dict>
-			<key>fileRef</key>
-			<string>8CB74C8B4C3A792598259E87</string>
-			<key>isa</key>
-			<string>PBXBuildFile</string>
-		</dict>
-		<key>A7AA2E8A55B09BC0FF2E83A0</key>
-		<dict>
-			<key>isa</key>
-			<string>PBXFileReference</string>
-			<key>lastKnownFileType</key>
-			<string>sourcecode.swift</string>
-			<key>path</key>
-			<string>FileTypeClassifier.swift</string>
-			<key>sourceTree</key>
-			<string>&lt;group&gt;</string>
-		</dict>
-		<key>AAA111111111111111111111</key>
-		<dict>
-			<key>fileRef</key>
-			<string>BBB222222222222222222222</string>
-			<key>isa</key>
-			<string>PBXBuildFile</string>
-		</dict>
-		<key>APPCOPYSYNC0000000000001</key>
-		<dict>
-			<key>buildActionMask</key>
-			<integer>2147483647</integer>
-			<key>dstPath</key>
-			<string></string>
-			<key>dstSubfolderSpec</key>
-			<integer>13</integer>
-			<key>files</key>
-			<array>
-				<string>FSB000000000000000000002</string>
-			</array>
-			<key>isa</key>
-			<string>PBXCopyFilesBuildPhase</string>
-			<key>runOnlyForDeploymentPostprocessing</key>
-			<integer>0</integer>
-		</dict>
-		<key>AST141414141414141414141</key>
-		<dict>
-			<key>fileRef</key>
-			<string>AST141414141414141414142</string>
-			<key>isa</key>
-			<string>PBXBuildFile</string>
-		</dict>
-		<key>AST141414141414141414142</key>
-		<dict>
-			<key>isa</key>
-			<string>PBXFileReference</string>
-			<key>lastKnownFileType</key>
-			<string>folder.assetcatalog</string>
-			<key>name</key>
-			<string>Assets.xcassets</string>
-			<key>path</key>
-			<string>Assets.xcassets</string>
-			<key>sourceTree</key>
-			<string>&lt;group&gt;</string>
-		</dict>
-		<key>B76F46CEB24C42779E84EBBE</key>
-		<dict>
-			<key>isa</key>
-			<string>PBXFileReference</string>
-			<key>lastKnownFileType</key>
-			<string>sourcecode.swift</string>
-			<key>path</key>
-			<string>QuickLookOverlay.swift</string>
-			<key>sourceTree</key>
-			<string>&lt;group&gt;</string>
-		</dict>
-		<key>B87D7CAF1B4B8FAFF363B543</key>
-		<dict>
-			<key>isa</key>
-			<string>PBXFileReference</string>
-			<key>lastKnownFileType</key>
-			<string>sourcecode.swift</string>
-			<key>path</key>
-			<string>SettingsWindow.swift</string>
-			<key>sourceTree</key>
-			<string>&lt;group&gt;</string>
-		</dict>
-		<key>BBB222222222222222222222</key>
-		<dict>
-			<key>isa</key>
-			<string>PBXFileReference</string>
-			<key>lastKnownFileType</key>
-			<string>sourcecode.swift</string>
-			<key>path</key>
-			<string>QuickCookiesApp.swift</string>
-			<key>sourceTree</key>
-			<string>&lt;group&gt;</string>
-		</dict>
-		<key>C2B47F163AC772A6BD9CD6B5</key>
-		<dict>
-			<key>fileRef</key>
-			<string>B87D7CAF1B4B8FAFF363B543</string>
-			<key>isa</key>
-			<string>PBXBuildFile</string>
-		</dict>
-		<key>C61407483B4F8F25CF2BA6C7</key>
-		<dict>
-			<key>isa</key>
-			<string>PBXFileReference</string>
-			<key>lastKnownFileType</key>
-			<string>sourcecode.swift</string>
-			<key>path</key>
-			<string>FileDetector.swift</string>
-			<key>sourceTree</key>
-			<string>&lt;group&gt;</string>
-		</dict>
-		<key>CC3B6172EFBB3884582E6DB9</key>
-		<dict>
-			<key>fileRef</key>
-			<string>6240A15DD8E31603B40D6CC6</string>
-			<key>isa</key>
-			<string>PBXBuildFile</string>
-		</dict>
-		<key>CC8B9C87C1019A1BEC529314</key>
-		<dict>
-			<key>isa</key>
-			<string>PBXFileReference</string>
-			<key>lastKnownFileType</key>
-			<string>sourcecode.swift</string>
-			<key>path</key>
-			<string>ToastView.swift</string>
-			<key>sourceTree</key>
-			<string>&lt;group&gt;</string>
-		</dict>
-		<key>CCC333333333333333333333</key>
-		<dict>
-			<key>isa</key>
-			<string>PBXFileReference</string>
-			<key>lastKnownFileType</key>
-			<string>text.plist.xml</string>
-			<key>path</key>
-			<string>Info.plist</string>
-			<key>sourceTree</key>
-			<string>&lt;group&gt;</string>
-		</dict>
-		<key>D02C04567F8A13B8EE46D917</key>
-		<dict>
-			<key>fileRef</key>
-			<string>CC8B9C87C1019A1BEC529314</string>
-			<key>isa</key>
-			<string>PBXBuildFile</string>
-		</dict>
-		<key>D643EEA9D20E7A954D49ED4C</key>
-		<dict>
-			<key>isa</key>
-			<string>PBXFileReference</string>
-			<key>lastKnownFileType</key>
-			<string>sourcecode.swift</string>
-			<key>path</key>
-			<string>Settings.swift</string>
-			<key>sourceTree</key>
-			<string>&lt;group&gt;</string>
-		</dict>
-		<key>D89BC4645FD2337D32C9072C</key>
-		<dict>
-			<key>fileRef</key>
-			<string>2724C2DCD3C66C24CC15D6E7</string>
-			<key>isa</key>
-			<string>PBXBuildFile</string>
-		</dict>
-		<key>DA83EA46F6AB177473BC0393</key>
-		<dict>
-			<key>fileRef</key>
-			<string>D643EEA9D20E7A954D49ED4C</string>
-			<key>isa</key>
-			<string>PBXBuildFile</string>
-		</dict>
-		<key>DDD444444444444444444444</key>
-		<dict>
-			<key>isa</key>
-			<string>PBXFileReference</string>
-			<key>lastKnownFileType</key>
-			<string>text.plist.entitlements</string>
-			<key>path</key>
-			<string>QuickCookies.entitlements</string>
-			<key>sourceTree</key>
-			<string>&lt;group&gt;</string>
-		</dict>
-		<key>DEP171717171717171717171</key>
-		<dict>
-			<key>isa</key>
-			<string>PBXTargetDependency</string>
-			<key>target</key>
-			<string>FST171717171717171717171</string>
-		</dict>
-		<key>EEE555555555555555555555</key>
-		<dict>
-			<key>explicitFileType</key>
-			<string>wrapper.application</string>
-			<key>includeInIndex</key>
-			<string>0</string>
-			<key>isa</key>
-			<string>PBXFileReference</string>
-			<key>path</key>
-			<string>QuickCookies.app</string>
-			<key>sourceTree</key>
-			<string>BUILT_PRODUCTS_DIR</string>
-		</dict>
-		<key>FC17D463B0B7C2B8817DCA5B</key>
-		<dict>
-			<key>fileRef</key>
-			<string>4282BAE5CE686021AF7F3F5C</string>
-			<key>isa</key>
-			<string>PBXBuildFile</string>
-		</dict>
-		<key>FFF666666666666666666666</key>
-		<dict>
-			<key>buildActionMask</key>
-			<string>2147483647</string>
-			<key>files</key>
-			<array>
-				<string>835FB6132FCA950400D2395C</string>
-				<string>835FB6102FCA94E800D2395C</string>
-			</array>
-			<key>isa</key>
-			<string>PBXFrameworksBuildPhase</string>
-			<key>runOnlyForDeploymentPostprocessing</key>
-			<string>0</string>
-		</dict>
-		<key>FILWATCHBLD00000000000001</key>
-		<dict>
-			<key>fileRef</key>
-			<string>FILWATCHREF00000000000001</string>
-			<key>isa</key>
-			<string>PBXBuildFile</string>
-		</dict>
-		<key>FILWATCHREF00000000000001</key>
-		<dict>
-			<key>isa</key>
-			<string>PBXFileReference</string>
-			<key>lastKnownFileType</key>
-			<string>sourcecode.swift</string>
-			<key>path</key>
-			<string>FileWatcher.swift</string>
-			<key>sourceTree</key>
-			<string>&lt;group&gt;</string>
-		</dict>
-		<key>FMI000000000000000000001</key>
-		<dict>
-			<key>fileRef</key>
-			<string>FMI000000000000000000002</string>
-			<key>isa</key>
-			<string>PBXBuildFile</string>
-		</dict>
-		<key>FMI000000000000000000002</key>
-		<dict>
-			<key>isa</key>
-			<string>PBXFileReference</string>
-			<key>lastKnownFileType</key>
-			<string>sourcecode.swift</string>
-			<key>path</key>
-			<string>FinderMenuIntegration.swift</string>
-			<key>sourceTree</key>
-			<string>&lt;group&gt;</string>
-		</dict>
-		<key>FSB000000000000000000001</key>
-		<dict>
-			<key>fileRef</key>
-			<string>FSS000000000000000000001</string>
-			<key>isa</key>
-			<string>PBXBuildFile</string>
-		</dict>
-		<key>FSB000000000000000000002</key>
-		<dict>
-			<key>fileRef</key>
-			<string>FSE555555555555555555555</string>
-			<key>isa</key>
-			<string>PBXBuildFile</string>
-			<key>settings</key>
-			<dict>
-				<key>ATTRIBUTES</key>
-				<array>
-					<string>RemoveHeadersOnCopy</string>
-				</array>
-			</dict>
-		</dict>
-		<key>FSE555555555555555555555</key>
-		<dict>
-			<key>explicitFileType</key>
-			<string>wrapper.app-extension</string>
-			<key>includeInIndex</key>
-			<integer>0</integer>
-			<key>isa</key>
-			<string>PBXFileReference</string>
-			<key>path</key>
-			<string>QuickCookiesFinderSync.appex</string>
-			<key>sourceTree</key>
-			<string>BUILT_PRODUCTS_DIR</string>
-		</dict>
-		<key>FSG777777777777777777777</key>
-		<dict>
-			<key>children</key>
-			<array>
-				<string>FSS000000000000000000001</string>
-				<string>FSP000000000000000000001</string>
-			</array>
-			<key>isa</key>
-			<string>PBXGroup</string>
-			<key>name</key>
-			<string>QuickCookiesFinderSync</string>
-			<key>path</key>
-			<string>QuickCookiesFinderSync</string>
-			<key>sourceTree</key>
-			<string>&lt;group&gt;</string>
-		</dict>
-		<key>FSP000000000000000000001</key>
-		<dict>
-			<key>isa</key>
-			<string>PBXFileReference</string>
-			<key>lastKnownFileType</key>
-			<string>text.plist.xml</string>
-			<key>path</key>
-			<string>QuickCookiesFinderSync-Info.plist</string>
-			<key>sourceTree</key>
-			<string>&lt;group&gt;</string>
-		</dict>
-		<key>FSR181818181818181818181</key>
-		<dict>
-			<key>buildConfigurations</key>
-			<array>
-				<string>FSV222222222222222222222</string>
-				<string>FSW333333333333333333333</string>
-			</array>
-			<key>defaultConfigurationIsVisible</key>
-			<integer>0</integer>
-			<key>defaultConfigurationName</key>
-			<string>Release</string>
-			<key>isa</key>
-			<string>XCConfigurationList</string>
-		</dict>
-		<key>FSS000000000000000000001</key>
-		<dict>
-			<key>isa</key>
-			<string>PBXFileReference</string>
-			<key>lastKnownFileType</key>
-			<string>sourcecode.swift</string>
-			<key>path</key>
-			<string>QuickCookiesFinderSync.swift</string>
-			<key>sourceTree</key>
-			<string>&lt;group&gt;</string>
-		</dict>
-		<key>FSS191919191919191919191</key>
-		<dict>
-			<key>buildActionMask</key>
-			<integer>2147483647</integer>
-			<key>files</key>
-			<array>
-				<string>FSB000000000000000000001</string>
-			</array>
-			<key>isa</key>
-			<string>PBXSourcesBuildPhase</string>
-			<key>runOnlyForDeploymentPostprocessing</key>
-			<integer>0</integer>
-		</dict>
-		<key>FST171717171717171717171</key>
-		<dict>
-			<key>buildConfigurationList</key>
-			<string>FSR181818181818181818181</string>
-			<key>buildPhases</key>
-			<array>
-				<string>FSS191919191919191919191</string>
-			</array>
-			<key>buildRules</key>
-			<array/>
-			<key>dependencies</key>
-			<array/>
-			<key>isa</key>
-			<string>PBXNativeTarget</string>
-			<key>name</key>
-			<string>QuickCookiesFinderSync</string>
-			<key>productName</key>
-			<string>QuickCookiesFinderSync</string>
-			<key>productReference</key>
-			<string>FSE555555555555555555555</string>
-			<key>productType</key>
-			<string>com.apple.product-type.app-extension</string>
-		</dict>
-		<key>FSV222222222222222222222</key>
-		<dict>
-			<key>buildSettings</key>
-			<dict>
-				<key>CODE_SIGN_STYLE</key>
-				<string>Automatic</string>
-				<key>GENERATE_INFOPLIST_FILE</key>
-				<string>NO</string>
-				<key>INFOPLIST_FILE</key>
-				<string>QuickCookiesFinderSync/QuickCookiesFinderSync-Info.plist</string>
-				<key>LD_RUNPATH_SEARCH_PATHS</key>
-				<array>
-					<string>$(inherited)</string>
-					<string>@executable_path/../Frameworks</string>
-					<string>@executable_path/../../../../Frameworks</string>
-				</array>
-				<key>MACOSX_DEPLOYMENT_TARGET</key>
-				<string>13.0</string>
-				<key>PRODUCT_BUNDLE_IDENTIFIER</key>
-				<string>com.quickcookies.app.FinderSync</string>
-				<key>PRODUCT_NAME</key>
-				<string>$(TARGET_NAME)</string>
-				<key>SKIP_INSTALL</key>
-				<string>YES</string>
-				<key>SWIFT_VERSION</key>
-				<string>5.0</string>
-			</dict>
-			<key>isa</key>
-			<string>XCBuildConfiguration</string>
-			<key>name</key>
-			<string>Debug</string>
-		</dict>
-		<key>FSW333333333333333333333</key>
-		<dict>
-			<key>buildSettings</key>
-			<dict>
-				<key>CODE_SIGN_STYLE</key>
-				<string>Automatic</string>
-				<key>GENERATE_INFOPLIST_FILE</key>
-				<string>NO</string>
-				<key>INFOPLIST_FILE</key>
-				<string>QuickCookiesFinderSync/QuickCookiesFinderSync-Info.plist</string>
-				<key>LD_RUNPATH_SEARCH_PATHS</key>
-				<array>
-					<string>$(inherited)</string>
-					<string>@executable_path/../Frameworks</string>
-					<string>@executable_path/../../../../Frameworks</string>
-				</array>
-				<key>MACOSX_DEPLOYMENT_TARGET</key>
-				<string>13.0</string>
-				<key>PRODUCT_BUNDLE_IDENTIFIER</key>
-				<string>com.quickcookies.app.FinderSync</string>
-				<key>PRODUCT_NAME</key>
-				<string>$(TARGET_NAME)</string>
-				<key>SKIP_INSTALL</key>
-				<string>YES</string>
-				<key>SWIFT_VERSION</key>
-				<string>5.0</string>
-			</dict>
-			<key>isa</key>
-			<string>XCBuildConfiguration</string>
-			<key>name</key>
-			<string>Release</string>
-		</dict>
-		<key>GGG777777777777777777777</key>
-		<dict>
-			<key>children</key>
-			<array>
-				<string>HHH888888888888888888888</string>
-				<string>III999999999999999999999</string>
-				<string>JJJ10101010101010101010</string>
-				<string>KKK111111111111111111111</string>
-				<string>LLL121212121212121212121</string>
-				<string>MMM131313131313131313131</string>
-				<string>NNN141414141414141414141</string>
-				<string>CCC333333333333333333333</string>
-				<string>DDD444444444444444444444</string>
-			</array>
-			<key>isa</key>
-			<string>PBXGroup</string>
-			<key>path</key>
-			<string>QuickCookies</string>
-			<key>sourceTree</key>
-			<string>&lt;group&gt;</string>
-		</dict>
-		<key>HHH888888888888888888888</key>
-		<dict>
-			<key>children</key>
-			<array>
-				<string>BBB222222222222222222222</string>
-				<string>753F94AD7ABEFFC057AAA2DE</string>
-			</array>
-			<key>isa</key>
-			<string>PBXGroup</string>
-			<key>path</key>
-			<string>App</string>
-			<key>sourceTree</key>
-			<string>&lt;group&gt;</string>
-		</dict>
-		<key>III999999999999999999999</key>
-		<dict>
-			<key>children</key>
-			<array>
-				<string>C61407483B4F8F25CF2BA6C7</string>
-				<string>A7AA2E8A55B09BC0FF2E83A0</string>
-				<string>031B5AD657BAE17A14E65A87</string>
-				<string>FMI000000000000000000002</string>
-			</array>
-			<key>isa</key>
-			<string>PBXGroup</string>
-			<key>path</key>
-			<string>Core</string>
-			<key>sourceTree</key>
-			<string>&lt;group&gt;</string>
-		</dict>
-		<key>JJJ10101010101010101010</key>
-		<dict>
-			<key>children</key>
-			<array>
-				<string>860647CBF168ADB4692AFB63</string>
-				<string>6240A15DD8E31603B40D6CC6</string>
-				<string>55E3A065B775ACFE729BDE15</string>
-				<string>460FA400CC4F4F828DB39EFA</string>
-				<string>391364AE6149F12AED4BFFFC</string>
-				<string>B76F46CEB24C42779E84EBBE</string>
-				<string>835FB6192FCA950400D2395F</string>
-				<string>B87D7CAF1B4B8FAFF363B543</string>
-				<string>CC8B9C87C1019A1BEC529314</string>
-				<string>MEDPREVREF00000000000001</string>
-				<string>ONBOARDREF00000000000001</string>
-			</array>
-			<key>isa</key>
-			<string>PBXGroup</string>
-			<key>path</key>
-			<string>UI</string>
-			<key>sourceTree</key>
-			<string>&lt;group&gt;</string>
-		</dict>
-		<key>KKK111111111111111111111</key>
-		<dict>
-			<key>children</key>
-			<array>
-				<string>835FB6152FCA950400D2395D</string>
-				<string>835FB6172FCA950400D2395E</string>
-				<string>4282BAE5CE686021AF7F3F5C</string>
-			</array>
-			<key>isa</key>
-			<string>PBXGroup</string>
-			<key>path</key>
-			<string>Renderer</string>
-			<key>sourceTree</key>
-			<string>&lt;group&gt;</string>
-		</dict>
-		<key>LLL121212121212121212121</key>
-		<dict>
-			<key>children</key>
-			<array>
-				<string>2724C2DCD3C66C24CC15D6E7</string>
-				<string>8CB74C8B4C3A792598259E87</string>
-				<string>FILWATCHREF00000000000001</string>
-			</array>
-			<key>isa</key>
-			<string>PBXGroup</string>
-			<key>path</key>
-			<string>Utils</string>
-			<key>sourceTree</key>
-			<string>&lt;group&gt;</string>
-		</dict>
-		<key>MEDPREVBLD00000000000001</key>
-		<dict>
-			<key>fileRef</key>
-			<string>MEDPREVREF00000000000001</string>
-			<key>isa</key>
-			<string>PBXBuildFile</string>
-		</dict>
-		<key>MEDPREVREF00000000000001</key>
-		<dict>
-			<key>isa</key>
-			<string>PBXFileReference</string>
-			<key>lastKnownFileType</key>
-			<string>sourcecode.swift</string>
-			<key>path</key>
-			<string>MediaPreviewView.swift</string>
-			<key>sourceTree</key>
-			<string>&lt;group&gt;</string>
-		</dict>
-		<key>MMM131313131313131313131</key>
-		<dict>
-			<key>children</key>
-			<array>
-				<string>94269EDF755E0DD605801286</string>
-				<string>D643EEA9D20E7A954D49ED4C</string>
-			</array>
-			<key>isa</key>
-			<string>PBXGroup</string>
-			<key>path</key>
-			<string>Config</string>
-			<key>sourceTree</key>
-			<string>&lt;group&gt;</string>
-		</dict>
-		<key>NNN141414141414141414141</key>
-		<dict>
-			<key>children</key>
-			<array>
-				<string>AST141414141414141414142</string>
-			</array>
-			<key>isa</key>
-			<string>PBXGroup</string>
-			<key>path</key>
-			<string>Resources</string>
-			<key>sourceTree</key>
-			<string>&lt;group&gt;</string>
-		</dict>
-		<key>ONBOARDBLD00000000000001</key>
-		<dict>
-			<key>fileRef</key>
-			<string>ONBOARDREF00000000000001</string>
-			<key>isa</key>
-			<string>PBXBuildFile</string>
-		</dict>
-		<key>ONBOARDREF00000000000001</key>
-		<dict>
-			<key>isa</key>
-			<string>PBXFileReference</string>
-			<key>lastKnownFileType</key>
-			<string>sourcecode.swift</string>
-			<key>path</key>
-			<string>OnboardingView.swift</string>
-			<key>sourceTree</key>
-			<string>&lt;group&gt;</string>
-		</dict>
-		<key>OOO151515151515151515151</key>
-		<dict>
-			<key>children</key>
-			<array>
-				<string>GGG777777777777777777777</string>
-				<string>PPP161616161616161616161</string>
-				<string>FSG777777777777777777777</string>
-			</array>
-			<key>isa</key>
-			<string>PBXGroup</string>
-			<key>sourceTree</key>
-			<string>&lt;group&gt;</string>
-		</dict>
-		<key>PPP161616161616161616161</key>
-		<dict>
-			<key>children</key>
-			<array>
-				<string>EEE555555555555555555555</string>
-				<string>FSE555555555555555555555</string>
-			</array>
-			<key>isa</key>
-			<string>PBXGroup</string>
-			<key>name</key>
-			<string>Products</string>
-			<key>sourceTree</key>
-			<string>&lt;group&gt;</string>
-		</dict>
-		<key>QQQ171717171717171717171</key>
-		<dict>
-			<key>buildConfigurationList</key>
-			<string>RRR181818181818181818181</string>
-			<key>buildPhases</key>
-			<array>
-				<string>SSS191919191919191919191</string>
-				<string>FFF666666666666666666666</string>
-				<string>RES141414141414141414141</string>
-				<string>APPCOPYSYNC0000000000001</string>
-			</array>
-			<key>buildRules</key>
-			<array/>
-			<key>dependencies</key>
-			<array>
-				<string>DEP171717171717171717171</string>
-			</array>
-			<key>isa</key>
-			<string>PBXNativeTarget</string>
-			<key>name</key>
-			<string>QuickCookies</string>
-			<key>productName</key>
-			<string>QuickCookies</string>
-			<key>productReference</key>
-			<string>EEE555555555555555555555</string>
-			<key>productType</key>
-			<string>com.apple.product-type.application</string>
-		</dict>
-		<key>RES141414141414141414141</key>
-		<dict>
-			<key>buildActionMask</key>
-			<string>2147483647</string>
-			<key>files</key>
-			<array>
-				<string>AST141414141414141414141</string>
-			</array>
-			<key>isa</key>
-			<string>PBXResourcesBuildPhase</string>
-			<key>runOnlyForDeploymentPostprocessing</key>
-			<string>0</string>
-		</dict>
-		<key>RRR181818181818181818181</key>
-		<dict>
-			<key>buildConfigurations</key>
-			<array>
-				<string>VVV222222222222222222222</string>
-				<string>WWW333333333333333333333</string>
-			</array>
-			<key>defaultConfigurationIsVisible</key>
-			<string>0</string>
-			<key>defaultConfigurationName</key>
-			<string>Release</string>
-			<key>isa</key>
-			<string>XCConfigurationList</string>
-		</dict>
-		<key>SSS191919191919191919191</key>
-		<dict>
-			<key>buildActionMask</key>
-			<string>2147483647</string>
-			<key>files</key>
-			<array>
-				<string>AAA111111111111111111111</string>
-				<string>2DD3FEAD2ABF97565DA77A2C</string>
-				<string>3A2E710F92BB390B19278C21</string>
-				<string>DA83EA46F6AB177473BC0393</string>
-				<string>598A4CD295296410FDE95ABE</string>
-				<string>641CE1BE77D1A872196AB165</string>
-				<string>374B0AA0DBFB3768D498AD14</string>
-				<string>FMI000000000000000000001</string>
-				<string>835FB6162FCA950400D2395D</string>
-				<string>835FB6182FCA950400D2395E</string>
-				<string>835FB61A2FCA950400D2395F</string>
-				<string>FC17D463B0B7C2B8817DCA5B</string>
-				<string>D02C04567F8A13B8EE46D917</string>
-				<string>CC3B6172EFBB3884582E6DB9</string>
-				<string>21D2DE1178C6759287E735C5</string>
-				<string>8EA7E2FA49A52C6CB2AE5A5E</string>
-				<string>04C42AD9B8657A3924158DE2</string>
-				<string>C2B47F163AC772A6BD9CD6B5</string>
-				<string>D89BC4645FD2337D32C9072C</string>
-				<string>71D913A0ECB64193A25A4044</string>
-				<string>A23C977659B0910F9D58A41B</string>
-				<string>962C8A503D0B4CA6963E2B94</string>
-				<string>MEDPREVBLD00000000000001</string>
-				<string>FILWATCHBLD00000000000001</string>
-				<string>ONBOARDBLD00000000000001</string>
-			</array>
-			<key>isa</key>
-			<string>PBXSourcesBuildPhase</string>
-			<key>runOnlyForDeploymentPostprocessing</key>
-			<string>0</string>
-		</dict>
-		<key>TTT202020202020202020202</key>
-		<dict>
-			<key>attributes</key>
-			<dict>
-				<key>BuildIndependentTargetsInParallel</key>
-				<string>1</string>
-				<key>LastSwiftUpdate</key>
-				<string>2023</string>
-				<key>LastUpgradeCheck</key>
-				<string>2640</string>
-				<key>TargetAttributes</key>
-				<dict>
-					<key>QQQ171717171717171717171</key>
-					<dict>
-						<key>CreatedOnToolsVersion</key>
-						<string>15.0</string>
-					</dict>
-				</dict>
-			</dict>
-			<key>buildConfigurationList</key>
-			<string>UUU212121212121212121212</string>
-			<key>compatibilityVersion</key>
-			<string>Xcode 14.0</string>
-			<key>developmentRegion</key>
-			<string>en</string>
-			<key>hasScannedForEncodings</key>
-			<string>0</string>
-			<key>isa</key>
-			<string>PBXProject</string>
-			<key>knownRegions</key>
-			<array>
-				<string>en</string>
-				<string>Base</string>
-				<string>zh-Hans</string>
-			</array>
-			<key>mainGroup</key>
-			<string>OOO151515151515151515151</string>
-			<key>packageReferences</key>
-			<array>
-				<string>835FB60E2FCA94E800D2395C</string>
-				<string>835FB6112FCA950400D2395C</string>
-			</array>
-			<key>productRefGroup</key>
-			<string>PPP161616161616161616161</string>
-			<key>projectDirPath</key>
-			<string></string>
-			<key>projectRoot</key>
-			<string></string>
-			<key>targets</key>
-			<array>
-				<string>QQQ171717171717171717171</string>
-				<string>FST171717171717171717171</string>
-			</array>
-		</dict>
-		<key>UUU212121212121212121212</key>
-		<dict>
-			<key>buildConfigurations</key>
-			<array>
-				<string>XXX343434343434343434343</string>
-				<string>YYY454545454545454545454</string>
-			</array>
-			<key>defaultConfigurationIsVisible</key>
-			<string>0</string>
-			<key>defaultConfigurationName</key>
-			<string>Release</string>
-			<key>isa</key>
-			<string>XCConfigurationList</string>
-		</dict>
-		<key>VVV222222222222222222222</key>
-		<dict>
-			<key>buildSettings</key>
-			<dict>
-				<key>ALWAYS_SEARCH_USER_PATHS</key>
-				<string>NO</string>
-				<key>ASSETCATALOG_COMPILER_APPICON_NAME</key>
-				<string>AppIcon</string>
-				<key>ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS</key>
-				<string>YES</string>
-				<key>CLANG_ANALYZER_NONNULL</key>
-				<string>YES</string>
-				<key>CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION</key>
-				<string>YES_AGGRESSIVE</string>
-				<key>CLANG_CXX_LANGUAGE_STANDARD</key>
-				<string>gnu++20</string>
-				<key>CLANG_ENABLE_MODULES</key>
-				<string>YES</string>
-				<key>CLANG_ENABLE_OBJC_ARC</key>
-				<string>YES</string>
-				<key>CLANG_ENABLE_OBJC_WEAK</key>
-				<string>YES</string>
-				<key>CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING</key>
-				<string>YES</string>
-				<key>CLANG_WARN_BOOL_CONVERSION</key>
-				<string>YES</string>
-				<key>CLANG_WARN_COMMA</key>
-				<string>YES</string>
-				<key>CLANG_WARN_CONSTANT_CONVERSION</key>
-				<string>YES</string>
-				<key>CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS</key>
-				<string>YES</string>
-				<key>CLANG_WARN_DIRECT_OBJC_ISA_USAGE</key>
-				<string>YES_ERROR</string>
-				<key>CLANG_WARN_DOCUMENTATION_COMMENTS</key>
-				<string>YES</string>
-				<key>CLANG_WARN_EMPTY_BODY</key>
-				<string>YES</string>
-				<key>CLANG_WARN_ENUM_CONVERSION</key>
-				<string>YES</string>
-				<key>CLANG_WARN_INFINITE_RECURSION</key>
-				<string>YES</string>
-				<key>CLANG_WARN_INT_CONVERSION</key>
-				<string>YES</string>
-				<key>CLANG_WARN_NON_LITERAL_NULL_CONVERSION</key>
-				<string>YES</string>
-				<key>CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF</key>
-				<string>YES</string>
-				<key>CLANG_WARN_OBJC_LITERAL_CONVERSION</key>
-				<string>YES</string>
-				<key>CLANG_WARN_OBJC_ROOT_CLASS</key>
-				<string>YES_ERROR</string>
-				<key>CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER</key>
-				<string>YES</string>
-				<key>CLANG_WARN_RANGE_LOOP_ANALYSIS</key>
-				<string>YES</string>
-				<key>CLANG_WARN_STRICT_PROTOTYPES</key>
-				<string>YES</string>
-				<key>CLANG_WARN_SUSPICIOUS_MOVE</key>
-				<string>YES</string>
-				<key>CLANG_WARN_UNGUARDED_AVAILABILITY</key>
-				<string>YES_AGGRESSIVE</string>
-				<key>CLANG_WARN_UNREACHABLE_CODE</key>
-				<string>YES</string>
-				<key>CLANG_WARN__DUPLICATE_METHOD_MATCH</key>
-				<string>YES</string>
-				<key>CODE_SIGN_ENTITLEMENTS</key>
-				<string>QuickCookies/QuickCookies.entitlements</string>
-				<key>CODE_SIGN_STYLE</key>
-				<string>Automatic</string>
-				<key>COMBINE_HIDPI_IMAGES</key>
-				<string>YES</string>
-				<key>COPY_PHASE_STRIP</key>
-				<string>NO</string>
-				<key>DEAD_CODE_STRIPPING</key>
-				<string>YES</string>
-				<key>DEBUG_INFORMATION_FORMAT</key>
-				<string>dwarf</string>
-				<key>ENABLE_STRICT_OBJC_MSGSEND</key>
-				<string>YES</string>
-				<key>ENABLE_TESTABILITY</key>
-				<string>YES</string>
-				<key>ENABLE_USER_SCRIPT_SANDBOXING</key>
-				<string>YES</string>
-				<key>GCC_C_LANGUAGE_STANDARD</key>
-				<string>gnu17</string>
-				<key>GCC_DYNAMIC_NO_PIC</key>
-				<string>NO</string>
-				<key>GCC_NO_COMMON_BLOCKS</key>
-				<string>YES</string>
-				<key>GCC_OPTIMIZATION_LEVEL</key>
-				<string>0</string>
-				<key>GCC_PREPROCESSOR_DEFINITIONS</key>
-				<array>
-					<string>DEBUG=1</string>
-					<string>$(inherited)</string>
-				</array>
-				<key>GCC_WARN_64_TO_32_BIT_CONVERSION</key>
-				<string>YES</string>
-				<key>GCC_WARN_ABOUT_RETURN_TYPE</key>
-				<string>YES_ERROR</string>
-				<key>GCC_WARN_UNDECLARED_SELECTOR</key>
-				<string>YES</string>
-				<key>GCC_WARN_UNINITIALIZED_AUTOS</key>
-				<string>YES_AGGRESSIVE</string>
-				<key>GCC_WARN_UNUSED_FUNCTION</key>
-				<string>YES</string>
-				<key>GCC_WARN_UNUSED_VARIABLE</key>
-				<string>YES</string>
-				<key>GENERATE_INFOPLIST_FILE</key>
-				<string>YES</string>
-				<key>INFOPLIST_FILE</key>
-				<string>QuickCookies/Info.plist</string>
-				<key>INFOPLIST_KEY_NSAppleEventsUsageDescription</key>
-				<string>QuickCookies needs to communicate with Finder to get selected file paths.</string>
-				<key>INFOPLIST_KEY_NSHighResolutionCapable</key>
-				<string>YES</string>
-				<key>LD_RUNPATH_SEARCH_PATHS</key>
-				<array>
-					<string>$(inherited)</string>
-					<string>@executable_path/../Frameworks</string>
-				</array>
-				<key>MACOSX_DEPLOYMENT_TARGET</key>
-				<string>13.0</string>
-				<key>MTL_ENABLE_DEBUG_INFO</key>
-				<string>NO</string>
-				<key>MTL_FAST_MATH</key>
-				<string>YES</string>
-				<key>ONLY_ACTIVE_ARCH</key>
-				<string>YES</string>
-				<key>PRODUCT_BUNDLE_IDENTIFIER</key>
-				<string>com.quickcookies.app</string>
-				<key>PRODUCT_NAME</key>
-				<string>$(TARGET_NAME)</string>
-				<key>SDKROOT</key>
-				<string>macosx</string>
-				<key>SWIFT_ACTIVE_COMPILATION_CONDITIONS</key>
-				<string>DEBUG $(inherited)</string>
-				<key>SWIFT_EMIT_LOC_STRINGS</key>
-				<string>YES</string>
-				<key>SWIFT_OPTIMIZATION_LEVEL</key>
-				<string>-Onone</string>
-				<key>SWIFT_VERSION</key>
-				<string>5.0</string>
-				<key>TARGETED_DEVICE_FAMILY</key>
-				<string></string>
-			</dict>
-			<key>isa</key>
-			<string>XCBuildConfiguration</string>
-			<key>name</key>
-			<string>Debug</string>
-		</dict>
-		<key>WWW333333333333333333333</key>
-		<dict>
-			<key>buildSettings</key>
-			<dict>
-				<key>ALWAYS_SEARCH_USER_PATHS</key>
-				<string>NO</string>
-				<key>ASSETCATALOG_COMPILER_APPICON_NAME</key>
-				<string>AppIcon</string>
-				<key>ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS</key>
-				<string>YES</string>
-				<key>CLANG_ANALYZER_NONNULL</key>
-				<string>YES</string>
-				<key>CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION</key>
-				<string>YES_AGGRESSIVE</string>
-				<key>CLANG_CXX_LANGUAGE_STANDARD</key>
-				<string>gnu++20</string>
-				<key>CLANG_ENABLE_MODULES</key>
-				<string>YES</string>
-				<key>CLANG_ENABLE_OBJC_ARC</key>
-				<string>YES</string>
-				<key>CLANG_ENABLE_OBJC_WEAK</key>
-				<string>YES</string>
-				<key>CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING</key>
-				<string>YES</string>
-				<key>CLANG_WARN_BOOL_CONVERSION</key>
-				<string>YES</string>
-				<key>CLANG_WARN_COMMA</key>
-				<string>YES</string>
-				<key>CLANG_WARN_CONSTANT_CONVERSION</key>
-				<string>YES</string>
-				<key>CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS</key>
-				<string>YES</string>
-				<key>CLANG_WARN_DIRECT_OBJC_ISA_USAGE</key>
-				<string>YES_ERROR</string>
-				<key>CLANG_WARN_DOCUMENTATION_COMMENTS</key>
-				<string>YES</string>
-				<key>CLANG_WARN_EMPTY_BODY</key>
-				<string>YES</string>
-				<key>CLANG_WARN_ENUM_CONVERSION</key>
-				<string>YES</string>
-				<key>CLANG_WARN_INFINITE_RECURSION</key>
-				<string>YES</string>
-				<key>CLANG_WARN_INT_CONVERSION</key>
-				<string>YES</string>
-				<key>CLANG_WARN_NON_LITERAL_NULL_CONVERSION</key>
-				<string>YES</string>
-				<key>CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF</key>
-				<string>YES</string>
-				<key>CLANG_WARN_OBJC_LITERAL_CONVERSION</key>
-				<string>YES</string>
-				<key>CLANG_WARN_OBJC_ROOT_CLASS</key>
-				<string>YES_ERROR</string>
-				<key>CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER</key>
-				<string>YES</string>
-				<key>CLANG_WARN_RANGE_LOOP_ANALYSIS</key>
-				<string>YES</string>
-				<key>CLANG_WARN_STRICT_PROTOTYPES</key>
-				<string>YES</string>
-				<key>CLANG_WARN_SUSPICIOUS_MOVE</key>
-				<string>YES</string>
-				<key>CLANG_WARN_UNGUARDED_AVAILABILITY</key>
-				<string>YES_AGGRESSIVE</string>
-				<key>CLANG_WARN_UNREACHABLE_CODE</key>
-				<string>YES</string>
-				<key>CLANG_WARN__DUPLICATE_METHOD_MATCH</key>
-				<string>YES</string>
-				<key>CODE_SIGN_ENTITLEMENTS</key>
-				<string>QuickCookies/QuickCookies.entitlements</string>
-				<key>CODE_SIGN_STYLE</key>
-				<string>Automatic</string>
-				<key>COMBINE_HIDPI_IMAGES</key>
-				<string>YES</string>
-				<key>COPY_PHASE_STRIP</key>
-				<string>NO</string>
-				<key>DEAD_CODE_STRIPPING</key>
-				<string>YES</string>
-				<key>DEBUG_INFORMATION_FORMAT</key>
-				<string>dwarf-with-dsym</string>
-				<key>ENABLE_NS_ASSERTIONS</key>
-				<string>NO</string>
-				<key>ENABLE_STRICT_OBJC_MSGSEND</key>
-				<string>YES</string>
-				<key>ENABLE_USER_SCRIPT_SANDBOXING</key>
-				<string>YES</string>
-				<key>GCC_C_LANGUAGE_STANDARD</key>
-				<string>gnu17</string>
-				<key>GCC_NO_COMMON_BLOCKS</key>
-				<string>YES</string>
-				<key>GCC_WARN_64_TO_32_BIT_CONVERSION</key>
-				<string>YES</string>
-				<key>GCC_WARN_ABOUT_RETURN_TYPE</key>
-				<string>YES_ERROR</string>
-				<key>GCC_WARN_UNDECLARED_SELECTOR</key>
-				<string>YES</string>
-				<key>GCC_WARN_UNINITIALIZED_AUTOS</key>
-				<string>YES_AGGRESSIVE</string>
-				<key>GCC_WARN_UNUSED_FUNCTION</key>
-				<string>YES</string>
-				<key>GCC_WARN_UNUSED_VARIABLE</key>
-				<string>YES</string>
-				<key>GENERATE_INFOPLIST_FILE</key>
-				<string>YES</string>
-				<key>INFOPLIST_FILE</key>
-				<string>QuickCookies/Info.plist</string>
-				<key>INFOPLIST_KEY_NSAppleEventsUsageDescription</key>
-				<string>QuickCookies needs to communicate with Finder to get selected file paths.</string>
-				<key>INFOPLIST_KEY_NSHighResolutionCapable</key>
-				<string>YES</string>
-				<key>LD_RUNPATH_SEARCH_PATHS</key>
-				<array>
-					<string>$(inherited)</string>
-					<string>@executable_path/../Frameworks</string>
-				</array>
-				<key>MACOSX_DEPLOYMENT_TARGET</key>
-				<string>13.0</string>
-				<key>MTL_ENABLE_DEBUG_INFO</key>
-				<string>NO</string>
-				<key>MTL_FAST_MATH</key>
-				<string>YES</string>
-				<key>PRODUCT_BUNDLE_IDENTIFIER</key>
-				<string>com.quickcookies.app</string>
-				<key>PRODUCT_NAME</key>
-				<string>$(TARGET_NAME)</string>
-				<key>SDKROOT</key>
-				<string>macosx</string>
-				<key>SWIFT_COMPILATION_MODE</key>
-				<string>wholemodule</string>
-				<key>SWIFT_EMIT_LOC_STRINGS</key>
-				<string>YES</string>
-				<key>SWIFT_VERSION</key>
-				<string>5.0</string>
-				<key>TARGETED_DEVICE_FAMILY</key>
-				<string></string>
-			</dict>
-			<key>isa</key>
-			<string>XCBuildConfiguration</string>
-			<key>name</key>
-			<string>Release</string>
-		</dict>
-		<key>XXX343434343434343434343</key>
-		<dict>
-			<key>buildSettings</key>
-			<dict>
-				<key>ALWAYS_SEARCH_USER_PATHS</key>
-				<string>NO</string>
-				<key>CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED</key>
-				<string>YES</string>
-				<key>CLANG_ANALYZER_NONNULL</key>
-				<string>YES</string>
-				<key>CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION</key>
-				<string>YES_AGGRESSIVE</string>
-				<key>CLANG_CXX_LANGUAGE_STANDARD</key>
-				<string>gnu++20</string>
-				<key>CLANG_ENABLE_MODULES</key>
-				<string>YES</string>
-				<key>CLANG_ENABLE_OBJC_ARC</key>
-				<string>YES</string>
-				<key>CLANG_ENABLE_OBJC_WEAK</key>
-				<string>YES</string>
-				<key>CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING</key>
-				<string>YES</string>
-				<key>CLANG_WARN_BOOL_CONVERSION</key>
-				<string>YES</string>
-				<key>CLANG_WARN_COMMA</key>
-				<string>YES</string>
-				<key>CLANG_WARN_CONSTANT_CONVERSION</key>
-				<string>YES</string>
-				<key>CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS</key>
-				<string>YES</string>
-				<key>CLANG_WARN_DIRECT_OBJC_ISA_USAGE</key>
-				<string>YES_ERROR</string>
-				<key>CLANG_WARN_DOCUMENTATION_COMMENTS</key>
-				<string>YES</string>
-				<key>CLANG_WARN_EMPTY_BODY</key>
-				<string>YES</string>
-				<key>CLANG_WARN_ENUM_CONVERSION</key>
-				<string>YES</string>
-				<key>CLANG_WARN_INFINITE_RECURSION</key>
-				<string>YES</string>
-				<key>CLANG_WARN_INT_CONVERSION</key>
-				<string>YES</string>
-				<key>CLANG_WARN_NON_LITERAL_NULL_CONVERSION</key>
-				<string>YES</string>
-				<key>CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF</key>
-				<string>YES</string>
-				<key>CLANG_WARN_OBJC_LITERAL_CONVERSION</key>
-				<string>YES</string>
-				<key>CLANG_WARN_OBJC_ROOT_CLASS</key>
-				<string>YES_ERROR</string>
-				<key>CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER</key>
-				<string>YES</string>
-				<key>CLANG_WARN_RANGE_LOOP_ANALYSIS</key>
-				<string>YES</string>
-				<key>CLANG_WARN_STRICT_PROTOTYPES</key>
-				<string>YES</string>
-				<key>CLANG_WARN_SUSPICIOUS_MOVE</key>
-				<string>YES</string>
-				<key>CLANG_WARN_UNGUARDED_AVAILABILITY</key>
-				<string>YES_AGGRESSIVE</string>
-				<key>CLANG_WARN_UNREACHABLE_CODE</key>
-				<string>YES</string>
-				<key>CLANG_WARN__DUPLICATE_METHOD_MATCH</key>
-				<string>YES</string>
-				<key>CODE_SIGN_ENTITLEMENTS</key>
-				<string>QuickCookies/QuickCookies.entitlements</string>
-				<key>CODE_SIGN_STYLE</key>
-				<string>Automatic</string>
-				<key>COMBINE_HIDPI_IMAGES</key>
-				<string>YES</string>
-				<key>COPY_PHASE_STRIP</key>
-				<string>NO</string>
-				<key>DEAD_CODE_STRIPPING</key>
-				<string>YES</string>
-				<key>DEBUG_INFORMATION_FORMAT</key>
-				<string>dwarf</string>
-				<key>ENABLE_STRICT_OBJC_MSGSEND</key>
-				<string>YES</string>
-				<key>ENABLE_TESTABILITY</key>
-				<string>YES</string>
-				<key>ENABLE_USER_SCRIPT_SANDBOXING</key>
-				<string>YES</string>
-				<key>GCC_C_LANGUAGE_STANDARD</key>
-				<string>gnu17</string>
-				<key>GCC_DYNAMIC_NO_PIC</key>
-				<string>NO</string>
-				<key>GCC_NO_COMMON_BLOCKS</key>
-				<string>YES</string>
-				<key>GCC_OPTIMIZATION_LEVEL</key>
-				<string>0</string>
-				<key>GCC_PREPROCESSOR_DEFINITIONS</key>
-				<array>
-					<string>DEBUG=1</string>
-					<string>$(inherited)</string>
-				</array>
-				<key>GCC_WARN_64_TO_32_BIT_CONVERSION</key>
-				<string>YES</string>
-				<key>GCC_WARN_ABOUT_RETURN_TYPE</key>
-				<string>YES_ERROR</string>
-				<key>GCC_WARN_UNDECLARED_SELECTOR</key>
-				<string>YES</string>
-				<key>GCC_WARN_UNINITIALIZED_AUTOS</key>
-				<string>YES_AGGRESSIVE</string>
-				<key>GCC_WARN_UNUSED_FUNCTION</key>
-				<string>YES</string>
-				<key>GCC_WARN_UNUSED_VARIABLE</key>
-				<string>YES</string>
-				<key>GENERATE_INFOPLIST_FILE</key>
-				<string>YES</string>
-				<key>INFOPLIST_FILE</key>
-				<string>QuickCookies/Info.plist</string>
-				<key>INFOPLIST_KEY_NSAppleEventsUsageDescription</key>
-				<string>QuickCookies needs to communicate with Finder to get selected file paths.</string>
-				<key>INFOPLIST_KEY_NSHighResolutionCapable</key>
-				<string>YES</string>
-				<key>LD_RUNPATH_SEARCH_PATHS</key>
-				<array>
-					<string>$(inherited)</string>
-					<string>@executable_path/../Frameworks</string>
-				</array>
-				<key>MACOSX_DEPLOYMENT_TARGET</key>
-				<string>13.0</string>
-				<key>MTL_ENABLE_DEBUG_INFO</key>
-				<string>NO</string>
-				<key>MTL_FAST_MATH</key>
-				<string>YES</string>
-				<key>ONLY_ACTIVE_ARCH</key>
-				<string>YES</string>
-				<key>PRODUCT_BUNDLE_IDENTIFIER</key>
-				<string>com.quickcookies.app</string>
-				<key>PRODUCT_NAME</key>
-				<string>$(TARGET_NAME)</string>
-				<key>SDKROOT</key>
-				<string>macosx</string>
-				<key>STRING_CATALOG_GENERATE_SYMBOLS</key>
-				<string>YES</string>
-				<key>SWIFT_ACTIVE_COMPILATION_CONDITIONS</key>
-				<string>DEBUG $(inherited)</string>
-				<key>SWIFT_EMIT_LOC_STRINGS</key>
-				<string>YES</string>
-				<key>SWIFT_OPTIMIZATION_LEVEL</key>
-				<string>-Onone</string>
-				<key>SWIFT_VERSION</key>
-				<string>5.0</string>
-				<key>TARGETED_DEVICE_FAMILY</key>
-				<string></string>
-			</dict>
-			<key>isa</key>
-			<string>XCBuildConfiguration</string>
-			<key>name</key>
-			<string>Debug</string>
-		</dict>
-		<key>YYY454545454545454545454</key>
-		<dict>
-			<key>buildSettings</key>
-			<dict>
-				<key>ALWAYS_SEARCH_USER_PATHS</key>
-				<string>NO</string>
-				<key>CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED</key>
-				<string>YES</string>
-				<key>CLANG_ANALYZER_NONNULL</key>
-				<string>YES</string>
-				<key>CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION</key>
-				<string>YES_AGGRESSIVE</string>
-				<key>CLANG_CXX_LANGUAGE_STANDARD</key>
-				<string>gnu++20</string>
-				<key>CLANG_ENABLE_MODULES</key>
-				<string>YES</string>
-				<key>CLANG_ENABLE_OBJC_ARC</key>
-				<string>YES</string>
-				<key>CLANG_ENABLE_OBJC_WEAK</key>
-				<string>YES</string>
-				<key>CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING</key>
-				<string>YES</string>
-				<key>CLANG_WARN_BOOL_CONVERSION</key>
-				<string>YES</string>
-				<key>CLANG_WARN_COMMA</key>
-				<string>YES</string>
-				<key>CLANG_WARN_CONSTANT_CONVERSION</key>
-				<string>YES</string>
-				<key>CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS</key>
-				<string>YES</string>
-				<key>CLANG_WARN_DIRECT_OBJC_ISA_USAGE</key>
-				<string>YES_ERROR</string>
-				<key>CLANG_WARN_DOCUMENTATION_COMMENTS</key>
-				<string>YES</string>
-				<key>CLANG_WARN_EMPTY_BODY</key>
-				<string>YES</string>
-				<key>CLANG_WARN_ENUM_CONVERSION</key>
-				<string>YES</string>
-				<key>CLANG_WARN_INFINITE_RECURSION</key>
-				<string>YES</string>
-				<key>CLANG_WARN_INT_CONVERSION</key>
-				<string>YES</string>
-				<key>CLANG_WARN_NON_LITERAL_NULL_CONVERSION</key>
-				<string>YES</string>
-				<key>CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF</key>
-				<string>YES</string>
-				<key>CLANG_WARN_OBJC_LITERAL_CONVERSION</key>
-				<string>YES</string>
-				<key>CLANG_WARN_OBJC_ROOT_CLASS</key>
-				<string>YES_ERROR</string>
-				<key>CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER</key>
-				<string>YES</string>
-				<key>CLANG_WARN_RANGE_LOOP_ANALYSIS</key>
-				<string>YES</string>
-				<key>CLANG_WARN_STRICT_PROTOTYPES</key>
-				<string>YES</string>
-				<key>CLANG_WARN_SUSPICIOUS_MOVE</key>
-				<string>YES</string>
-				<key>CLANG_WARN_UNGUARDED_AVAILABILITY</key>
-				<string>YES_AGGRESSIVE</string>
-				<key>CLANG_WARN_UNREACHABLE_CODE</key>
-				<string>YES</string>
-				<key>CLANG_WARN__DUPLICATE_METHOD_MATCH</key>
-				<string>YES</string>
-				<key>CODE_SIGN_ENTITLEMENTS</key>
-				<string>QuickCookies/QuickCookies.entitlements</string>
-				<key>CODE_SIGN_STYLE</key>
-				<string>Automatic</string>
-				<key>COMBINE_HIDPI_IMAGES</key>
-				<string>YES</string>
-				<key>COPY_PHASE_STRIP</key>
-				<string>NO</string>
-				<key>DEAD_CODE_STRIPPING</key>
-				<string>YES</string>
-				<key>DEBUG_INFORMATION_FORMAT</key>
-				<string>dwarf-with-dsym</string>
-				<key>ENABLE_NS_ASSERTIONS</key>
-				<string>NO</string>
-				<key>ENABLE_STRICT_OBJC_MSGSEND</key>
-				<string>YES</string>
-				<key>ENABLE_USER_SCRIPT_SANDBOXING</key>
-				<string>YES</string>
-				<key>GCC_C_LANGUAGE_STANDARD</key>
-				<string>gnu17</string>
-				<key>GCC_NO_COMMON_BLOCKS</key>
-				<string>YES</string>
-				<key>GCC_WARN_64_TO_32_BIT_CONVERSION</key>
-				<string>YES</string>
-				<key>GCC_WARN_ABOUT_RETURN_TYPE</key>
-				<string>YES_ERROR</string>
-				<key>GCC_WARN_UNDECLARED_SELECTOR</key>
-				<string>YES</string>
-				<key>GCC_WARN_UNINITIALIZED_AUTOS</key>
-				<string>YES_AGGRESSIVE</string>
-				<key>GCC_WARN_UNUSED_FUNCTION</key>
-				<string>YES</string>
-				<key>GCC_WARN_UNUSED_VARIABLE</key>
-				<string>YES</string>
-				<key>GENERATE_INFOPLIST_FILE</key>
-				<string>YES</string>
-				<key>INFOPLIST_FILE</key>
-				<string>QuickCookies/Info.plist</string>
-				<key>INFOPLIST_KEY_NSAppleEventsUsageDescription</key>
-				<string>QuickCookies needs to communicate with Finder to get selected paths.</string>
-				<key>INFOPLIST_KEY_NSHighResolutionCapable</key>
-				<string>YES</string>
-				<key>LD_RUNPATH_SEARCH_PATHS</key>
-				<array>
-					<string>$(inherited)</string>
-					<string>@executable_path/../Frameworks</string>
-				</array>
-				<key>MACOSX_DEPLOYMENT_TARGET</key>
-				<string>13.0</string>
-				<key>MTL_ENABLE_DEBUG_INFO</key>
-				<string>NO</string>
-				<key>MTL_FAST_MATH</key>
-				<string>YES</string>
-				<key>PRODUCT_BUNDLE_IDENTIFIER</key>
-				<string>com.quickcookies.app</string>
-				<key>PRODUCT_NAME</key>
-				<string>$(TARGET_NAME)</string>
-				<key>SDKROOT</key>
-				<string>macosx</string>
-				<key>STRING_CATALOG_GENERATE_SYMBOLS</key>
-				<string>YES</string>
-				<key>SWIFT_COMPILATION_MODE</key>
-				<string>wholemodule</string>
-				<key>SWIFT_EMIT_LOC_STRINGS</key>
-				<string>YES</string>
-				<key>SWIFT_VERSION</key>
-				<string>5.0</string>
-				<key>TARGETED_DEVICE_FAMILY</key>
-				<string></string>
-			</dict>
-			<key>isa</key>
-			<string>XCBuildConfiguration</string>
-			<key>name</key>
-			<string>Release</string>
-		</dict>
-	</dict>
-	<key>rootObject</key>
-	<string>TTT202020202020202020202</string>
-</dict>
-</plist>
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		04C42AD9B8657A3924158DE2 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 860647CBF168ADB4692AFB63 /* ContentView.swift */; };
+		21D2DE1178C6759287E735C5 /* CodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55E3A065B775ACFE729BDE15 /* CodeView.swift */; };
+		2DD3FEAD2ABF97565DA77A2C /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 753F94AD7ABEFFC057AAA2DE /* AppDelegate.swift */; };
+		374B0AA0DBFB3768D498AD14 /* HotkeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 031B5AD657BAE17A14E65A87 /* HotkeyManager.swift */; };
+		3A2E710F92BB390B19278C21 /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 94269EDF755E0DD605801286 /* Constants.swift */; };
+		598A4CD295296410FDE95ABE /* FileDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = C61407483B4F8F25CF2BA6C7 /* FileDetector.swift */; };
+		641CE1BE77D1A872196AB165 /* FileTypeClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7AA2E8A55B09BC0FF2E83A0 /* FileTypeClassifier.swift */; };
+		71D913A0ECB64193A25A4044 /* MarkdownTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 460FA400CC4F4F828DB39EFA /* MarkdownTextView.swift */; };
+		835FB6102FCA94E800D2395C /* MarkdownUI in Frameworks */ = {isa = PBXBuildFile; productRef = 835FB60F2FCA94E800D2395C /* MarkdownUI */; };
+		835FB6132FCA950400D2395C /* Highlightr in Frameworks */ = {isa = PBXBuildFile; productRef = 835FB6122FCA950400D2395C /* Highlightr */; };
+		835FB6162FCA950400D2395D /* HighlightCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835FB6152FCA950400D2395D /* HighlightCache.swift */; };
+		835FB6182FCA950400D2395E /* HighlightrCodeSyntaxHighlighter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835FB6172FCA950400D2395E /* HighlightrCodeSyntaxHighlighter.swift */; };
+		835FB61A2FCA950400D2395F /* QuickLookOverlayModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835FB6192FCA950400D2395F /* QuickLookOverlayModifier.swift */; };
+		835FB69A2FCA950400D23999 /* FileChunkReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835FB6992FCA950400D23999 /* FileChunkReader.swift */; };
+		8EA7E2FA49A52C6CB2AE5A5E /* EditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 391364AE6149F12AED4BFFFC /* EditorView.swift */; };
+		835FB7022FCA950400D23AAB /* UnsupportedFileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835FB7012FCA950400D23AAA /* UnsupportedFileView.swift */; };
+		962C8A503D0B4CA6963E2B94 /* QuickLookOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = B76F46CEB24C42779E84EBBE /* QuickLookOverlay.swift */; };
+		A23C977659B0910F9D58A41B /* FileUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CB74C8B4C3A792598259E87 /* FileUtils.swift */; };
+		AAA111111111111111111111 /* QuickCookiesApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BBB222222222222222222222 /* QuickCookiesApp.swift */; };
+		AST141414141414141414141 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = AST141414141414141414142 /* Assets.xcassets */; };
+		C2B47F163AC772A6BD9CD6B5 /* SettingsWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = B87D7CAF1B4B8FAFF363B543 /* SettingsWindow.swift */; };
+		CC3B6172EFBB3884582E6DB9 /* MarkdownView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6240A15DD8E31603B40D6CC6 /* MarkdownView.swift */; };
+		D02C04567F8A13B8EE46D917 /* ToastView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC8B9C87C1019A1BEC529314 /* ToastView.swift */; };
+		D89BC4645FD2337D32C9072C /* EncodingDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2724C2DCD3C66C24CC15D6E7 /* EncodingDetector.swift */; };
+		DA83EA46F6AB177473BC0393 /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = D643EEA9D20E7A954D49ED4C /* Settings.swift */; };
+		FC17D463B0B7C2B8817DCA5B /* SyntaxHighlighter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4282BAE5CE686021AF7F3F5C /* SyntaxHighlighter.swift */; };
+		FILWATCHBLD00000000000001 /* FileWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = FILWATCHREF00000000000001 /* FileWatcher.swift */; };
+		FMI000000000000000000001 /* FinderMenuIntegration.swift in Sources */ = {isa = PBXBuildFile; fileRef = FMI000000000000000000002 /* FinderMenuIntegration.swift */; };
+		FSB000000000000000000001 /* QuickCookiesFinderSync.swift in Sources */ = {isa = PBXBuildFile; fileRef = FSS000000000000000000001 /* QuickCookiesFinderSync.swift */; };
+		FSB000000000000000000002 /* QuickCookiesFinderSync.appex in CopyFiles */ = {isa = PBXBuildFile; fileRef = FSE555555555555555555555 /* QuickCookiesFinderSync.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		MEDPREVBLD00000000000001 /* MediaPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = MEDPREVREF00000000000001 /* MediaPreviewView.swift */; };
+		ONBOARDBLD00000000000001 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ONBOARDREF00000000000001 /* OnboardingView.swift */; };
+		FNT141414141414141414141 /* Fonts in Resources */ = {isa = PBXBuildFile; fileRef = FNT141414141414141414142 /* Fonts */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		83C89CCA2FCC5097006FBCE5 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = TTT202020202020202020202 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = FST171717171717171717171;
+			remoteInfo = QuickCookiesFinderSync;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		APPCOPYSYNC0000000000001 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				FSB000000000000000000002 /* QuickCookiesFinderSync.appex in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		031B5AD657BAE17A14E65A87 /* HotkeyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotkeyManager.swift; sourceTree = "<group>"; };
+		2724C2DCD3C66C24CC15D6E7 /* EncodingDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EncodingDetector.swift; sourceTree = "<group>"; };
+		391364AE6149F12AED4BFFFC /* EditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditorView.swift; sourceTree = "<group>"; };
+		4282BAE5CE686021AF7F3F5C /* SyntaxHighlighter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyntaxHighlighter.swift; sourceTree = "<group>"; };
+		460FA400CC4F4F828DB39EFA /* MarkdownTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownTextView.swift; sourceTree = "<group>"; };
+		55E3A065B775ACFE729BDE15 /* CodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeView.swift; sourceTree = "<group>"; };
+		6240A15DD8E31603B40D6CC6 /* MarkdownView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownView.swift; sourceTree = "<group>"; };
+		753F94AD7ABEFFC057AAA2DE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
+		835FB6152FCA950400D2395D /* HighlightCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HighlightCache.swift; sourceTree = "<group>"; };
+		835FB6172FCA950400D2395E /* HighlightrCodeSyntaxHighlighter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HighlightrCodeSyntaxHighlighter.swift; sourceTree = "<group>"; };
+		835FB6192FCA950400D2395F /* QuickLookOverlayModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickLookOverlayModifier.swift; sourceTree = "<group>"; };
+		835FB6992FCA950400D23999 /* FileChunkReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileChunkReader.swift; sourceTree = "<group>"; };
+		860647CBF168ADB4692AFB63 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		8CB74C8B4C3A792598259E87 /* FileUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileUtils.swift; sourceTree = "<group>"; };
+		94269EDF755E0DD605801286 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
+		A7AA2E8A55B09BC0FF2E83A0 /* FileTypeClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileTypeClassifier.swift; sourceTree = "<group>"; };
+		AST141414141414141414142 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		B76F46CEB24C42779E84EBBE /* QuickLookOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickLookOverlay.swift; sourceTree = "<group>"; };
+		B87D7CAF1B4B8FAFF363B543 /* SettingsWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsWindow.swift; sourceTree = "<group>"; };
+		BBB222222222222222222222 /* QuickCookiesApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickCookiesApp.swift; sourceTree = "<group>"; };
+		C61407483B4F8F25CF2BA6C7 /* FileDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileDetector.swift; sourceTree = "<group>"; };
+		CC8B9C87C1019A1BEC529314 /* ToastView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToastView.swift; sourceTree = "<group>"; };
+		CCC333333333333333333333 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		D643EEA9D20E7A954D49ED4C /* Settings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
+		DDD444444444444444444444 /* QuickCookies.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = QuickCookies.entitlements; sourceTree = "<group>"; };
+		EEE555555555555555555555 /* QuickCookies.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = QuickCookies.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		FILWATCHREF00000000000001 /* FileWatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileWatcher.swift; sourceTree = "<group>"; };
+		FMI000000000000000000002 /* FinderMenuIntegration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinderMenuIntegration.swift; sourceTree = "<group>"; };
+		FSE555555555555555555555 /* QuickCookiesFinderSync.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = QuickCookiesFinderSync.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		FSP000000000000000000001 /* QuickCookiesFinderSync-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "QuickCookiesFinderSync-Info.plist"; sourceTree = "<group>"; };
+		FSS000000000000000000001 /* QuickCookiesFinderSync.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickCookiesFinderSync.swift; sourceTree = "<group>"; };
+		MEDPREVREF00000000000001 /* MediaPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaPreviewView.swift; sourceTree = "<group>"; };
+		ONBOARDREF00000000000001 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		835FB7012FCA950400D23AAA /* UnsupportedFileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnsupportedFileView.swift; sourceTree = "<group>"; };
+		FNT141414141414141414142 /* Fonts */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Fonts; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		FFF666666666666666666666 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				835FB6132FCA950400D2395C /* Highlightr in Frameworks */,
+				835FB6102FCA94E800D2395C /* MarkdownUI in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		FSG777777777777777777777 /* QuickCookiesFinderSync */ = {
+			isa = PBXGroup;
+			children = (
+				FSS000000000000000000001 /* QuickCookiesFinderSync.swift */,
+				FSP000000000000000000001 /* QuickCookiesFinderSync-Info.plist */,
+			);
+			path = QuickCookiesFinderSync;
+			sourceTree = "<group>";
+		};
+		GGG777777777777777777777 /* QuickCookies */ = {
+			isa = PBXGroup;
+			children = (
+				HHH888888888888888888888 /* App */,
+				III999999999999999999999 /* Core */,
+				JJJ10101010101010101010 /* UI */,
+				KKK111111111111111111111 /* Renderer */,
+				LLL121212121212121212121 /* Utils */,
+				MMM131313131313131313131 /* Config */,
+				NNN141414141414141414141 /* Resources */,
+				CCC333333333333333333333 /* Info.plist */,
+				DDD444444444444444444444 /* QuickCookies.entitlements */,
+			);
+			path = QuickCookies;
+			sourceTree = "<group>";
+		};
+		HHH888888888888888888888 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				BBB222222222222222222222 /* QuickCookiesApp.swift */,
+				753F94AD7ABEFFC057AAA2DE /* AppDelegate.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		III999999999999999999999 /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				C61407483B4F8F25CF2BA6C7 /* FileDetector.swift */,
+				A7AA2E8A55B09BC0FF2E83A0 /* FileTypeClassifier.swift */,
+				835FB6992FCA950400D23999 /* FileChunkReader.swift */,
+				031B5AD657BAE17A14E65A87 /* HotkeyManager.swift */,
+				FMI000000000000000000002 /* FinderMenuIntegration.swift */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		JJJ10101010101010101010 /* UI */ = {
+			isa = PBXGroup;
+			children = (
+				860647CBF168ADB4692AFB63 /* ContentView.swift */,
+				6240A15DD8E31603B40D6CC6 /* MarkdownView.swift */,
+				55E3A065B775ACFE729BDE15 /* CodeView.swift */,
+				460FA400CC4F4F828DB39EFA /* MarkdownTextView.swift */,
+				391364AE6149F12AED4BFFFC /* EditorView.swift */,
+				B76F46CEB24C42779E84EBBE /* QuickLookOverlay.swift */,
+				835FB6192FCA950400D2395F /* QuickLookOverlayModifier.swift */,
+				B87D7CAF1B4B8FAFF363B543 /* SettingsWindow.swift */,
+				CC8B9C87C1019A1BEC529314 /* ToastView.swift */,
+				MEDPREVREF00000000000001 /* MediaPreviewView.swift */,
+				ONBOARDREF00000000000001 /* OnboardingView.swift */,
+				835FB7012FCA950400D23AAA /* UnsupportedFileView.swift */,
+			);
+			path = UI;
+			sourceTree = "<group>";
+		};
+		KKK111111111111111111111 /* Renderer */ = {
+			isa = PBXGroup;
+			children = (
+				835FB6152FCA950400D2395D /* HighlightCache.swift */,
+				835FB6172FCA950400D2395E /* HighlightrCodeSyntaxHighlighter.swift */,
+				4282BAE5CE686021AF7F3F5C /* SyntaxHighlighter.swift */,
+			);
+			path = Renderer;
+			sourceTree = "<group>";
+		};
+		LLL121212121212121212121 /* Utils */ = {
+			isa = PBXGroup;
+			children = (
+				2724C2DCD3C66C24CC15D6E7 /* EncodingDetector.swift */,
+				8CB74C8B4C3A792598259E87 /* FileUtils.swift */,
+				FILWATCHREF00000000000001 /* FileWatcher.swift */,
+			);
+			path = Utils;
+			sourceTree = "<group>";
+		};
+		MMM131313131313131313131 /* Config */ = {
+			isa = PBXGroup;
+			children = (
+				94269EDF755E0DD605801286 /* Constants.swift */,
+				D643EEA9D20E7A954D49ED4C /* Settings.swift */,
+			);
+			path = Config;
+			sourceTree = "<group>";
+		};
+		NNN141414141414141414141 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				AST141414141414141414142 /* Assets.xcassets */,
+				FNT141414141414141414142 /* Fonts */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		OOO151515151515151515151 = {
+			isa = PBXGroup;
+			children = (
+				GGG777777777777777777777 /* QuickCookies */,
+				PPP161616161616161616161 /* Products */,
+				FSG777777777777777777777 /* QuickCookiesFinderSync */,
+			);
+			sourceTree = "<group>";
+		};
+		PPP161616161616161616161 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				EEE555555555555555555555 /* QuickCookies.app */,
+				FSE555555555555555555555 /* QuickCookiesFinderSync.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		FST171717171717171717171 /* QuickCookiesFinderSync */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = FSR181818181818181818181 /* Build configuration list for PBXNativeTarget "QuickCookiesFinderSync" */;
+			buildPhases = (
+				FSS191919191919191919191 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = QuickCookiesFinderSync;
+			productName = QuickCookiesFinderSync;
+			productReference = FSE555555555555555555555 /* QuickCookiesFinderSync.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+		QQQ171717171717171717171 /* QuickCookies */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = RRR181818181818181818181 /* Build configuration list for PBXNativeTarget "QuickCookies" */;
+			buildPhases = (
+				SSS191919191919191919191 /* Sources */,
+				FFF666666666666666666666 /* Frameworks */,
+				RES141414141414141414141 /* Resources */,
+				APPCOPYSYNC0000000000001 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				DEP171717171717171717171 /* PBXTargetDependency */,
+			);
+			name = QuickCookies;
+			productName = QuickCookies;
+			productReference = EEE555555555555555555555 /* QuickCookies.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		TTT202020202020202020202 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdate = 2023;
+				LastUpgradeCheck = 2640;
+				TargetAttributes = {
+					QQQ171717171717171717171 = {
+						CreatedOnToolsVersion = 15.0;
+					};
+				};
+			};
+			buildConfigurationList = UUU212121212121212121212 /* Build configuration list for PBXProject "QuickCookies" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+				"zh-Hans",
+			);
+			mainGroup = OOO151515151515151515151;
+			packageReferences = (
+				835FB60E2FCA94E800D2395C /* XCRemoteSwiftPackageReference "swift-markdown-ui" */,
+				835FB6112FCA950400D2395C /* XCRemoteSwiftPackageReference "Highlightr" */,
+			);
+			productRefGroup = PPP161616161616161616161 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				QQQ171717171717171717171 /* QuickCookies */,
+				FST171717171717171717171 /* QuickCookiesFinderSync */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		RES141414141414141414141 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AST141414141414141414141 /* Assets.xcassets in Resources */,
+				FNT141414141414141414141 /* Fonts in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		FSS191919191919191919191 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				FSB000000000000000000001 /* QuickCookiesFinderSync.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		SSS191919191919191919191 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				AAA111111111111111111111 /* QuickCookiesApp.swift in Sources */,
+				2DD3FEAD2ABF97565DA77A2C /* AppDelegate.swift in Sources */,
+				3A2E710F92BB390B19278C21 /* Constants.swift in Sources */,
+				DA83EA46F6AB177473BC0393 /* Settings.swift in Sources */,
+				598A4CD295296410FDE95ABE /* FileDetector.swift in Sources */,
+				641CE1BE77D1A872196AB165 /* FileTypeClassifier.swift in Sources */,
+				374B0AA0DBFB3768D498AD14 /* HotkeyManager.swift in Sources */,
+				FMI000000000000000000001 /* FinderMenuIntegration.swift in Sources */,
+				835FB6162FCA950400D2395D /* HighlightCache.swift in Sources */,
+				835FB6182FCA950400D2395E /* HighlightrCodeSyntaxHighlighter.swift in Sources */,
+				835FB61A2FCA950400D2395F /* QuickLookOverlayModifier.swift in Sources */,
+				835FB69A2FCA950400D23999 /* FileChunkReader.swift in Sources */,
+				FC17D463B0B7C2B8817DCA5B /* SyntaxHighlighter.swift in Sources */,
+				D02C04567F8A13B8EE46D917 /* ToastView.swift in Sources */,
+				CC3B6172EFBB3884582E6DB9 /* MarkdownView.swift in Sources */,
+				21D2DE1178C6759287E735C5 /* CodeView.swift in Sources */,
+				8EA7E2FA49A52C6CB2AE5A5E /* EditorView.swift in Sources */,
+				04C42AD9B8657A3924158DE2 /* ContentView.swift in Sources */,
+				C2B47F163AC772A6BD9CD6B5 /* SettingsWindow.swift in Sources */,
+				D89BC4645FD2337D32C9072C /* EncodingDetector.swift in Sources */,
+				71D913A0ECB64193A25A4044 /* MarkdownTextView.swift in Sources */,
+				A23C977659B0910F9D58A41B /* FileUtils.swift in Sources */,
+				962C8A503D0B4CA6963E2B94 /* QuickLookOverlay.swift in Sources */,
+				MEDPREVBLD00000000000001 /* MediaPreviewView.swift in Sources */,
+				FILWATCHBLD00000000000001 /* FileWatcher.swift in Sources */,
+				ONBOARDBLD00000000000001 /* OnboardingView.swift in Sources */,
+				835FB7022FCA950400D23AAB /* UnsupportedFileView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		DEP171717171717171717171 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = FST171717171717171717171 /* QuickCookiesFinderSync */;
+			targetProxy = 83C89CCA2FCC5097006FBCE5 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		FSV222222222222222222222 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "QuickCookiesFinderSync/QuickCookiesFinderSync-Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.quickcookies.app.FinderSync;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		FSW333333333333333333333 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "QuickCookiesFinderSync/QuickCookiesFinderSync-Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@executable_path/../../../../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.quickcookies.app.FinderSync;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		VVV222222222222222222222 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_ENTITLEMENTS = QuickCookies/QuickCookies.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = QuickCookies/Info.plist;
+				INFOPLIST_KEY_NSAppleEventsUsageDescription = "QuickCookies needs to communicate with Finder to get selected file paths.";
+				INFOPLIST_KEY_NSHighResolutionCapable = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.quickcookies.app;
+				CURRENT_PROJECT_VERSION = 1;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "";
+			};
+			name = Debug;
+		};
+		WWW333333333333333333333 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_ENTITLEMENTS = QuickCookies/QuickCookies.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = QuickCookies/Info.plist;
+				INFOPLIST_KEY_NSAppleEventsUsageDescription = "QuickCookies needs to communicate with Finder to get selected file paths.";
+				INFOPLIST_KEY_NSHighResolutionCapable = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.quickcookies.app;
+				CURRENT_PROJECT_VERSION = 1;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "";
+			};
+			name = Release;
+		};
+		XXX343434343434343434343 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_ENTITLEMENTS = QuickCookies/QuickCookies.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = QuickCookies/Info.plist;
+				INFOPLIST_KEY_NSAppleEventsUsageDescription = "QuickCookies needs to communicate with Finder to get selected file paths.";
+				INFOPLIST_KEY_NSHighResolutionCapable = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.quickcookies.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "";
+			};
+			name = Debug;
+		};
+		YYY454545454545454545454 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_ENTITLEMENTS = QuickCookies/QuickCookies.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = QuickCookies/Info.plist;
+				INFOPLIST_KEY_NSAppleEventsUsageDescription = "QuickCookies needs to communicate with Finder to get selected paths.";
+				INFOPLIST_KEY_NSHighResolutionCapable = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.quickcookies.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		FSR181818181818181818181 /* Build configuration list for PBXNativeTarget "QuickCookiesFinderSync" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				FSV222222222222222222222 /* Debug */,
+				FSW333333333333333333333 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		RRR181818181818181818181 /* Build configuration list for PBXNativeTarget "QuickCookies" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				VVV222222222222222222222 /* Debug */,
+				WWW333333333333333333333 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		UUU212121212121212121212 /* Build configuration list for PBXProject "QuickCookies" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				XXX343434343434343434343 /* Debug */,
+				YYY454545454545454545454 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		835FB60E2FCA94E800D2395C /* XCRemoteSwiftPackageReference "swift-markdown-ui" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/gonzalezreal/swift-markdown-ui.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.4.0;
+			};
+		};
+		835FB6112FCA950400D2395C /* XCRemoteSwiftPackageReference "Highlightr" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/raspu/Highlightr.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.1.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		835FB60F2FCA94E800D2395C /* MarkdownUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 835FB60E2FCA94E800D2395C /* XCRemoteSwiftPackageReference "swift-markdown-ui" */;
+			productName = MarkdownUI;
+		};
+		835FB6122FCA950400D2395C /* Highlightr */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 835FB6112FCA950400D2395C /* XCRemoteSwiftPackageReference "Highlightr" */;
+			productName = Highlightr;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = TTT202020202020202020202 /* Project object */;
+}
