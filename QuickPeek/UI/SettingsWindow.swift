@@ -86,6 +86,18 @@ struct SettingsView: View {
                         Text("\(Int(settings.fontSize))")
                     }
 
+                    HStack {
+                        Text("外观主题:")
+                        Spacer()
+                        Picker("", selection: $settings.themeMode) {
+                            ForEach(ThemeMode.allCases) { mode in
+                                Text(mode.displayName).tag(mode)
+                            }
+                        }
+                        .pickerStyle(.segmented)
+                        .frame(width: 180)
+                    }
+
                     Toggle("显示行号", isOn: $settings.showLineNumbers)
                 }
                 .padding()
@@ -193,6 +205,7 @@ struct SettingsView: View {
         )
         settings.fontSize = 14
         settings.showLineNumbers = true
+        settings.themeMode = .system
 
         // 重新注册热键
         HotkeyManager.shared.registerWithSettings {

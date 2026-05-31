@@ -22,6 +22,7 @@ class PreviewState: ObservableObject {
 }
 
 struct ContentView: View {
+    @Environment(\.colorScheme) var colorScheme
     @ObservedObject var state: PreviewState
 
     @State private var content: String = ""
@@ -47,7 +48,7 @@ struct ContentView: View {
             contentArea
                 .padding([.horizontal, .bottom], 28) // 进一步加大内边距，提供极高颜值的宽留白卡片视感
         }
-        .background(Color(red: 0.09, green: 0.09, blue: 0.11))
+        .background(Color.appBackground)
         .alert("保存失败", isPresented: $showErrorAlert) {
             Button("确定", role: .cancel) { }
         } message: {
@@ -82,7 +83,7 @@ struct ContentView: View {
                 if let path = state.filePath {
                     Text(URL(fileURLWithPath: path).lastPathComponent)
                         .font(.system(size: 13, weight: .semibold, design: .monospaced))
-                        .foregroundColor(Color(white: 0.85))
+                        .foregroundColor(Color.appText)
                 } else if state.errorMessage != nil {
                     Text("获取失败")
                         .font(.system(size: 13, weight: .semibold, design: .monospaced))
@@ -90,7 +91,7 @@ struct ContentView: View {
                 } else {
                     Text("定位中...")
                         .font(.system(size: 13, weight: .semibold, design: .monospaced))
-                        .foregroundColor(Color(white: 0.5))
+                        .foregroundColor(Color.appText.opacity(0.6))
                 }
                 
                 // 大文件截断提示（参考极简设计）
@@ -119,7 +120,7 @@ struct ContentView: View {
                     Button(action: toggleMode) {
                         Text(mode == .preview ? "✎" : "👁")
                             .font(.system(size: 14))
-                            .foregroundColor(Color(white: 0.7))
+                            .foregroundColor(Color.appText.opacity(0.8))
                     }
                     .buttonStyle(.plain)
                     .help(mode == .preview ? "进入编辑 (Cmd+E)" : "回到预览 (Esc)")
@@ -141,7 +142,7 @@ struct ContentView: View {
         .padding(.horizontal, 16)
         .padding(.top, 10) // 增加顶端高度，让红绿灯和文字中线对齐
         .padding(.bottom, 10)
-        .background(Color(red: 0.09, green: 0.09, blue: 0.11))
+        .background(Color.toolbarBackground)
     }
 
     @ViewBuilder
@@ -205,6 +206,7 @@ struct ContentView: View {
     @ViewBuilder
     private var previewView: some View {
         if let path = state.filePath, let renderType = state.renderType {
+            let isDark = colorScheme == .dark
             switch renderType {
             case .markdown:
                 MarkdownView(markdownText: content)
@@ -213,14 +215,16 @@ struct ContentView: View {
                     filePath: path,
                     content: content,
                     language: state.language,
-                    fontSize: settings.fontSize
+                    fontSize: settings.fontSize,
+                    isDark: isDark
                 )
             case .plainText:
                 CodeView(
                     filePath: path,
                     content: content,
                     language: nil,
-                    fontSize: settings.fontSize
+                    fontSize: settings.fontSize,
+                    isDark: isDark
                 )
             }
         }

@@ -15,8 +15,7 @@ struct EditorView: NSViewRepresentable {
         scrollView.autohidesScrollers = true
         scrollView.borderType = .noBorder
         
-        // 统一深黑色主题背景
-        scrollView.backgroundColor = NSColor(red: 0.09, green: 0.09, blue: 0.11, alpha: 1.0)
+        scrollView.backgroundColor = .appBackground
         scrollView.drawsBackground = true
 
         // 创建 TextView 并定制样式以契合参考图
@@ -25,8 +24,8 @@ struct EditorView: NSViewRepresentable {
         textView.isEditable = true
         textView.isSelectable = true
         textView.font = NSFont.monospacedSystemFont(ofSize: fontSize, weight: .regular)
-        textView.backgroundColor = NSColor(red: 0.09, green: 0.09, blue: 0.11, alpha: 1.0)
-        textView.textColor = NSColor(red: 0.88, green: 0.88, blue: 0.90, alpha: 1.0)
+        textView.backgroundColor = .appBackground
+        textView.textColor = .appText
         textView.isRichText = false
         textView.allowsUndo = true
         textView.string = content
@@ -48,6 +47,11 @@ struct EditorView: NSViewRepresentable {
         }
 
         textView.font = NSFont.monospacedSystemFont(ofSize: fontSize, weight: .regular)
+
+        // 动态更新背景色和文本色
+        scrollView.backgroundColor = .appBackground
+        textView.backgroundColor = .appBackground
+        textView.textColor = .appText
     }
 
     func makeCoordinator() -> Coordinator {

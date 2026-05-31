@@ -13,18 +13,31 @@ class SyntaxHighlighter {
     }()
 
     private let highlightr: Highlightr
+    private let lock = NSLock()
 
     private init(highlightr: Highlightr) {
         self.highlightr = highlightr
     }
 
-    /// 高亮代码，返回带 HTML 标签的字符串
+    /// 高亮代码，返回带 HTML 标签的字符串（原接口保持兼容）
     func highlight(code: String, language: String) -> NSAttributedString? {
+        lock.lock()
+        defer { lock.unlock() }
+        return highlightr.highlight(code, as: language)
+    }
+
+    /// 高亮代码，支持指定主题名（线程安全锁保护）
+    func highlight(code: String, language: String, theme: String) -> NSAttributedString? {
+        lock.lock()
+        defer { lock.unlock() }
+        highlightr.setTheme(to: theme)
         return highlightr.highlight(code, as: language)
     }
 
     /// 切换主题
     func setTheme(_ theme: String) {
+        lock.lock()
+        defer { lock.unlock() }
         highlightr.setTheme(to: theme)
     }
 

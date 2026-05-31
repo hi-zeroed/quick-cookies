@@ -9,11 +9,23 @@ struct HighlightrCodeSyntaxHighlighter: CodeSyntaxHighlighter {
             return Text(code)
         }
 
+        // 动态推算当前是否为深色模式以应用正确的外观和缓存
+        let isDark: Bool
+        switch Settings.shared.themeMode {
+        case .light:
+            isDark = false
+        case .dark:
+            isDark = true
+        case .system:
+            isDark = NSAppearance.current.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+        }
+        let themeName = isDark ? "atom-one-dark" : "atom-one-light"
+
         // 利用全局缓存 HighlightCache，以代码内容的 Hash 值作为标识进行匹配
         let cacheKey = "markdown_block_\(code.hashValue)"
         let fixedDate = Date(timeIntervalSince1970: 0) // hash 变化会自动变更 key，因此使用固定日期
 
-        if let cached = HighlightCache.shared.get(for: cacheKey, modificationDate: fixedDate) {
+        if let cached = HighlightCache.shared.get(for: cacheKey, themeName: themeName, modificationDate: fixedDate) {
             return Text(AttributedString(cached))
         }
 
@@ -23,8 +35,8 @@ struct HighlightrCodeSyntaxHighlighter: CodeSyntaxHighlighter {
             return Text(code)
         }
 
-        if let attributed = highlighter.highlight(code: code, language: language) {
-            HighlightCache.shared.set(attributed, for: cacheKey, modificationDate: fixedDate)
+        if let attributed = highlighter.highlight(code: code, language: language, theme: themeName) {
+            HighlightCache.shared.set(attributed, for: cacheKey, themeName: themeName, modificationDate: fixedDate)
             return Text(AttributedString(attributed))
         }
 

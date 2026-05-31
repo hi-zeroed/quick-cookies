@@ -90,3 +90,9 @@
   - **优雅错误恢复**：当后台 Finder 探测失败或检测到不支持的文件类型时，不再强行关闭或闪退，而是在窗口中优雅地展示详细的错误提示（例如“未检测到选中文件，请在 Finder 中选中文件后重试”），并提示用户“按 Esc 键关闭窗口”。
 - **窗口黄金阅读比例调优**：
   - 将预览窗口的宽高比调整为极度修长挺拔的黄金比例（宽度 `38%`，高度 `88%`），在视觉上极具高级书籍质感，完美适合长文本和复杂代码的阅读与审阅。
+- **亮色/暗色/自适应多主题模式支持**：
+  - **动态色彩系统**：利用 `NSColor(name:nil, dynamicProvider:)` 闭包特性在 `Settings.swift` 中定义了 `appBackground` 和 `appText` 动态色，使应用背景在深色模式下为极深灰色（`#18181c`），浅色模式下为优雅淡灰白（`#f5f5f7`），文字颜色与工具栏背景色也自动对齐。
+  - **窗口外观联动**：在 `Settings.swift` 中新增了 `themeMode` 枚举（包含 亮色、暗色、自适应 三档），并在变更时由 `QuickLookOverlay.shared.updateAppearance()` 实时应用给 `previewWindow.appearance`，且更新 `layer.backgroundColor` 从而使整个已打开的窗口无需重新唤起即可瞬间刷新外观。
+  - **代码高亮缓存隔离**：为防止主题切换时直接获取错误的缓存导致“浅色模式下残留暗色代码着色”，将 `HighlightCache` 主键升级为带主题区分的隔离键（`filePath_themeName`）。
+  - **高亮引擎线程锁**：高亮单例在修改主题时加上了 `NSLock` 互斥锁，彻底规避了异步渲染下发生高亮主题竞态错乱的隐患。
+  - **内容与设置界面自适应**：在 `ContentView` 中引入 `@Environment(\.colorScheme)` 环境监听将 `isDark` 属性无缝下发；重构了 `CodeView`、`EditorView` 和 `MarkdownView` 的背景前景色为动态属性，使预览、编辑以及 Markdown 里的文本均能在任何主题模式下获得极高的排版易读性；在设置界面中增加了精致的分段选择控件（Segmented Picker）方便随时切换。

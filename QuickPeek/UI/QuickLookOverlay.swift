@@ -34,6 +34,24 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
     // 用于通知 ContentView 状态的共享模型
     private let previewState = PreviewState()
 
+    /// 动态刷新已打开窗口的外观模式，并更新首帧的 layer 背景底色
+    func updateAppearance() {
+        guard let window = previewWindow else { return }
+        
+        switch Settings.shared.themeMode {
+        case .light:
+            window.appearance = NSAppearance(named: .aqua)
+        case .dark:
+            window.appearance = NSAppearance(named: .darkAqua)
+        case .system:
+            window.appearance = nil
+        }
+        
+        if let layer = window.contentView?.layer {
+            layer.backgroundColor = NSColor.appBackground.cgColor
+        }
+    }
+
     private override init() {
         super.init()
     }
@@ -219,6 +237,7 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         previewPanel.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
         self.previewWindow = previewPanel
+        self.updateAppearance()
 
         // 3. 0ms 瞬间起跳：获取鼠标位置作为打开时的初始起跳点，保证无阻塞，体验丝滑
         let initialSourceRect = self.getMouseOrCenterSourceRect(targetRect: targetRect)

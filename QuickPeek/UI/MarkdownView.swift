@@ -31,7 +31,7 @@ struct MarkdownView: View {
             }
             .padding(20)
         }
-        .background(Color(red: 0.09, green: 0.09, blue: 0.11))
+        .background(Color.appBackground)
         // 捕获超链接点击事件，使用默认浏览器打开，防止预览窗口内跳转
         .environment(\.openURL, OpenURLAction { url in
             NSWorkspace.shared.open(url)

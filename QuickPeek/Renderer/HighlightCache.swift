@@ -24,8 +24,9 @@ class HighlightCache {
     }
 
     /// 获取缓存的高亮文本
-    func get(for filePath: String, modificationDate: Date) -> NSAttributedString? {
-        if let cached = cache.object(forKey: filePath as NSString) {
+    func get(for filePath: String, themeName: String, modificationDate: Date) -> NSAttributedString? {
+        let key = "\(filePath)_\(themeName)" as NSString
+        if let cached = cache.object(forKey: key) {
             // 只有当文件最后修改时间一致时才认为缓存有效
             if cached.modificationDate == modificationDate {
                 return cached.attributedString
@@ -35,9 +36,10 @@ class HighlightCache {
     }
 
     /// 存入高亮文本缓存
-    func set(_ attributedString: NSAttributedString, for filePath: String, modificationDate: Date) {
+    func set(_ attributedString: NSAttributedString, for filePath: String, themeName: String, modificationDate: Date) {
+        let key = "\(filePath)_\(themeName)" as NSString
         let cached = CachedHighlight(attributedString: attributedString, modificationDate: modificationDate)
-        cache.setObject(cached, forKey: filePath as NSString)
+        cache.setObject(cached, forKey: key)
     }
 
     /// 清空所有缓存
