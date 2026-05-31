@@ -229,6 +229,9 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
             height: windowHeight
         )
 
+        // 唯一保留的诊断 Toast，用于查看创窗时的尺寸和是否被识别为不支持类型
+        self.showToast(message: "DEBUG: 创窗大小: \(Int(targetRect.width))x\(Int(targetRect.height)) isUnsupported: \(isUnsupported)")
+
         // 2. 瞬间在主线程实例化窗口并展现
         let previewPanel = QuickLookPanel(
             contentRect: targetRect,
