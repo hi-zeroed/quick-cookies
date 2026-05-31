@@ -114,3 +114,9 @@
   - **修复菜单栏动作死锁与挂起 Bug**：修复了点击菜单栏“设置”和“打开选中文件”导致程序直接卡死的严重 Bug。成因是 AppKit 在 `NSMenu` 跟踪事件循环 (Tracking Loop) 中同步进行窗口初始化 and 抢占焦点，且在窗口还没完全加入屏幕事件层级之前便改变 `appearance` 引发了 AppKit 的重绘与线程锁死锁。通过将菜单按钮的回调逻辑使用 `DispatchQueue.main.async` 异步派发，且将 `updateAppearance()` 的调用放到 `makeKeyAndOrderFront` 之后执行，彻底根治了死锁卡死。
   - **权限弹窗语言本地化不匹配修复**：修复了在未授予辅助功能权限时弹出权限申请窗口，文字一律显示英文而不跟随系统语言的 Bug。原因是弹窗在 App 启动生命周期最前端触发，此时惰性单例 `Settings.shared` 尚未被任何代码访问而未实例化（`Settings.currentLanguage` 默认停留在硬编码的英文值 ）。通过在 `AppDelegate` 刚启动时显式调用 `_ = Settings.shared` 强制完成初始化和语言自动适配，完美解决了该 Bug。
   - **快捷键一致性及修改失效 Bug 修复**：修复了在设置界面修改快捷键无法生效，且录制显示的快捷键与实际生效快捷键不一致（如 S 键被错显为 B，双击 Option 模式被错显为 ⌥ A，且无法改回双击 Option）的 Bug。根本原因是：1) 录制快捷键时未过滤掉设备相关的杂质修饰键 flags，导致持久化值与 HotkeyManager 核心修饰符匹配时发生冲突；2) 原 `keyCodeToName` 计算不符合物理键码，我们将 QWERTY 键盘映射字典全表重写，并特殊处理了双击 Option 模式下的 `⌥ ⌥` 展示；3) `loadFromUserDefaults` 内部误限制 `savedKeyCode != 0` 条件导致无法重新加载恢复双击 Option (即 0) 的值，我们将其升级为了 `hasKey` 无条件安全读取。此外，我们将 Local Monitor 注册为 View 属性并在 `onDisappear` 中注销以防泄露。
+- **App 图标与状态栏图标补全**：
+  - **AppIcon 裁切生成**：使用 AI 设计了微光霓虹放大镜聚焦代码卡片的高清 AppIcon 源图，编写 Python 自动化裁剪脚本，配合 macOS 的 `sips` 裁切生成全部符合 macOS HIG 规范的 10 张小分辨率图标，并配置好 `Contents.json` 属性目录。
+  - **Xcode 编译打包通道打通**：重写了 `project.pbxproj` 关联 `Assets.xcassets`，新增 `PBXResourcesBuildPhase` 资源打包编译流程并绑定到 QuickPeek 目标，配置 `ASSETCATALOG_COMPILER_APPICON_NAME` 编译项。同时在 `Info.plist` 里声明 `CFBundleIconName = AppIcon`。
+  - **菜单栏图标原生升级**：重构了 `QuickPeekApp.swift` 的 `MenuBarExtra` 入口，使用系统原生的 SF Symbol 图标 `magnifyingglass` 代替之前的文字占位 `"QuickPeek 🔍"`，完美支持深浅色模式自动反色。
+  - **AppIcon 品牌 Logo 升级**：根据用户提供的最新卡通网格面包/贝壳 Logo 图像，更新裁剪脚本 [generate_icons.py](file:///Users/jiangwei/.gemini/antigravity/brain/a54f58af-0c5c-4ce6-86ce-17c110a150a3/scratch/generate_icons.py)，通过 `sips` 自动生成 10 张符合 macOS HIG 规范的小分辨率图标并覆盖 `Assets.xcassets/AppIcon.appiconset`，通过 `xcodebuild` 重新构建成功。
+
