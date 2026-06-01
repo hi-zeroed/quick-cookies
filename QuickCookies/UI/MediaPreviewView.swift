@@ -37,7 +37,17 @@ struct PDFKitView: NSViewRepresentable {
         pdfView.displayMode = .singlePageContinuous
         pdfView.backgroundColor = .clear
         
-        // 显式启用 layer 物理裁剪，防范底层渲染区域与背景分层导致的直角溢出
+        // 彻底消除 PDF 页面外边距与投影阴影，防止直角分层残留
+        pdfView.pageBreakMargins = NSEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
+        pdfView.pageShadowsEnabled = false
+        
+        if let scrollView = pdfView.subviews.first as? NSScrollView {
+            scrollView.drawsBackground = false
+            scrollView.borderType = .noBorder
+            scrollView.contentInsets = NSEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
+        }
+        
+        // 显式启用 layer 物理裁剪，对贴合边缘的 PDF 纸张内容进行绝对的圆角裁剪
         pdfView.wantsLayer = true
         if let layer = pdfView.layer {
             layer.cornerRadius = 12

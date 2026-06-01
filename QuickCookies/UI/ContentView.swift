@@ -207,7 +207,6 @@ struct ContentView: View {
                             if isExportingPDF {
                                 ProgressView()
                                     .progressViewStyle(LinearProgressViewStyle(tint: Color.appText.opacity(0.6)))
-                                    .scaleEffect(x: 1.0, y: 0.4, anchor: .center)
                                     .frame(width: 60)
                             } else {
                                 Button(action: exportMarkdownToPDF) {

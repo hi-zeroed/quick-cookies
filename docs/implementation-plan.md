@@ -62,7 +62,7 @@ QuickCookies/
 - [ ] **Step 1: 使用 Xcode 命令行创建项目**
 
 ```bash
-cd /Users/jiangwei/Git/QuickPeek
+cd /path/to/QuickPeek
 mkdir -p QuickCookies/QuickCookies/App
 mkdir -p QuickCookies/QuickCookies/Core
 mkdir -p QuickCookies/QuickCookies/UI
@@ -2140,7 +2140,7 @@ git commit -m "feat: add AppDelegate for lifecycle and permission handling"
 # 4. 组织标识符：com.quickcookies
 # 5. 界面：SwiftUI
 # 6. 语言：Swift
-# 7. 保存到：/Users/jiangwei/Git/QuickPeek
+# 7. 保存到：/path/to/QuickPeek
 #
 # 然后将已创建的源文件拖入项目中
 ```

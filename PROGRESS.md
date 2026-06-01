@@ -251,6 +251,14 @@
   - **默认导出路径自动对齐源文件**：重构了 `NSSavePanel` 的配置，在调起时将 `directoryURL` 指向当前正在预览的 Markdown 文件的父级目录，使用户可以直接快速在源文件同级目录下进行另存为，大大节省手动寻找路径的时间。
   - **红绿灯与窗口打开关闭动画高精度同步**：在 [QuickLookOverlay.swift](QuickCookies/UI/QuickLookOverlay.swift) 中，为解决窗口弹出/收缩时红绿灯按钮瞬间直挺挺亮起的突兀感，在动画第 0 毫秒强行将红绿灯按钮的 `alphaValue` 设为 0.0，等窗口仿射缩放弹簧动画运行到中后期（0.22 秒）时再以 0.15 秒渐变淡入；在关闭收缩动画启动前立即将其隐去（`alphaValue = 0.0`），彻底打通视觉惯性一致性。
   - **构建验证**：项目重新编译 **BUILD SUCCEEDED**，顺利通过本地构建。
+- **体验调优第二轮：PDF/Office 彻底去边距与进度条视觉优化（2026-06-01）**：
+  - **PDF 渲染区直角与投影彻底消除**：在 [MediaPreviewView.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/UI/MediaPreviewView.swift) 中，将 `pdfView.pageBreakMargins` 设为 `NSEdgeInsetsZero`，将 `pdfView.pageShadowsEnabled` 设为 `false`，并清空隐藏的 `NSScrollView` 的背景和 `contentInsets`。彻底根治了白色 PDF 纸张页面与外部圆角容器分层直角溢出的顽疾，使得物理圆角裁剪在 PDF 上完美贴合。
+  - **导出进度条粗细度优化**：在 [ContentView.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/UI/ContentView.swift) 中移除进度条的 `.scaleEffect(y: 0.4)` 高度缩放，恢复使用 macOS 默认的精致线性进度条样式，使其粗细适中，保证在视网膜屏幕上依然拥有极强且清晰的交互进度反馈。
+  - **默认导出路径自动对齐源文件**：`NSSavePanel` 弹出时的默认保存目录 `directoryURL` 与当前 Markdown 的父级物理路径完全同步，消除了手动选择导出路径的操作冗余。
+  - **居上无 Icon 提示**：优化 [ToastView.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/UI/ToastView.swift)，删除提示信息中的 icon 字符并保持距顶部 60px 处以 slide-in transition 展现。
+  - **回归与维护**：同步更新 `REQUIREMENTS.md`、`TEST_PLAN.md` 和 `TASKS.md` 里的所有任务状态。
+  - **构建验证**：执行 `xcodebuild` 编译，输出 **BUILD SUCCEEDED**。
+
 
 
 
