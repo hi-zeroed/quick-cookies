@@ -413,19 +413,33 @@
 
         .mock-body {
             flex: 1;
-            padding: 16px 20px;
-            font-family: var(--font-mono);
-            font-size: 11.5px;
-            line-height: 1.55;
+            padding: 18px 24px;
+            font-family: var(--font-sans);
             text-align: left;
-            white-space: pre;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
             color: #cbd5e1;
         }
 
-        .keyword { color: #f43f5e; }
-        .type { color: #3b82f6; }
-        .string { color: #10b981; }
-        .comment { color: #575765; transition: opacity 0.2s; }
+        .version-badge {
+            align-self: flex-start;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: #fff;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 3px 8px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            letter-spacing: 0.5px;
+            box-shadow: 0 0 12px rgba(16, 185, 129, 0.35);
+        }
+
+        .version-desc {
+            font-size: 11.5px;
+            line-height: 1.6;
+            color: #cbd5e1;
+        }
 
         /* 页脚 */
         footer {
@@ -501,16 +515,17 @@
                         <div class="dot yellow"></div>
                         <div class="dot green"></div>
                     </div>
-                    <div class="mock-filename">QuickLookOverlay.swift</div>
+                    <div class="mock-filename" data-i18n="versionTitle">新版本已发布</div>
                     <div style="width: 33px;"></div>
                 </div>
-                <div class="mock-body"><span class="comment" id="mockComment">// NOTE: 0ms 瞬间起跳弹出</span>
-<span class="keyword">func</span> <span class="type">performSpringAnimation</span>() {
-    <span class="keyword">let</span> spring = <span class="type">CASpringAnimation</span>(keyPath: <span class="string">"transform"</span>)
-    spring.damping = <span class="string">15</span>
-    spring.stiffness = <span class="string">180</span>
-    self.layer?.add(spring, forKey: <span class="string">"spring"</span>)
-}</div>
+                <div class="mock-body">
+                    <div class="version-badge">v1.2.0</div>
+                    <div class="version-desc" data-i18n="versionInfo">
+                        🎉 优化 PDF/Office 圆角渲染与无界毛玻璃裁切<br>
+                        🚀 导出 Markdown 到 PDF 支持实时进度指示与顶层 Toast 提示<br>
+                        ✨ 深度适配 macOS 系统的明暗模式与中文本地化
+                    </div>
+                </div>
             </div>
         </div>
     </main>
@@ -529,7 +544,8 @@
                 desc: "双击 Option 瞬间呼出。为 macOS 深度定制的卡片式文件预览与快捷编辑工具。",
                 download: "下载 .DMG",
                 github: "GitHub 仓库",
-                comment: "// NOTE: 0ms 瞬间起跳弹出",
+                versionTitle: "新版本已发布",
+                versionInfo: "🎉 优化 PDF/Office 圆角渲染与无界毛玻璃裁切<br>🚀 导出 Markdown 到 PDF 支持实时进度指示与顶层 Toast 提示<br>✨ 深度适配 macOS 系统的明暗模式与中文本地化",
                 footer: "&copy; 2026 Quick Cookies. 以 <a href=\"https://github.com/your-username/QuickPeek/blob/main/LICENSE\" target=\"_blank\">MIT</a> 协议开源。图标源自 <a href=\"https://remixicon.com/\" target=\"_blank\">Remix Icon</a>。"
             },
             en: {
@@ -538,7 +554,8 @@
                 desc: "Double-click Option to reveal. A card-style file preview and quick editor tailored for macOS.",
                 download: "Download .DMG",
                 github: "GitHub Repo",
-                comment: "// NOTE: 0ms Instant Spring Pop-up",
+                versionTitle: "New Version Released",
+                versionInfo: "🎉 Refined PDF/Office borderless rendering with transparent mask crop<br>🚀 Live export progress indicator for Markdown-to-PDF pipeline<br>✨ Adaptive dark/light theme switching with native Chinese locale Support",
                 footer: "&copy; 2026 Quick Cookies. Licensed under <a href=\"https://github.com/your-username/QuickPeek/blob/main/LICENSE\" target=\"_blank\">MIT</a>. Icons by <a href=\"https://remixicon.com/\" target=\"_blank\">Remix Icon</a>."
             }
         };
@@ -563,9 +580,6 @@
             elements.forEach(el => {
                 el.classList.add('fade-out');
             });
-            
-            const comment = document.getElementById('mockComment');
-            comment.classList.add('fade-out');
 
             setTimeout(() => {
                 // 替换文字
@@ -576,10 +590,6 @@
                     }
                     el.classList.remove('fade-out');
                 });
-                
-                // 替换代码注释
-                comment.innerHTML = i18n[currentLang].comment;
-                comment.classList.remove('fade-out');
             }, 180);
         }
     </script>
