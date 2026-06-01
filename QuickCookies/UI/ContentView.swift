@@ -102,9 +102,11 @@ struct ContentView: View {
         VStack(spacing: 0) {
             // 工具栏
             toolbar
+                .zIndex(1) // 锁定层级，确保工具栏处于最前，防止 MarkdownView 的 ScrollView 穿透遮挡
 
             // 内容区域（去除原本的 padding，改在 contentArea 内部 ZStack 包装）
             contentArea
+                .zIndex(0)
         }
         .ignoresSafeArea(edges: .top)
         .background(Color.appBackground)

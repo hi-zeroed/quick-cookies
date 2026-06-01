@@ -12,19 +12,19 @@ enum Constants {
     // 支持的代码与配置文件扩展名（已知支持高亮）
     static let supportedExtensions: Set<String> = [
         // 网页开发
-        "html", "css", "scss", "sass", "less", "js", "jsx", "ts", "tsx", "json", "vue", "svelte", "mdx", "graphql", "gql",
+        "html", "css", "scss", "sass", "less", "js", "jsx", "ts", "tsx", "json", "vue", "svelte", "mdx", "graphql", "gql", "cjs", "mjs", "cts", "mts", "jsonc", "json5",
         // 系统/脚本
-        "sh", "zsh", "bash", "fish", "py", "go", "rs", "java", "kt", "swift", "c", "cpp", "h", "hpp", "cc", "cxx", "rb", "php", "sql",
+        "sh", "zsh", "bash", "fish", "py", "go", "rs", "java", "kt", "swift", "c", "cpp", "h", "hpp", "cc", "cxx", "rb", "php", "sql", "command", "ksh",
         // 其它系统语言
         "lua", "pl", "pm", "groovy", "scala", "hs", "erl", "ex", "exs", "clj", "cljs", "lisp", "lsp", "scheme", "scm", "zig", "nim", "cr", "d", "sol", "dart",
         // 配置文件与数据
-        "yaml", "yml", "toml", "xml", "plist", "ini", "conf", "config", "properties", "env", "csv", "tsv", "log", "diff", "patch",
+        "yaml", "yml", "toml", "xml", "plist", "ini", "conf", "config", "properties", "env", "csv", "tsv", "log", "diff", "patch", "eyaml",
         // 构建文件
         "gradle", "sbt", "podspec", "dockerfile", "makefile", "jenkinsfile", "fastfile", "lock"
     ]
 
     // Markdown 文件类型
-    static let markdownExtensions: Set<String> = ["md", "markdown"]
+    static let markdownExtensions: Set<String> = ["md", "markdown", "mdown", "mdwn", "mkd", "mkdn"]
 
     // 二进制文件扩展名黑名单（遇到此类文件直接阻断，不作文本预览）
     static let binaryBlacklistExtensions: Set<String> = [
@@ -38,8 +38,11 @@ enum Constants {
     // 代码文件 → Highlightr 语言名映射
     static let languageMap: [String: String] = [
         "json": "json",
+        "jsonc": "json",
+        "json5": "json",
         "yaml": "yaml",
         "yml": "yaml",
+        "eyaml": "yaml",
         "toml": "toml",
         "xml": "xml",
         "plist": "xml",
@@ -47,10 +50,16 @@ enum Constants {
         "zsh": "bash",
         "bash": "bash",
         "fish": "bash",
+        "command": "bash",
+        "ksh": "bash",
         "ts": "typescript",
         "tsx": "typescript",
+        "cts": "typescript",
+        "mts": "typescript",
         "js": "javascript",
         "jsx": "javascript",
+        "cjs": "javascript",
+        "mjs": "javascript",
         "py": "python",
         "go": "go",
         "rs": "rust",

@@ -234,6 +234,8 @@
     - **CodeView 滚动重载 Bug 修复**：在 [CodeView.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/UI/CodeView.swift) 中修复了 `fontChanged` 的判断逻辑。在 `Coordinator` 中新增 `lastFontSize` 缓存，直接比对缓存的字号与字体名，彻底消除了富文本渲染导致 `fontChanged` 被恒判定为 `true` 的重载顿挫。
     - **EditorView 编辑滚动性能调优**：在 [EditorView.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/UI/EditorView.swift) 中开启了 `allowsNonContiguousLayout = true` 避免大文件主线程布局卡顿，开启了 `copiesOnScroll` 像素拷贝与 `usesPredominantAxisScrolling`。对 `updateNSView` 引入了防御性更新判断（仅在不同时更新 `font`、背景与文本色），避免了每次打字或重绘时无脑重新排版全文引起的严重卡顿。
     - **字号与字体实时热联动恢复**：采纳体验设计反馈，恢复了 [ContentView.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/UI/ContentView.swift) 中的 `PreviewCodeView`、`EditContentView` 和 [MarkdownView.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/UI/MarkdownView.swift) 中的 `@ObservedObject settings` 实时联动绑定。由于有精确的缓存比对和防御属性更新拦截，日常滚动打字时 100% 零多余消耗，仅在用户切换字号时触发单次极轻量（1-3ms）的可视区重布局，达成了极致流畅与高端交互的共存。
+  - **js 等语言多后缀变体语法高亮支持扩充（2026-06-01）**：在 [Constants.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/Config/Constants.swift) 中追加支持了 `cjs`, `mjs`, `cts`, `mts`, `jsonc`, `json5`, `eyaml`, `command`, `ksh` 等变体后缀语法高亮，并扩充了 `mdown`, `mdwn`, `mkd`, `mkdn` 等 Markdown 的原生渲染分类。
+  - **MD 文件预览顶栏/文件名消失 Bug 修复（2026-06-01）**：在 [ContentView.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/UI/ContentView.swift) 中为工具栏加挂了 `.zIndex(1)` 层级锁定，彻底阻断了原生 SwiftUI ScrollView 背景色在忽略安全区域时穿透覆盖顶栏的视觉 Bug，完美解决了文件名一会又消失的问题。
   - **构建验证**：项目重新编译 **BUILD SUCCEEDED**，顺利通过本地构建。
 
 
