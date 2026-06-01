@@ -257,7 +257,9 @@
   - **默认导出路径自动对齐源文件**：`NSSavePanel` 弹出时的默认保存目录 `directoryURL` 与当前 Markdown 的父级物理路径完全同步，消除了手动选择导出路径的操作冗余。
   - **居上无 Icon 提示**：优化 [ToastView.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/UI/ToastView.swift)，删除提示信息中的 icon 字符并保持距顶部 60px 处以 slide-in transition 展现。
   - **回归与维护**：同步更新 `REQUIREMENTS.md`、`TEST_PLAN.md` 和 `TASKS.md` 里的所有任务状态。
+  - **系统原生控件本地化激活**：在 [Info.plist](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/Info.plist) 中显式补充了 `CFBundleDevelopmentRegion` 为 `zh-Hans`，并配置 `CFBundleLocalizations` 列表包含 `zh-Hans` 和 `en`。这指示 LaunchServices 与 AppKit 将当前应用识别为已本地化的中文应用，自动让系统的 `NSSavePanel`（如重复文件替换提示）跟随系统语言（简体中文）渲染，完美解决了重复文件覆盖提示默认英文的 Bug。
   - **构建验证**：执行 `xcodebuild` 编译，输出 **BUILD SUCCEEDED**。
+
 
 
 
