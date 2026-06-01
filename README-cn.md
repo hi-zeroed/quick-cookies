@@ -130,8 +130,6 @@ open Build/Build/Products/Debug/QuickCookies.app
 在提交 PR 之前，请确保完成以下自检：
 
 1. **本地构建**：运行 `xcodebuild` 确保项目编译成功，无任何警告与错误。
-2. **状态记录**：如果完成了新需求，请在 `PROGRESS.md` 中追加记录，并同步更新 `REQUIREMENTS.md` 和 `TEST_PLAN.md`。
-3. **回归测试**：如果修改影响了已有功能，请在 `TASKS.md` 的“需回归”看板中添加并执行对应的回归任务。
 
 ---
 

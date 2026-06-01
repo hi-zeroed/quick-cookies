@@ -15,3 +15,9 @@ Package.resolved
 *.o
 build/
 DerivedData/
+
+# Local development tracking files
+PROGRESS.md
+REQUIREMENTS.md
+TASKS.md
+TEST_PLAN.md

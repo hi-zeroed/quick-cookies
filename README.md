@@ -131,8 +131,6 @@ We welcome contributions to Quick Cookies! If you want to fix bugs, propose feat
 Before submitting a PR, make sure you self-check:
 
 1. **Xcode Build**: Build via command line to guarantee zero warnings and zero errors.
-2. **Update Logs**: Log modifications under `PROGRESS.md`, and refresh status flags in `REQUIREMENTS.md` and `TEST_PLAN.md`.
-3. **Regression Board**: Add relevant regression checklists to `TASKS.md` for altered logic.
 
 ---
 
