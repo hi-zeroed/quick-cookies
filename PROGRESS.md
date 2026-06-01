@@ -133,13 +133,13 @@
     3. **File Watcher 冲突监听**：基于 `DispatchSourceFileSystemObject` 监听当前编辑文件的 write 信号，防多端协同编辑覆盖。
     4. **SwiftUI 多卡片 Onboarding 引导**：主 App 自动检测首次启动并以 `.regular` 策略弹出高颜值向导窗口，支持多语言/主题热刷新、1s 轮询检测权限以及 Confetti 彩屑庆祝动画，完成后自动转换为后台 `.accessory` 模式运行。
 - **修复设置中字体与字号在预览窗口无效的 Bug**：
-  - 在 [CodeView.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/UI/CodeView.swift) 中实现 `NSAttributedString` 的扩展方法 `applyingEditorFont`。该方法使用 `NSFontManager` 动态遍历语法高亮产生的富文本，将默认字体替换为用户设置的自定义字体与字号，同时通过 `NSFontManager.shared.traits` 与 `convert` 保留了各字符原有的粗体（Bold）和斜体（Italic）物理特征。
-  - 重构了 [HighlightCache.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/Renderer/HighlightCache.swift)，在缓存键（Cache Key）中引入 `fontName` 和 `fontSize` 变量，实现不同字体/字号设置下的缓存隔离，彻底消除了由于直接从缓存加载旧富文本导致设置字号失效的问题。
+  - 在 [CodeView.swift](QuickCookies/UI/CodeView.swift) 中实现 `NSAttributedString` 的扩展方法 `applyingEditorFont`。该方法使用 `NSFontManager` 动态遍历语法高亮产生的富文本，将默认字体替换为用户设置的自定义字体与字号，同时通过 `NSFontManager.shared.traits` 与 `convert` 保留了各字符原有的粗体（Bold）和斜体（Italic）物理特征。
+  - 重构了 [HighlightCache.swift](QuickCookies/Renderer/HighlightCache.swift)，在缓存键（Cache Key）中引入 `fontName` 和 `fontSize` 变量，实现不同字体/字号设置下的缓存隔离，彻底消除了由于直接从缓存加载旧富文本导致设置字号失效的问题。
 - **大文件分段增量读取与完美语法高亮覆盖**：
-  - **未知后缀文件宽容放行与拦截**：重构了 [FileTypeClassifier.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/Core/FileTypeClassifier.swift) 的过滤逻辑，仅拦截黑名单中明确的二进制类型，其它未知扩展名 `.xx` 均默认支持，并在后台通过 NULL 字节检测机制实现安全的二进制文件拦截。
-  - **滚动按需增量加载**：在 [CodeView.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/UI/CodeView.swift) 中通过滚动监听，当视口快滚到底部（不足 150px）时自动触发 [ContentView.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/UI/ContentView.swift) 的增量加载。界面底部浮现高颜值的磨砂悬浮 Loading 条，加载完成后使用 `NSTextStorage.append()` 拼接，保持极高的流畅度与滚动条正常延展。
+  - **未知后缀文件宽容放行与拦截**：重构了 [FileTypeClassifier.swift](QuickCookies/Core/FileTypeClassifier.swift) 的过滤逻辑，仅拦截黑名单中明确的二进制类型，其它未知扩展名 `.xx` 均默认支持，并在后台通过 NULL 字节检测机制实现安全的二进制文件拦截。
+  - **滚动按需增量加载**：在 [CodeView.swift](QuickCookies/UI/CodeView.swift) 中通过滚动监听，当视口快滚到底部（不足 150px）时自动触发 [ContentView.swift](QuickCookies/UI/ContentView.swift) 的增量加载。界面底部浮现高颜值的磨砂悬浮 Loading 条，加载完成后使用 `NSTextStorage.append()` 拼接，保持极高的流畅度与滚动条正常延展。
   - **头部起算增量高亮完美着色**：大文件增量高亮时在后台始终以 `0 字节到当前总长` 进行整体高亮，以确保跨物理分段边界的代码元素（如多行注释、多行字符串）状态连续、着色 100% 完美，没有任何缺失与错乱。
-  - **编辑模式全量静默加载**：进入编辑模式（Cmd + E）时，自动在后台 [ContentView.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/UI/ContentView.swift) 触发一次性读完后续所有内容，从而在编辑保存时保障文件内容的绝对完整性。
+  - **编辑模式全量静默加载**：进入编辑模式（Cmd + E）时，自动在后台 [ContentView.swift](QuickCookies/UI/ContentView.swift) 触发一次性读完后续所有内容，从而在编辑保存时保障文件内容的绝对完整性。
   - **Markdown 预览渲染与自适应主题优化**：
     - **GitHub 主题完美集成**：以 `Theme.gitHub` 为蓝本，利用继承机制避免了手写 heading 样式造成的底部分割线及排版丢失。
     - **透明背景融合**：将 Markdown 整体文本的 `BackgroundColor` 设为 `nil`，行内代码 `code` 背景设为 `nil`，代码块 `codeBlock` 背景设为 `Color.clear`，彻底消除了顽固的灰色背景残留，完美融入应用的暗黑色/亮色毛玻璃背景。
@@ -167,32 +167,32 @@
       - 在 `Markdown` 视图的初始化中绑定了 `baseURL: baseDirectoryURL` 参数，使 MarkdownUI 能自动对类似 `docs/images/logo.png` 的相对图片或相对文本超链接进行完整性路径拼装加载，打通了本地相对图片渲染与本地工作区导航。
   - **一体化顶栏与红绿灯完美水平对齐**：
     - 解决了预览窗口顶部红绿灯区域与下方文件名标题/编辑按钮错开展示，导致红绿灯行显得空洞的问题。
-    - 在 [ContentView.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/UI/ContentView.swift) 的主容器 `VStack` 上挂载了 `.ignoresSafeArea(edges: .top)`，从而让自定义的顶栏（Toolbar）背景直接延伸并铺满窗口的最顶端安全区域。
+    - 在 [ContentView.swift](QuickCookies/UI/ContentView.swift) 的主容器 `VStack` 上挂载了 `.ignoresSafeArea(edges: .top)`，从而让自定义的顶栏（Toolbar）背景直接延伸并铺满窗口的最顶端安全区域。
     - 将顶栏 `toolbar` 视图的顶部 padding 调整为 `14`，使文件名、编辑/保存等控制按钮与左侧 macOS 系统原生红黄绿控制按钮在垂直方向完美居中对齐在同一行内，实现极为紧凑的高清一体化视觉效果。
   - **缺陷回归与体验闭环修复**：
-    - **红绿灯垂直中线对齐调优**：将 [ContentView.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/UI/ContentView.swift) 中 `toolbar` 的顶部 padding 微调为 `8`（底部亦微调为 `8`），使顶栏文字与按钮的 Y 轴重心上移，与忽略 Safe Area 顶格绘制模式下的系统原生红黄绿按钮实现 100% 垂直同行中线水平居中对齐。
-    - **不支持文件 0ms 小窗口起跳优化与 AppleEvent 死锁根除**：将 [FileDetector.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/Core/FileDetector.swift) 的 AppleScript 执行机制由 `NSAppleScript` 同步执行重构为通过 `Process` 子进程独立调起 `/usr/bin/osascript`。这彻底根治了在 AppKit 主线程同步发送 AppleEvent 控制 Finder 导致主线程与 Finder 之间死锁卡顿并固定返回 failure 的隐患，保证了在 [QuickLookOverlay.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/UI/QuickLookOverlay.swift) 的 `showFromFinder()` 中快速同步探测选中文件路径 100% 获得成功。对于不支持的文件，直接在 0ms 以 450x320 的矮窗口起跳展现动画，彻底消除了“先大后小”的视觉抖动。
-    - **二次打开窗口大小污染修复**：在 [ContentView.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/UI/ContentView.swift) 的 `PreviewState` 重置方法 `reset()` 中加入了 `isResetting` 屏蔽开关。完全隔离了在依次重置各个属性时，由于中间脏状态未完成清空而通过 `didSet` 误向 `QuickLookOverlay` 发送状态变更引发的二次正常文件打开直接变小的 Bug。
+    - **红绿灯垂直中线对齐调优**：将 [ContentView.swift](QuickCookies/UI/ContentView.swift) 中 `toolbar` 的顶部 padding 微调为 `8`（底部亦微调为 `8`），使顶栏文字与按钮的 Y 轴重心上移，与忽略 Safe Area 顶格绘制模式下的系统原生红黄绿按钮实现 100% 垂直同行中线水平居中对齐。
+    - **不支持文件 0ms 小窗口起跳优化与 AppleEvent 死锁根除**：将 [FileDetector.swift](QuickCookies/Core/FileDetector.swift) 的 AppleScript 执行机制由 `NSAppleScript` 同步执行重构为通过 `Process` 子进程独立调起 `/usr/bin/osascript`。这彻底根治了在 AppKit 主线程同步发送 AppleEvent 控制 Finder 导致主线程与 Finder 之间死锁卡顿并固定返回 failure 的隐患，保证了在 [QuickLookOverlay.swift](QuickCookies/UI/QuickLookOverlay.swift) 的 `showFromFinder()` 中快速同步探测选中文件路径 100% 获得成功。对于不支持的文件，直接在 0ms 以 450x320 的矮窗口起跳展现动画，彻底消除了“先大后小”的视觉抖动。
+    - **二次打开窗口大小污染修复**：在 [ContentView.swift](QuickCookies/UI/ContentView.swift) 的 `PreviewState` 重置方法 `reset()` 中加入了 `isResetting` 屏蔽开关。完全隔离了在依次重置各个属性时，由于中间脏状态未完成清空而通过 `didSet` 误向 `QuickLookOverlay` 发送状态变更引发的二次正常文件打开直接变小的 Bug。
 - **彻底清除测试 Toast 遗留与调试信息静默化（2026-05-31）**：
-  - **移除位置/创窗大小 Toast 提示**：在 [QuickLookOverlay.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/UI/QuickLookOverlay.swift) 中，将之前用于开发调试的“创窗大小: WxH isUnsupported: Bool”以及“位置: (X, Y) 大小: WxH”两个 `showToast` 的调用全部移除，替换为静默的本地调试日志写入（`writeDebugLog`）。
+  - **移除位置/创窗大小 Toast 提示**：在 [QuickLookOverlay.swift](QuickCookies/UI/QuickLookOverlay.swift) 中，将之前用于开发调试的“创窗大小: WxH isUnsupported: Bool”以及“位置: (X, Y) 大小: WxH”两个 `showToast` 的调用全部移除，替换为静默的本地调试日志写入（`writeDebugLog`）。
   - **防止业务 Toast 被覆盖**：彻底解决了由于频繁触发物理位置定位 Toast 导致系统正常的业务或错误 Toast（例如“不支持的文件类型”或“读取文件失败”）被覆盖或无法正常展示的问题。
 - **不支持文件 0ms 矮窗口精准起跳修复（2026-05-31）**：
-  - **文件夹物理类型拦截**：在 [FileTypeClassifier.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/Core/FileTypeClassifier.swift) 中，重构了 `isSupported` 的前置判断逻辑，首选使用 `FileManager` 检测路径是否为文件夹目录。如果选中项为文件夹（如 Xcode 项目 `.xcodeproj`、App 包或常规文件夹），直接判定为不支持类型，从而让其在起跳的第 0 毫秒就以 450x320 矮窗口呈现。
+  - **文件夹物理类型拦截**：在 [FileTypeClassifier.swift](QuickCookies/Core/FileTypeClassifier.swift) 中，重构了 `isSupported` 的前置判断逻辑，首选使用 `FileManager` 检测路径是否为文件夹目录。如果选中项为文件夹（如 Xcode 项目 `.xcodeproj`、App 包或常规文件夹），直接判定为不支持类型，从而让其在起跳的第 0 毫秒就以 450x320 矮窗口呈现。
   - **同步轻量二进制检测**：在 `FileTypeClassifier.classify` 阶段，在主线程同步快速读取文件最前面的 1KB 字节并检测是否包含 NULL 字节（`0x00`）。这确保了对未加入后缀黑名单的二进制文件（如 Zip 压缩包、可执行文件等）在起跳阶段就能瞬间识别为不支持，彻底根治了不支持文件在打开时“先以大窗口弹起，随后在后台加载失败后才收缩为小窗口”的大小闪烁跳变问题。
 - **已知二进制预览格式防误杀与主流图片格式扩充（2026-05-31）**：
-  - **已知二进制格式防误杀**：重构了 [FileTypeClassifier.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/Core/FileTypeClassifier.swift) 中的 `classify` 执行顺序。将 PDF 格式和图片已知扩展名的判定逻辑移动至 `isBinaryFileFastCheck` 物理检测**之前**，彻底避免了由于 PNG、JPG 等图片及 PDF 物理上包含 NULL 字节而被判定为不支持类型的 Bug，使得图片和 PDF 预览功能恢复正常。
+  - **已知二进制格式防误杀**：重构了 [FileTypeClassifier.swift](QuickCookies/Core/FileTypeClassifier.swift) 中的 `classify` 执行顺序。将 PDF 格式和图片已知扩展名的判定逻辑移动至 `isBinaryFileFastCheck` 物理检测**之前**，彻底避免了由于 PNG、JPG 等图片及 PDF 物理上包含 NULL 字节而被判定为不支持类型的 Bug，使得图片和 PDF 预览功能恢复正常。
   - **主流图片格式扩充**：在 `isSupported` and `classify` 中，将支持的图片种类从原来的 `["png", "jpg", "jpeg", "webp", "gif", "bmp"]` 扩充到了全套主流图片格式：包括 `tiff`, `tif`, `heic`, `heif` 和 `ico`。
 - **macOS 12.0+ 弃用警告消除与规范化 API 适配（2026-05-31）**：
-  - **API 规范化**：在 [UnsupportedFileView.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/UI/UnsupportedFileView.swift) 中，将已被弃用的 `NSWorkspace.shared.icon(forFileType:)` 替换为 macOS 12.0 推荐的 `NSWorkspace.shared.icon(for: UTType)` 接口，引入 `UniformTypeIdentifiers` 框架并传入 `.item` 获得默认未知文件图标，消除了编译期警告。
+  - **API 规范化**：在 [UnsupportedFileView.swift](QuickCookies/UI/UnsupportedFileView.swift) 中，将已被弃用的 `NSWorkspace.shared.icon(forFileType:)` 替换为 macOS 12.0 推荐的 `NSWorkspace.shared.icon(for: UTType)` 接口，引入 `UniformTypeIdentifiers` 框架并传入 `.item` 获得默认未知文件图标，消除了编译期警告。
 - **快捷键前台 Finder 触发校验与误触拦截（2026-05-31）**：
-  - **前台 Finder 校验**：重构了 [QuickLookOverlay.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/UI/QuickLookOverlay.swift) 的 `showFromFinder()` 方法。引入了 `NSWorkspace.shared.frontmostApplication` 校验，只有当前台活跃应用确实为 Finder（`com.apple.finder`，包含点击桌面）时，双击快捷键才允许触发并拉起新文件预览。这彻底避免了用户在其他工作场景（如编写代码或网页打字）下，由于误操作而强行弹出历史选中文件的骚扰。
+  - **前台 Finder 校验**：重构了 [QuickLookOverlay.swift](QuickCookies/UI/QuickLookOverlay.swift) 的 `showFromFinder()` 方法。引入了 `NSWorkspace.shared.frontmostApplication` 校验，只有当前台活跃应用确实为 Finder（`com.apple.finder`，包含点击桌面）时，双击快捷键才允许触发并拉起新文件预览。这彻底避免了用户在其他工作场景（如编写代码或网页打字）下，由于误操作而强行弹出历史选中文件的骚扰。
   - **Toggle 关闭豁免**：在判定前台 Finder 逻辑之前，保留并优先匹配了“如果预览窗口已打开，则双击 Option 始终可以关闭”的 Toggle 关闭逻辑，确保用户可以用快捷键顺畅地一开一合，符合 macOS 原生人机交互（HIG）规范。
 - **焦点归还与上下方向键连续切换预览（2026-05-31）**：
-  - **窗口非激活置顶展示（不抢占焦点）**：在 [QuickLookOverlay.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/UI/QuickLookOverlay.swift) 的 `showQuickLookWindow` 中，废弃了原先的 `makeKeyAndOrderFront` 并且彻底移除 `NSApp.activate` 激活 App 自身的逻辑。改用极透明 `orderFrontRegardless()` 挂载展示，使预览浮窗在屏幕最顶端展示的同时，前台聚焦的活跃进程依然保持为 Finder。
+  - **窗口非激活置顶展示（不抢占焦点）**：在 [QuickLookOverlay.swift](QuickCookies/UI/QuickLookOverlay.swift) 的 `showQuickLookWindow` 中，废弃了原先的 `makeKeyAndOrderFront` 并且彻底移除 `NSApp.activate` 激活 App 自身的逻辑。改用极透明 `orderFrontRegardless()` 挂载展示，使预览浮窗在屏幕最顶端展示的同时，前台聚焦的活跃进程依然保持为 Finder。
   - **全局/本地双重键盘事件监视**：
     - **全局监视器**：注册 `globalEventMonitor` 全局按键监听器。当 Finder 处于前台时，用户按下键盘的 `↑` (126)、`↓` (125) 方向键会直接被 Finder 原生响应并切换选中高亮文件，无需 any 事件人工注入。监视器听到按键后，延迟 100ms 并自动通过 `updatePreviewFromFinder` 执行 0ms 窗口内容无缝刷新；监视器监听到 `Esc`（keyCode 53）则自动触发 `performClose()` 关闭预览。
     - **本地监视器**：当用户鼠标点击预览窗口后，窗口变成 Key 窗口，此时本地监视器接管。本地按下 `Esc` 键直接拦截并关闭；本地按下 `↑`、`↓` 方向键，则先主动激活 Finder 进程到前台，然后再进行 `CGEvent.postToPid(pid)` 的按键投递与重载更新，双重保险防失效。
-  - **状态原子重构与编辑模式豁免**：重构了 [ContentView.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/UI/ContentView.swift)，将原 ContentView 私有的 `mode` 状态变量移植到全局单例 `PreviewState` 的 `@Published var mode: ContentMode` 中，并在 `reset()` 和 `updateState()` 周期自动切回 `.preview` 预览模式。这样键盘拦截器可读取该全局状态：在进入编辑模式（Cmd + E）时，键盘拦截器能立即释放对上下方向键的拦截，使用户在编辑器中正常使用方向键移动光标；退出编辑模式回到预览后又自动恢复拦截，做到无感自适应。
+  - **状态原子重构与编辑模式豁免**：重构了 [ContentView.swift](QuickCookies/UI/ContentView.swift)，将原 ContentView 私有的 `mode` 状态变量移植到全局单例 `PreviewState` 的 `@Published var mode: ContentMode` 中，并在 `reset()` 和 `updateState()` 周期自动切回 `.preview` 预览模式。这样键盘拦截器可读取该全局状态：在进入编辑模式（Cmd + E）时，键盘拦截器能立即释放对上下方向键的拦截，使用户在编辑器中正常使用方向键移动光标；退出编辑模式回到预览后又自动恢复拦截，做到无感自适应。
   - **焦点清理与归还**：在 `performClose()` and `closeWithAnimation()` 头部增加了对 `localEventMonitor` 和 `globalEventMonitor` 双键盘监视器的彻底注销清理，并自动查找后台 `com.apple.finder` 进程调用 `finderApp.activate(options: [.activateIgnoringOtherApps])`，确保无论如何关闭，Finder 都能立即重新取得键盘焦点。
   - **高性能 Scripting Bridge 零开销同步检测**：彻底废弃了原先通过 `Process` 启动 `/usr/bin/osascript` 运行 AppleScript 脚本的重度机制（从进程创建上完全消除了 50ms - 200ms 耗时，杜绝了长按方向键快速连续滚动切换时引起 CPU 狂转、系统熔断及界面卡顿的缺陷）。重构引入了原生 `ScriptingBridge` 框架，直接在当前应用进程内存中通过 AppleEvent 同步向 Finder 提取选中项 selection 的 `"URL"` 属性（微秒级，0.1ms 完成），并加入了首个 `FinderWindow` 的 `target` 属性作为无选中项时的活跃窗口路径兜底。由于 Scripting Bridge 极速同步返回的就是 Finder 当前 RunLoop 中最真实的最新高亮文件，我们在 `updatePreviewFromFinder` 中精简移去了先前为了对付延迟而设计的低效 “3 次轮询延迟重试” 的过渡方案，真正做到了纯净、高性能、零延迟的按键连续切换秒开刷新。
 - **窗口大小双向自适应修复与 Timer 轮询日志去噪优化（2026-05-31）**：
@@ -252,13 +252,13 @@
   - **红绿灯与窗口打开关闭动画高精度同步**：在 [QuickLookOverlay.swift](QuickCookies/UI/QuickLookOverlay.swift) 中，为解决窗口弹出/收缩时红绿灯按钮瞬间直挺挺亮起的突兀感，在动画第 0 毫秒强行将红绿灯按钮的 `alphaValue` 设为 0.0，等窗口仿射缩放弹簧动画运行到中后期（0.22 秒）时再以 0.15 秒渐变淡入；在关闭收缩动画启动前立即将其隐去（`alphaValue = 0.0`），彻底打通视觉惯性一致性。
   - **构建验证**：项目重新编译 **BUILD SUCCEEDED**，顺利通过本地构建。
 - **体验调优第二轮：PDF/Office 彻底去边距与进度条视觉优化（2026-06-01）**：
-  - **PDF 渲染区直角与投影彻底消除**：在 [MediaPreviewView.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/UI/MediaPreviewView.swift) 中，将 `pdfView.pageBreakMargins` 设为 `NSEdgeInsetsZero`，将 `pdfView.pageShadowsEnabled` 设为 `false`，并清空隐藏的 `NSScrollView` 的背景和 `contentInsets`。彻底根治了白色 PDF 纸张页面与外部圆角容器分层直角溢出的顽疾，使得物理圆角裁剪在 PDF 上完美贴合。
-  - **导出进度条粗细度优化**：在 [ContentView.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/UI/ContentView.swift) 中移除进度条的 `.scaleEffect(y: 0.4)` 高度缩放，恢复使用 macOS 默认的精致线性进度条样式，使其粗细适中，保证在视网膜屏幕上依然拥有极强且清晰的交互进度反馈。
+  - **PDF 渲染区直角与投影彻底消除**：在 [MediaPreviewView.swift](QuickCookies/UI/MediaPreviewView.swift) 中，将 `pdfView.pageBreakMargins` 设为 `NSEdgeInsetsZero`，将 `pdfView.pageShadowsEnabled` 设为 `false`，并清空隐藏的 `NSScrollView` 的背景和 `contentInsets`。彻底根治了白色 PDF 纸张页面与外部圆角容器分层直角溢出的顽疾，使得物理圆角裁剪在 PDF 上完美贴合。
+  - **导出进度条粗细度优化**：在 [ContentView.swift](QuickCookies/UI/ContentView.swift) 中移除进度条的 `.scaleEffect(y: 0.4)` 高度缩放，恢复使用 macOS 默认的精致线性进度条样式，使其粗细适中，保证在视网膜屏幕上依然拥有极强且清晰的交互进度反馈。
   - **默认导出路径自动对齐源文件**：`NSSavePanel` 弹出时的默认保存目录 `directoryURL` 与当前 Markdown 的父级物理路径完全同步，消除了手动选择导出路径的操作冗余。
-  - **居上无 Icon 提示**：优化 [ToastView.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/UI/ToastView.swift)，删除提示信息中的 icon 字符并保持距顶部 60px 处以 slide-in transition 展现。
+  - **居上无 Icon 提示**：优化 [ToastView.swift](QuickCookies/UI/ToastView.swift)，删除提示信息中的 icon 字符并保持距顶部 60px 处以 slide-in transition 展现。
   - **回归与维护**：同步更新 `REQUIREMENTS.md`、`TEST_PLAN.md` 和 `TASKS.md` 里的所有任务状态。
-  - **系统原生控件本地化激活**：在 [Info.plist](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/Info.plist) 中显式补充了 `CFBundleDevelopmentRegion` 为 `zh-Hans`，并配置 `CFBundleLocalizations` 列表包含 `zh-Hans` 和 `en`。这指示 LaunchServices 与 AppKit 将当前应用识别为已本地化的中文应用，自动让系统的 `NSSavePanel`（如重复文件替换提示）跟随系统语言（简体中文）渲染，完美解决了重复文件覆盖提示默认英文的 Bug。
-  - **PDF 导出图标自定义矢量化**：新建了 [ToolbarExport.imageset](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/Resources/Assets.xcassets/ToolbarExport.imageset) 资源并存入高档、精致的 [ToolbarExport.svg](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/Resources/Assets.xcassets/ToolbarExport.imageset/ToolbarExport.svg) 折角文档下载矢量图（Remix Icon 线条艺术风格），彻底将 [ContentView.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/UI/ContentView.swift) 中唯一遗留的 SF Symbol 占位符 `arrow.down.doc` 替换为 `ToolbarExport` 自定义模板矢量图，实现了工具栏视觉设计风格的 100% 连贯性与高档化。
+  - **系统原生控件本地化激活**：在 [Info.plist](QuickCookies/Info.plist) 中显式补充了 `CFBundleDevelopmentRegion` 为 `zh-Hans`，并配置 `CFBundleLocalizations` 列表包含 `zh-Hans` 和 `en`。这指示 LaunchServices 与 AppKit 将当前应用识别为已本地化的中文应用，自动让系统的 `NSSavePanel`（如重复文件替换提示）跟随系统语言（简体中文）渲染，完美解决了重复文件覆盖提示默认英文的 Bug。
+  - **PDF 导出图标自定义矢量化**：新建了 [ToolbarExport.imageset](QuickCookies/Resources/Assets.xcassets/ToolbarExport.imageset) 资源并存入高档、精致的 [ToolbarExport.svg](QuickCookies/Resources/Assets.xcassets/ToolbarExport.imageset/ToolbarExport.svg) 折角文档下载矢量图（Remix Icon 线条艺术风格），彻底将 [ContentView.swift](QuickCookies/UI/ContentView.swift) 中唯一遗留的 SF Symbol 占位符 `arrow.down.doc` 替换为 `ToolbarExport` 自定义模板矢量图，实现了工具栏视觉设计风格的 100% 连贯性与高档化。
   - **构建验证**：执行 `xcodebuild` 编译，输出 **BUILD SUCCEEDED**。
 
 
