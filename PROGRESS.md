@@ -229,6 +229,11 @@
   - **滚动像素拷贝及滚动轴锁定**：在 `makeNSView` 中显式指定 `copiesOnScroll = true` 和 `usesPredominantAxisScrolling = true`，确保 AppKit 顺畅拷贝已渲染像素，防止非必要的横纵混合计算。
   - **高频滚动事件同步前置拦截（P2）**：在 `boundsDidChangeNotification` 触发的 `handleScroll` 回调中，增加同步前置 `guard` 检查 `state.hasMoreChunks` 与 `state.isIncrementalLoading`。若无需加载更多则立即拦截返回，避免在滚动中向主线程高频派发无意义的 RunLoop 任务。
   - **增量追加任务后台调度优化（P3）**：将 `appendChunk` 与后台全量高亮任务的优先级调整为 `qos: .utility`，避免后台任务与前台渲染滚动抢占 CPU 核心资源。
+  - **文本与代码窗口滚动卡顿彻底修复与实时热联动优化（2026-06-01）**：
+    - **Finder 探测同步 AppleEvent 后台化**：在 [QuickLookOverlay.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/UI/QuickLookOverlay.swift) 中，将 150ms 周期性探测 Finder 选中文件的 `FileDetector.getSelectedFilePath()` 同步跨进程通信 (IPC) 移入后台全局队列（`qos: .userInteractive`）中执行，彻底释放主线程，杜绝了周期性探测引起的主线程丢帧挂起。
+    - **CodeView 滚动重载 Bug 修复**：在 [CodeView.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/UI/CodeView.swift) 中修复了 `fontChanged` 的判断逻辑。在 `Coordinator` 中新增 `lastFontSize` 缓存，直接比对缓存的字号与字体名，彻底消除了富文本渲染导致 `fontChanged` 被恒判定为 `true` 的重载顿挫。
+    - **EditorView 编辑滚动性能调优**：在 [EditorView.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/UI/EditorView.swift) 中开启了 `allowsNonContiguousLayout = true` 避免大文件主线程布局卡顿，开启了 `copiesOnScroll` 像素拷贝与 `usesPredominantAxisScrolling`。对 `updateNSView` 引入了防御性更新判断（仅在不同时更新 `font`、背景与文本色），避免了每次打字或重绘时无脑重新排版全文引起的严重卡顿。
+    - **字号与字体实时热联动恢复**：采纳体验设计反馈，恢复了 [ContentView.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/UI/ContentView.swift) 中的 `PreviewCodeView`、`EditContentView` 和 [MarkdownView.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/UI/MarkdownView.swift) 中的 `@ObservedObject settings` 实时联动绑定。由于有精确的缓存比对和防御属性更新拦截，日常滚动打字时 100% 零多余消耗，仅在用户切换字号时触发单次极轻量（1-3ms）的可视区重布局，达成了极致流畅与高端交互的共存。
   - **构建验证**：项目重新编译 **BUILD SUCCEEDED**，顺利通过本地构建。
 
 

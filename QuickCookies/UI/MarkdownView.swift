@@ -10,6 +10,7 @@ struct MarkdownView: View {
         URL(fileURLWithPath: filePath).deletingLastPathComponent()
     }
     
+    // NOTE: 恢复 @ObservedObject 绑定，以实现设置修改时 Markdown 字号与字体的实时热联动
     @ObservedObject var settings = Settings.shared
 
     // 基于 GitHub 风格定制的专属 Markdown 主题，实现全文本字号动态联动与全透明背景色

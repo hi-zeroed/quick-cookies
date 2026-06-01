@@ -25,6 +25,7 @@ struct CodeView: NSViewRepresentable {
     class Coordinator: NSObject {
         var lastIsDark: Bool?
         var lastFontName: String?
+        var lastFontSize: CGFloat?       // NOTE: 缓存字号以防高亮富文本首字字形覆盖导致误判 fontChanged
         var lastFilePath: String?
         var lastContentLength: Int = 0   // NOTE: 用长度缓存替代 O(n) 字符串前缀比较
         var state: PreviewState?
@@ -158,11 +159,14 @@ struct CodeView: NSViewRepresentable {
         let currentLength = textView.textStorage?.length ?? 0
         let isIncremental = isSameFile && content.count > currentLength && currentLength == cachedLength
 
-        let fontChanged = textView.font?.pointSize != fontSize || context.coordinator.lastFontName != fontName
+        // NOTE: 相比于直接对比高亮富文本的 textView.font?.pointSize (它会返回富文本首字高亮字体，导致判断失误)，
+        //       直接比对 Coordinator 缓存的上一次 font 属性才是最可靠的。
+        let fontChanged = context.coordinator.lastFontSize != fontSize || context.coordinator.lastFontName != fontName
         let isDarkChanged = context.coordinator.lastIsDark != isDark
 
         context.coordinator.lastIsDark = isDark
         context.coordinator.lastFontName = fontName
+        context.coordinator.lastFontSize = fontSize
         context.coordinator.lastFilePath = filePath
         context.coordinator.lastContentLength = textView.textStorage?.length ?? 0
 

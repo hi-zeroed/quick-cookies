@@ -795,41 +795,48 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
     }
 
     private func updatePreviewFromFinder() {
-        let result = FileDetector.getSelectedFilePath()
-        switch result {
-        case .success(let path):
-            let resolvedPath = FileUtils.resolveSymlink(at: path)
-            if resolvedPath != self.previewState.filePath {
-                let renderType = FileTypeClassifier.classify(path: resolvedPath)
-                let language = FileTypeClassifier.getLanguageName(path: resolvedPath)
-                
-                // 更新窗口标题
-                if let window = self.previewWindow {
-                    window.title = "Quick Cookies - \(URL(fileURLWithPath: resolvedPath).lastPathComponent)"
-                }
-                
-                // 更新状态触发 ContentView 异步加载文件内容
-                self.writeDebugLog("updatePreviewFromFinder: 调用 updateState 更新路径为 \(resolvedPath)")
-                self.previewState.updateState(
-                    filePath: resolvedPath,
-                    renderType: renderType,
-                    language: language,
-                    isLoadingPath: false
-                )
-                
-                // 异步更新物理坐标 (用于下一次关闭时飞回)
-                DispatchQueue.global(qos: .userInteractive).async { [weak self] in
-                    guard let self = self else { return }
-                    let realSourceRect = self.getSourceRect()
-                    DispatchQueue.main.async {
-                        self.sourceRectBackup = realSourceRect
-                        self.writeDebugLog("上下键切换坐标更新: (\(Int(realSourceRect.origin.x)), \(Int(realSourceRect.origin.y)))")
+        // PERF: 将同步 IPC (AppleEvent) 发送检测移至后台高优先级队列中执行，彻底消除周期轮询对主线程滚动渲染的挂起和丢帧
+        DispatchQueue.global(qos: .userInteractive).async { [weak self] in
+            guard let self = self else { return }
+            let result = FileDetector.getSelectedFilePath()
+            
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let path):
+                    let resolvedPath = FileUtils.resolveSymlink(at: path)
+                    if resolvedPath != self.previewState.filePath {
+                        let renderType = FileTypeClassifier.classify(path: resolvedPath)
+                        let language = FileTypeClassifier.getLanguageName(path: resolvedPath)
+                        
+                        // 更新窗口标题
+                        if let window = self.previewWindow {
+                            window.title = "Quick Cookies - \(URL(fileURLWithPath: resolvedPath).lastPathComponent)"
+                        }
+                        
+                        // 更新状态触发 ContentView 异步加载文件内容
+                        self.writeDebugLog("updatePreviewFromFinder: 调用 updateState 更新路径为 \(resolvedPath)")
+                        self.previewState.updateState(
+                            filePath: resolvedPath,
+                            renderType: renderType,
+                            language: language,
+                            isLoadingPath: false
+                        )
+                        
+                        // 异步更新物理坐标 (用于下一次关闭时飞回)
+                        DispatchQueue.global(qos: .userInteractive).async { [weak self] in
+                            guard let self = self else { return }
+                            let realSourceRect = self.getSourceRect()
+                            DispatchQueue.main.async {
+                                self.sourceRectBackup = realSourceRect
+                                self.writeDebugLog("上下键切换坐标更新: (\(Int(realSourceRect.origin.x)), \(Int(realSourceRect.origin.y)))")
+                            }
+                        }
                     }
+                case .failure(let error):
+                    // 静默处理，不频繁写入错误日志以防爆磁盘
+                    print("updatePreviewFromFinder 获取失败: \(error.localizedDescription)")
                 }
             }
-        case .failure(let error):
-            // 静默处理，不频繁写入错误日志以防爆磁盘
-            print("updatePreviewFromFinder 获取失败: \(error.localizedDescription)")
         }
     }
 
@@ -922,7 +929,7 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
     }
     
     private func writeDebugLog(_ message: String) {
-        let logPath = "/Users/jiangwei/.gemini/antigravity/brain/13d0a525-4253-443b-bb17-d5690797acc7/scratch/debug_log.txt"
+        let logPath = "/Users/jiangwei/.gemini/antigravity/brain/0f5ecf3e-21f5-4ae9-b801-f905561606df/scratch/debug_log.txt"
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd HH:mm:ss.SSS"
         let timeStr = formatter.string(from: Date())

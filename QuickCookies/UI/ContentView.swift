@@ -504,8 +504,17 @@ private struct PreviewCodeView: View {
     let state: PreviewState
     let onLoadMore: () -> Void
 
-    // Settings 订阅限定在此子视图范围内
+    // NOTE: 恢复 @ObservedObject 绑定，以实现设置修改时文本字号与字体的实时热联动
     @ObservedObject private var settings = Settings.shared
+
+    init(path: String, content: String, language: String?, isDark: Bool, state: PreviewState, onLoadMore: @escaping () -> Void) {
+        self.path = path
+        self.content = content
+        self.language = language
+        self.isDark = isDark
+        self.state = state
+        self.onLoadMore = onLoadMore
+    }
 
     var body: some View {
         CodeView(
@@ -522,13 +531,19 @@ private struct PreviewCodeView: View {
 }
 
 /// 编辑器的 Settings 隔离包装视图
-/// NOTE: 同上，将 Settings 订阅下沉到此子视图
+/// NOTE: 同上，恢复 @ObservedObject 绑定
 private struct EditContentView: View {
     @Binding var content: String
     @Binding var isModified: Bool
     let onSave: () -> Void
 
     @ObservedObject private var settings = Settings.shared
+
+    init(content: Binding<String>, isModified: Binding<Bool>, onSave: @escaping () -> Void) {
+        self._content = content
+        self._isModified = isModified
+        self.onSave = onSave
+    }
 
     var body: some View {
         EditorView(

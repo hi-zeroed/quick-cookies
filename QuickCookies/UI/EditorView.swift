@@ -19,6 +19,10 @@ struct EditorView: NSViewRepresentable {
         scrollView.backgroundColor = .appBackground
         scrollView.drawsBackground = true
 
+        // PERF: 显式开启像素滚动复制和方向轴锁定优化，防止滚动时抖动
+        scrollView.contentView.copiesOnScroll = true
+        scrollView.usesPredominantAxisScrolling = true
+
         // 创建 TextView 并定制样式以契合参考图
         let textView = NSTextView()
         textView.delegate = context.coordinator
@@ -30,6 +34,18 @@ struct EditorView: NSViewRepresentable {
         textView.isRichText = false
         textView.allowsUndo = true
         textView.string = content
+        
+        // PERF: 开启按需非连续布局，防止大文本在滚动和渲染时发生主线程卡顿
+        textView.layoutManager?.allowsNonContiguousLayout = true
+
+        // PERF: 禁用所有文本自动处理特性以减少输入/滚动时的 CPU 额外计算
+        textView.isAutomaticSpellingCorrectionEnabled = false
+        textView.isAutomaticQuoteSubstitutionEnabled = false
+        textView.isAutomaticDashSubstitutionEnabled = false
+        textView.isAutomaticTextReplacementEnabled = false
+        textView.isAutomaticLinkDetectionEnabled = false
+        textView.isContinuousSpellCheckingEnabled = false
+        textView.isGrammarCheckingEnabled = false
         
         // 增加四周留白
         textView.textContainerInset = NSSize(width: 8, height: 8)
@@ -47,12 +63,22 @@ struct EditorView: NSViewRepresentable {
             textView.string = content
         }
 
-        textView.font = NSFont.editorFont(name: fontName, size: fontSize)
+        // PERF: 只有当字体发生实际变化时才更新，防止 layoutManager 丢弃布局缓存重新排版全文
+        let targetFont = NSFont.editorFont(name: fontName, size: fontSize)
+        if textView.font != targetFont {
+            textView.font = targetFont
+        }
 
-        // 动态更新背景色和文本色
-        scrollView.backgroundColor = .appBackground
-        textView.backgroundColor = .appBackground
-        textView.textColor = .appText
+        // PERF: 只有在不同时才更新颜色属性，避免触发 NSTextView 冗余的 needsDisplay 和整屏重绘，守护滚动流畅度
+        if scrollView.backgroundColor != .appBackground {
+            scrollView.backgroundColor = .appBackground
+        }
+        if textView.backgroundColor != .appBackground {
+            textView.backgroundColor = .appBackground
+        }
+        if textView.textColor != .appText {
+            textView.textColor = .appText
+        }
     }
 
     func makeCoordinator() -> Coordinator {
