@@ -27,6 +27,7 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
     static let shared = QuickLookOverlay()
 
     private var previewWindow: NSWindow?
+    var currentWindow: NSWindow? { previewWindow }
     private var sourceRectBackup: CGRect?
     private var activeToastPanel: NSPanel?
     private var lastDiagnosticMessage: String = ""

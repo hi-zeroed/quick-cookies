@@ -518,7 +518,7 @@ struct ContentView: View {
         savePanel.canCreateDirectories = true
         savePanel.prompt = "导出".localized()
         
-        savePanel.begin { response in
+        let completionHandler: (NSApplication.ModalResponse) -> Void = { response in
             if response == .OK, let targetURL = savePanel.url {
                 self.isLoading = true
                 
@@ -541,6 +541,12 @@ struct ContentView: View {
                     }
                 }
             }
+        }
+        
+        if let window = QuickLookOverlay.shared.currentWindow {
+            savePanel.beginSheetModal(for: window, completionHandler: completionHandler)
+        } else {
+            savePanel.begin(completionHandler: completionHandler)
         }
     }
 }
