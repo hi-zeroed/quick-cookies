@@ -16,3 +16,6 @@
 | REQ-010 | 多语言适配 | 支持 English 与简体中文两套语言，提供自适应跟随系统及应用内热切换功能，瞬间刷新全案文案。 | 需测试 | 已在 Settings、SettingsWindow、ContentView、QuickLookOverlay、FinderMenuIntegration 和 AppDelegate 中完整实现。 |
 | REQ-011 | 图标与品牌资源 | 设计并配置符合 macOS 规范的 App 像素级图标与自适应 Template 状态栏图标。 | 需测试 | 已完成 AppIcon 的 sips 批量生成、所有自定义状态栏、菜单项及工具栏 SVG 图标的导入与代码替换，支持 Template 自适应变色；成功添加独立的 QuickCookiesFinderSync App Extension，完美无感集成 Finder 右键菜单预览。 |
 | REQ-012 | 连续键盘切换与焦点回归 | 支持在预览窗处于 Key 激活状态时按键盘上下键在 Finder 后台平滑切换选中文件，并在预览窗关闭后自动将焦点归还给 Finder，保证键盘操作的连续性。 | 已完成 | 已在 `QuickLookOverlay` 中注册键盘监听，利用 `CGEvent.postToPid` 投递上下键并轮询原子刷新，并在关闭时主动归还焦点给 Finder；已完美解决连续切换时“大窗口变小窗口能正常缩回，而由小变大功能失效”的 Bug，实现 0ms 完美双向大小自适应。 |
+| REQ-013 | Office 办公文档与富文本预览 | 支持 Word, Excel, PPT, RTF, RTFD, Pages, Numbers, Keynote, CSV 等格式预览，利用 `QLPreviewView` 原生框架，保障 100% 格式还原度。 | 已完成 | 已支持在主预览界面无缝预览 Word/Excel/PPT/RTF 等格式。 |
+| REQ-014 | Markdown 导出 PDF | 预览 Markdown 文件时，可在工具栏点击“导出 PDF”按钮，利用 `WKWebView` 离屏编译配合 `createPDF` 原生接口导出，支持排版样式和代码高亮。 | 已完成 | 已完成 Markdown 离屏渲染与原生 `createPDF` 导出逻辑，支持代码块高亮及 GitHub 样式。 |
+

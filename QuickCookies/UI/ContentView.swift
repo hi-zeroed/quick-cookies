@@ -1,4 +1,5 @@
 import SwiftUI
+import UniformTypeIdentifiers
 
 enum ContentMode {
     case preview    // 预览模式
@@ -159,9 +160,9 @@ struct ContentView: View {
     @ViewBuilder
     private var toolbar: some View {
         HStack {
-            // 左侧占位（完美避让 macOS 系统红绿灯按钮，占位 80px）
+            // 左侧占位（完美避让 macOS 系统红绿灯按钮，占位 100px）
             Spacer()
-                .frame(width: 80)
+                .frame(width: 100)
             
             Spacer()
 
@@ -189,35 +190,50 @@ struct ContentView: View {
 
             Spacer()
 
-            // 右侧控制区域（模式切换与保存，右对齐固定 80px）
+            // 右侧控制区域（模式切换与保存，右对齐固定 100px）
             HStack(spacing: 12) {
-                if state.filePath != nil && state.errorMessage == nil && state.renderType != .pdf && state.renderType != .image {
-                    // 模式切换按钮
-                    Button(action: toggleMode) {
-                        Image(state.mode == .preview ? "ToolbarEdit" : "ToolbarPreview")
-                            .renderingMode(.template)
-                            .resizable()
-                            .frame(width: 16, height: 16)
-                            .foregroundColor(Color.appText.opacity(0.8))
-                    }
-                    .buttonStyle(.plain)
-                    .help(state.mode == .preview ? "进入编辑 (Cmd+E)".localized() : "回到预览 (Esc)".localized())
-
-                    // 保存按钮
-                    if state.mode == .edit && isModified {
-                        Button(action: saveFile) {
-                            Image("ToolbarSave")
-                               .renderingMode(.template)
-                               .resizable()
-                               .frame(width: 16, height: 16)
-                               .foregroundColor(.orange)
+                if state.filePath != nil && state.errorMessage == nil {
+                    // 导出 PDF 按钮 (仅在预览 Markdown 时显示)
+                    if state.renderType == .markdown && state.mode == .preview {
+                        Button(action: exportMarkdownToPDF) {
+                            Image(systemName: "arrow.down.doc")
+                                .renderingMode(.template)
+                                .resizable()
+                                .frame(width: 16, height: 16)
+                                .foregroundColor(Color.appText.opacity(0.8))
                         }
                         .buttonStyle(.plain)
-                        .help("保存 (Cmd+S)".localized())
+                        .help("导出 PDF".localized())
+                    }
+                    
+                    if state.renderType != .pdf && state.renderType != .image && state.renderType != .office {
+                        // 模式切换按钮
+                        Button(action: toggleMode) {
+                            Image(state.mode == .preview ? "ToolbarEdit" : "ToolbarPreview")
+                                .renderingMode(.template)
+                                .resizable()
+                                .frame(width: 16, height: 16)
+                                .foregroundColor(Color.appText.opacity(0.8))
+                        }
+                        .buttonStyle(.plain)
+                        .help(state.mode == .preview ? "进入编辑 (Cmd+E)".localized() : "回到预览 (Esc)".localized())
+
+                        // 保存按钮
+                        if state.mode == .edit && isModified {
+                            Button(action: saveFile) {
+                                Image("ToolbarSave")
+                                   .renderingMode(.template)
+                                   .resizable()
+                                   .frame(width: 16, height: 16)
+                                   .foregroundColor(.orange)
+                            }
+                            .buttonStyle(.plain)
+                            .help("保存 (Cmd+S)".localized())
+                        }
                     }
                 }
             }
-            .frame(width: 80, alignment: .trailing)
+            .frame(width: 100, alignment: .trailing)
         }
         .padding(.horizontal, 16)
         .padding(.top, 8)
@@ -331,6 +347,8 @@ struct ContentView: View {
                 )
             case .pdf, .image:
                 MediaPreviewView(filePath: path, renderType: renderType)
+            case .office:
+                OfficePreviewView(fileURL: URL(fileURLWithPath: path))
             case .unsupported:
                 UnsupportedFileView(filePath: path, errorMessage: state.errorMessage)
             }
@@ -399,7 +417,7 @@ struct ContentView: View {
 
     /// 后台并发异步读取首段，保证窗口 0ms 秒开起跳弹出
     private func loadFileAsync(path: String) async {
-        if state.renderType == .pdf || state.renderType == .image || state.renderType == .unsupported {
+        if state.renderType == .pdf || state.renderType == .image || state.renderType == .unsupported || state.renderType == .office {
             await MainActor.run {
                 self.isLoading = false
             }
@@ -489,6 +507,41 @@ struct ContentView: View {
         }
         watcher.start()
         fileWatcher = watcher
+    }
+
+    private func exportMarkdownToPDF() {
+        guard let path = state.filePath, state.renderType == .markdown else { return }
+        
+        let savePanel = NSSavePanel()
+        savePanel.allowedContentTypes = [.pdf]
+        savePanel.nameFieldStringValue = (URL(fileURLWithPath: path).deletingPathExtension().lastPathComponent) + ".pdf"
+        savePanel.canCreateDirectories = true
+        savePanel.prompt = "导出".localized()
+        
+        savePanel.begin { response in
+            if response == .OK, let targetURL = savePanel.url {
+                self.isLoading = true
+                
+                MarkdownPDFExporter.export(markdownText: self.content) { result in
+                    DispatchQueue.main.async {
+                        self.isLoading = false
+                        switch result {
+                        case .success(let data):
+                            do {
+                                try data.write(to: targetURL)
+                                QuickLookOverlay.shared.showToast(message: "PDF 导出成功".localized(), icon: "checkmark.circle")
+                            } catch {
+                                self.errorMessage = error.localizedDescription
+                                self.showErrorAlert = true
+                            }
+                        case .failure(let error):
+                            self.errorMessage = error.localizedDescription
+                            self.showErrorAlert = true
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 

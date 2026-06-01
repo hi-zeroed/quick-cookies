@@ -66,10 +66,6 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
             guard let self = self else { return }
             let isUnsupported = self.previewState.renderType == .unsupported
             let isError = self.previewState.errorMessage != nil
-            let rTypeStr = self.previewState.renderType != nil ? "\(self.previewState.renderType!)" : "nil"
-            let errorStr = self.previewState.errorMessage ?? "nil"
-            
-            self.writeDebugLog("handleStateChange: renderType=\(rTypeStr), errorMessage=\(errorStr), isUnsupported=\(isUnsupported), isError=\(isError)")
             
             if isUnsupported || isError {
                 self.resizeWindowForErrorOrUnsupported()
@@ -81,7 +77,6 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
     
     private func resizeWindowForErrorOrUnsupported() {
         guard let window = previewWindow else {
-            self.writeDebugLog("resizeWindowForErrorOrUnsupported: window 为 nil，直接返回")
             return
         }
         
@@ -92,11 +87,9 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         let targetHeight = frameRect.height
         
         let currentFrame = window.frame
-        self.writeDebugLog("resizeWindowForErrorOrUnsupported: current=\(currentFrame), targetWidth=\(targetWidth), targetHeight=\(targetHeight)")
         
         // 如果物理尺寸已完全匹配，直接返回，绝不执行二次 setFrame 动画
         if abs(currentFrame.width - targetWidth) < 1.0 && abs(currentFrame.height - targetHeight) < 1.0 {
-            self.writeDebugLog("resizeWindowForErrorOrUnsupported: 尺寸已匹配，直接 return")
             return
         }
         
@@ -108,13 +101,11 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
             height: targetHeight
         )
         
-        self.writeDebugLog("resizeWindowForErrorOrUnsupported: 执行 setFrame 调整为 \(newFrame)")
         window.setFrame(newFrame, display: true, animate: true)
     }
 
     private func resizeWindowForSupported() {
         guard let window = previewWindow else {
-            self.writeDebugLog("resizeWindowForSupported: window 为 nil，直接返回")
             return
         }
         let screenVisibleFrame = NSScreen.main?.visibleFrame ?? NSRect(x: 0, y: 0, width: 1920, height: 1080)
@@ -128,10 +119,8 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         let targetHeight = frameRect.height
         
         let currentFrame = window.frame
-        self.writeDebugLog("resizeWindowForSupported: current=\(currentFrame), targetWidth=\(targetWidth), targetHeight=\(targetHeight)")
         
         if abs(currentFrame.width - targetWidth) < 1.0 && abs(currentFrame.height - targetHeight) < 1.0 {
-            self.writeDebugLog("resizeWindowForSupported: 尺寸已匹配，直接 return")
             return
         }
         
@@ -142,7 +131,6 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
             height: targetHeight
         )
         
-        self.writeDebugLog("resizeWindowForSupported: 执行 setFrame 调整为 \(newFrame)")
         window.setFrame(newFrame, display: true, animate: true)
     }
 
@@ -214,10 +202,8 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
 
     /// 从 Finder 触发预览（双击 Option 或 Services 菜单）
     func showFromFinder() {
-        writeDebugLog("=== showFromFinder triggered ===")
         // 1. 如果预览窗口已经打开且可见，按快捷键应快速关闭 (Toggle 关闭豁免前台 Finder 限制)
         if let window = previewWindow, window.isVisible {
-            writeDebugLog("showFromFinder: 窗口已在显示，执行 closeWithAnimation()")
             closeWithAnimation()
             return
         }
@@ -225,7 +211,6 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         // 2. 增加前台应用校验：仅当前台活跃应用为 Finder (com.apple.finder) 时才响应快捷键拉起新预览
         guard let frontApp = NSWorkspace.shared.frontmostApplication,
               frontApp.bundleIdentifier == "com.apple.finder" else {
-            writeDebugLog("showFromFinder: Finder 不在前台，忽略拉起。当前前台: \(NSWorkspace.shared.frontmostApplication?.bundleIdentifier ?? "unknown")")
             return
         }
 
@@ -235,9 +220,8 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         switch result {
         case .success(let path):
             detectedPath = FileUtils.resolveSymlink(at: path)
-            writeDebugLog("showFromFinder: 同步探测成功: \(path)")
-        case .failure(let error):
-            writeDebugLog("showFromFinder: 同步探测失败: \(error.localizedDescription)")
+        case .failure:
+            break
         }
 
         // 瞬间弹框
@@ -291,8 +275,6 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
             width: windowWidth,
             height: windowHeight
         )
-
-        writeDebugLog("showOverlay: targetRect=\(targetRect), isUnsupported=\(isUnsupported)")
 
         // 2. 瞬间在主线程实例化窗口并展现
         let previewPanel = QuickLookPanel(
@@ -365,7 +347,6 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         self.localEventMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event -> NSEvent? in
             guard let self = self else { return event }
             let keyCode = event.keyCode
-            self.writeDebugLog("localEventMonitor: 按下按键 \(keyCode)")
             
             // Esc 键关闭窗口
             if keyCode == 53 {
@@ -382,7 +363,6 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
                 // 既然已经是 Key 窗口，按上下键说明用户还想切换文件
                 // 我们将 Finder 重新激活到前台，投递按键以保证其能够成功切换，并刷新预览
                 if let finderApp = NSWorkspace.shared.runningApplications.first(where: { $0.bundleIdentifier == "com.apple.finder" }) {
-                    self.writeDebugLog("localEventMonitor: 激活 Finder 并投递按键")
                     finderApp.activate(options: [.activateIgnoringOtherApps])
                     self.sendKeyToFinder(keyCode: keyCode)
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
@@ -424,11 +404,6 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
             DispatchQueue.main.async {
                 // 保存真实物理坐标
                 self.sourceRectBackup = realSourceRect
-                
-                // 打印诊断信息并记录日志，彻底移除屏幕 Toast
-                let sizeInfo = "大小: \(Int(realSourceRect.size.width))x\(Int(realSourceRect.size.height))"
-                let diagnosticMsg = self.lastDiagnosticMessage.isEmpty ? "" : " (\(self.lastDiagnosticMessage))"
-                self.writeDebugLog("showOverlay 异步坐标定位: (\(Int(realSourceRect.origin.x)), \(Int(realSourceRect.origin.y))) \(sizeInfo)\(diagnosticMsg)")
                 
                 if let result = pathResult {
                     switch result {
@@ -814,7 +789,6 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
                         }
                         
                         // 更新状态触发 ContentView 异步加载文件内容
-                        self.writeDebugLog("updatePreviewFromFinder: 调用 updateState 更新路径为 \(resolvedPath)")
                         self.previewState.updateState(
                             filePath: resolvedPath,
                             renderType: renderType,
@@ -828,7 +802,6 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
                             let realSourceRect = self.getSourceRect()
                             DispatchQueue.main.async {
                                 self.sourceRectBackup = realSourceRect
-                                self.writeDebugLog("上下键切换坐标更新: (\(Int(realSourceRect.origin.x)), \(Int(realSourceRect.origin.y)))")
                             }
                         }
                     }
@@ -928,21 +901,4 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         return previewWindow?.isVisible == true
     }
     
-    private func writeDebugLog(_ message: String) {
-        let logPath = "/Users/jiangwei/.gemini/antigravity/brain/0f5ecf3e-21f5-4ae9-b801-f905561606df/scratch/debug_log.txt"
-        let formatter = DateFormatter()
-        formatter.dateFormat = "yyyy-MM-dd HH:mm:ss.SSS"
-        let timeStr = formatter.string(from: Date())
-        let fullMsg = "[\(timeStr)] \(message)\n"
-        
-        if let fileHandle = FileHandle(forWritingAtPath: logPath) {
-            fileHandle.seekToEndOfFile()
-            if let data = fullMsg.data(using: .utf8) {
-                fileHandle.write(data)
-            }
-            fileHandle.closeFile()
-        } else {
-            try? fullMsg.write(toFile: logPath, atomically: true, encoding: .utf8)
-        }
-    }
 }

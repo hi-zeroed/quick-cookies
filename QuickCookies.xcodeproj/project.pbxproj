@@ -40,6 +40,9 @@
 		MEDPREVBLD00000000000001 /* MediaPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = MEDPREVREF00000000000001 /* MediaPreviewView.swift */; };
 		ONBOARDBLD00000000000001 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ONBOARDREF00000000000001 /* OnboardingView.swift */; };
 		FNT141414141414141414141 /* Fonts in Resources */ = {isa = PBXBuildFile; fileRef = FNT141414141414141414142 /* Fonts */; };
+		835FBA022FCA950400D23A02 /* OfficePreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835FBA012FCA950400D23A01 /* OfficePreviewView.swift */; };
+		835FBA042FCA950400D23A04 /* MarkedJS.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835FBA032FCA950400D23A03 /* MarkedJS.swift */; };
+		835FBA062FCA950400D23A06 /* MarkdownPDFExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835FBA052FCA950400D23A05 /* MarkdownPDFExporter.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -101,6 +104,9 @@
 		ONBOARDREF00000000000001 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		835FB7012FCA950400D23AAA /* UnsupportedFileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnsupportedFileView.swift; sourceTree = "<group>"; };
 		FNT141414141414141414142 /* Fonts */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Fonts; sourceTree = "<group>"; };
+		835FBA012FCA950400D23A01 /* OfficePreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfficePreviewView.swift; sourceTree = "<group>"; };
+		835FBA032FCA950400D23A03 /* MarkedJS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkedJS.swift; sourceTree = "<group>"; };
+		835FBA052FCA950400D23A05 /* MarkdownPDFExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownPDFExporter.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -158,6 +164,8 @@
 				835FB6992FCA950400D23999 /* FileChunkReader.swift */,
 				031B5AD657BAE17A14E65A87 /* HotkeyManager.swift */,
 				FMI000000000000000000002 /* FinderMenuIntegration.swift */,
+				835FBA032FCA950400D23A03 /* MarkedJS.swift */,
+				835FBA052FCA950400D23A05 /* MarkdownPDFExporter.swift */,
 			);
 			path = Core;
 			sourceTree = "<group>";
@@ -177,6 +185,7 @@
 				MEDPREVREF00000000000001 /* MediaPreviewView.swift */,
 				ONBOARDREF00000000000001 /* OnboardingView.swift */,
 				835FB7012FCA950400D23AAA /* UnsupportedFileView.swift */,
+				835FBA012FCA950400D23A01 /* OfficePreviewView.swift */,
 			);
 			path = UI;
 			sourceTree = "<group>";
@@ -365,6 +374,9 @@
 				FILWATCHBLD00000000000001 /* FileWatcher.swift in Sources */,
 				ONBOARDBLD00000000000001 /* OnboardingView.swift in Sources */,
 				835FB7022FCA950400D23AAB /* UnsupportedFileView.swift in Sources */,
+				835FBA022FCA950400D23A02 /* OfficePreviewView.swift in Sources */,
+				835FBA042FCA950400D23A04 /* MarkedJS.swift in Sources */,
+				835FBA062FCA950400D23A06 /* MarkdownPDFExporter.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

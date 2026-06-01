@@ -24,9 +24,9 @@
   - 引入了基于 `NSCache` 的 `HighlightCache` 全局缓存，通过 `文件路径 + 修改时间` 识别，完全消除重复的 JavaScript 语法高亮计算耗时。
   - 限制最大高亮长度为 500 行，解决超长代码文件的计算死锁和滑动卡顿，其余后续内容以纯文本平滑加载。
 - **Markdown 原生化秒开重构（2026-05-30）**：
-  - 将项目依赖从 `swift-markdown` 迁移到原生高性能的 `swift-markdown-ui` 依赖包，彻底重写 [MarkdownView.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/UI/MarkdownView.swift) 为纯原生 SwiftUI 视图。
-  - 彻底删除了基于 WebView 的 HTML 渲染引擎 [MarkdownRenderer.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/Renderer/MarkdownRenderer.swift) 和外部 `markdown.css` 资源，精简了约 350 行复杂且缓慢的代码。
-  - 编写了 [HighlightrCodeSyntaxHighlighter.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/Renderer/HighlightrCodeSyntaxHighlighter.swift)，通过自定义 `CodeSyntaxHighlighter` 将多语言高亮引擎 `Highlightr` 桥接入原生 Markdown 排版中。
+  - 将项目依赖从 `swift-markdown` 迁移到原生高性能的 `swift-markdown-ui` 依赖包，彻底重写 [MarkdownView.swift](QuickCookies/UI/MarkdownView.swift) 为纯原生 SwiftUI 视图。
+  - 彻底删除了基于 WebView 的 HTML 渲染引擎 [MarkdownRenderer.swift](QuickCookies/Renderer/MarkdownRenderer.swift) 和外部 `markdown.css` 资源，精简了约 350 行复杂且缓慢的代码。
+  - 编写了 [HighlightrCodeSyntaxHighlighter.swift](QuickCookies/Renderer/HighlightrCodeSyntaxHighlighter.swift)，通过自定义 `CodeSyntaxHighlighter` 将多语言高亮引擎 `Highlightr` 桥接入原生 Markdown 排版中。
   - 限制 Markdown 内置代码块同步高亮最大长度为 100 行，并挂载全局 Hash 缓存，确保大型 Markdown 文件预览也能绝对秒开。
 - **快捷键路由与右键服务集成修复（2026-05-30）**：
   - 修复了 `HotkeyManager` 在 `registerWithSettings` 中未根据 `keyCode == 0` 判断导致默认“双击 Option”快捷键监听失效的 Bug。
@@ -118,15 +118,15 @@
   - **AppIcon 裁切生成**：使用 AI 设计了微光霓虹放大镜聚焦代码卡片的高清 AppIcon 源图，编写 Python 自动化裁剪脚本，配合 macOS 的 `sips` 裁切生成全部符合 macOS HIG 规范的 10 张小分辨率图标，并配置好 `Contents.json` 属性目录。
   - **Xcode 编译打包通道打通**：重写了 `project.pbxproj` 关联 `Assets.xcassets`，新增 `PBXResourcesBuildPhase` 资源打包编译流程并绑定到 Quick Cookies 目标，配置 `ASSETCATALOG_COMPILER_APPICON_NAME` 编译项。同时在 `Info.plist` 里声明 `CFBundleIconName = AppIcon`。
   - **菜单栏图标原生升级**：重构了 `QuickCookiesApp.swift` 的 `MenuBarExtra` 入口，使用系统原生的 SF Symbol 图标 `magnifyingglass` 代替之前的文字占位 `"Quick Cookies 🔍"`，完美支持深浅色模式自动反色。
-  - **AppIcon 品牌 Logo 升级**：根据用户提供的最新卡通网格面包/贝壳 Logo 图像，更新裁剪脚本 [generate_icons.py](file:///Users/jiangwei/.gemini/antigravity/brain/a54f58af-0c5c-4ce6-86ce-17c110a150a3/scratch/generate_icons.py)，通过 `sips` 自动生成 10 张符合 macOS HIG 规范的小分辨率图标并覆盖 `Assets.xcassets/AppIcon.appiconset`，通过 `xcodebuild` 重新构建成功。
-  - **文档更新与合规评估**：更新 [README.md](file:///Users/jiangwei/Git/QuickPeek/README.md) 明确标注应用图标来源的 iconfont 地址，对 iconfont 平台的版权机制和潜在的商用合规风险进行了深度评估，并撰写了规避和避险方案说明。
-  - **SVG 图标集成与全面替换**：从 `Download/icons` 目录下导入了全部自定义的 SVG 图标资产，为其编写了自动化导入脚本 [import_svgs.py](file:///Users/jiangwei/.gemini/antigravity/brain/a54f58af-0c5c-4ce6-86ce-17c110a150a3/scratch/import_svgs.py)；创建了对应的 `.imageset` 并将其配置为 `Preserve Vector Data` 矢量图单分辨率模式，且指定了 `"template-rendering-intent": "template"` 自适应渲染；重构了 [QuickCookiesApp.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/App/QuickCookiesApp.swift)、[FinderMenuIntegration.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/Core/FinderMenuIntegration.swift) 和 [ContentView.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/UI/ContentView.swift)，彻底将界面中临时的 Unicode 符号（📄、⚙、⏻、✎、👁、⬇）和 SF Symbols 占位符替换为具备自适应渲染模式的自定义矢量图片。
-  - **资源路径错位 Bug 修复**：定位并修正了 [project.pbxproj](file:///Users/jiangwei/Git/QuickPeek/QuickCookies.xcodeproj/project.pbxproj) 中 `Assets.xcassets` 的相对物理路径配置错位问题（由原本错误的 `Resources/Assets.xcassets` 修复为正确的相对路径 `Assets.xcassets`），彻底解决了 Xcode 在编译时跳过资产库、进而导致运行时抛出 `No image named 'MenuBarIcon' found in asset catalog` 的缺陷。
+  - **AppIcon 品牌 Logo 升级**：根据用户提供的最新卡通网格面包/贝壳 Logo 图像，更新裁剪脚本 `generate_icons.py`，通过 `sips` 自动生成 10 张符合 macOS HIG 规范的小分辨率图标并覆盖 `Assets.xcassets/AppIcon.appiconset`，通过 `xcodebuild` 重新构建成功。
+  - **文档更新与合规评估**：更新 [README.md](README.md) 明确标注应用图标来源的 iconfont 地址，对 iconfont 平台的版权机制和潜在的商用合规风险进行了深度评估，并撰写了规避和避险方案说明。
+  - **SVG 图标集成与全面替换**：从 `Download/icons` 目录下导入了全部自定义的 SVG 图标资产，为其编写了自动化导入脚本 `import_svgs.py`；创建了对应的 `.imageset` 并将其配置为 `Preserve Vector Data` 矢量图单分辨率模式，且指定了 `"template-rendering-intent": "template"` 自适应渲染；重构了 [QuickCookiesApp.swift](QuickCookies/App/QuickCookiesApp.swift)、[FinderMenuIntegration.swift](QuickCookies/Core/FinderMenuIntegration.swift) 和 [ContentView.swift](QuickCookies/UI/ContentView.swift)，彻底将界面中临时的 Unicode 符号（📄、⚙、⏻、✎、👁、⬇）和 SF Symbols 占位符替换为具备自适应渲染模式的自定义矢量图片。
+  - **资源路径错位 Bug 修复**：定位并修正了 [project.pbxproj](QuickCookies.xcodeproj/project.pbxproj) 中 `Assets.xcassets` 的相对物理路径配置错位问题（由原本错误的 `Resources/Assets.xcassets` 修复为正确的相对路径 `Assets.xcassets`），彻底解决了 Xcode 在编译时跳过资产库、进而导致运行时抛出 `No image named 'MenuBarIcon' found in asset catalog` 的缺陷。
   - **设置窗口焦点与生命周期修复**：重写了 `SettingsWindowController`，使其继承自 `NSObject` 并实现 `NSWindowDelegate` 协议。通过在 `show()` 时显式调用 `NSApp.activate(ignoringOtherApps: true)`，彻底解决了应用在后台 Agent 模式下弹出设置页时窗口无法获取焦点的问题；同时实现了 `windowWillClose` 事件委托，在窗口关闭时自动清理强引用变量 `window` 并置为 `nil`，完美解决了因关闭窗口底层析构引起悬空野指针而致使再次点击无响应的生命周期 Bug。
-  - **Info.plist 图标配置补全**：在 [Info.plist](file:///Users/jiangwei/Git/QuickPeek/Quick Cookies/Info.plist) 中补全了 macOS 系统专属的 `<key>CFBundleIconFile</key><string>AppIcon</string>` 配置，彻底解决了由于此前仅配置了 iOS/tvOS 的 `CFBundleIconName` 导致 macOS Finder (访达) 和 LaunchServices 无法识别渲染 `.icns` 图标文件、退化为系统默认空白应用图标的 Bug。
-  - **产品级 README 重构**：重新将 [README.md](file:///Users/jiangwei/Git/QuickPeek/README.md) 重写为高规格产品级示文。在顶部居中展示了全新卡通面包品牌 Logo，用生动、富有感染力的产品文案包装了 0ms 秒开、黄金比例、Space 弹簧动效、多语言热刷新等核心卖点，并重新整理了使用指南及开发规范。
-  - **AppIcon 白色底座合并**：为解决透明背景在 macOS 上被系统自动填充难看灰色底座的问题，编写了 Swift 合并底图脚本 [merge_bg.swift](file:///Users/jiangwei/.gemini/antigravity/brain/a54f58af-0c5c-4ce6-86ce-17c110a150a3/scratch/merge_bg.swift) 并在 Logo 透明层下方完美平铺了纯白色底色，重新生成了 10 种分辨率图标规格并覆盖 `AppIcon.appiconset`，重新跑通了编译验证。
-  - **透明底 Logo 图标保留**：在 `QuickCookies/Resources/` 目录下单独复制并保留了一份原始的透明背景 Logo 图标 [AppIcon_transparent.png](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/Resources/AppIcon_transparent.png)，专门供 `README.md` 文档展示使用，从而在任何明暗模式的文档背景下均能完美呈现无边框、无底色的极致排版质感。
+  - **Info.plist 图标配置补全**：在 [Info.plist](QuickCookies/Support/Info.plist) 中补全了 macOS 系统专属的 `<key>CFBundleIconFile</key><string>AppIcon</string>` 配置，彻底解决了由于此前仅配置了 iOS/tvOS 的 `CFBundleIconName` 导致 macOS Finder (访达) 和 LaunchServices 无法识别渲染 `.icns` 图标文件、退化为系统默认空白应用图标的 Bug。
+  - **产品级 README 重构**：重新将 [README.md](README.md) 重写为高规格产品级示文。在顶部居中展示了全新卡通面包品牌 Logo，用生动、富有感染力的产品文案包装了 0ms 秒开、黄金比例、Space 弹簧动效、多语言热刷新等核心卖点，并重新整理了使用指南及开发规范。
+  - **AppIcon 白色底座合并**：为解决透明背景在 macOS 上被系统自动填充难看灰色底座的问题，编写了 Swift 合并底图脚本 `merge_bg.swift` 并在 Logo 透明层下方完美平铺了纯白色底色，重新生成了 10 种分辨率图标规格并覆盖 `AppIcon.appiconset`，重新跑通了编译验证。
+  - **透明底 Logo 图标保留**：在 `QuickCookies/Resources/` 目录下单独复制并保留了一份原始的透明背景 Logo 图标 [AppIcon_transparent.png](QuickCookies/Resources/AppIcon_transparent.png)，专门供 `README.md` 文档展示使用，从而在任何明暗模式的文档背景下均能完美呈现无边框、无底色的极致排版质感。
   - **产品级功能体验全面升级**：根据差距分析完成开发闭环，全量实现以下功能：
     1. **Finder Sync 扩展集成**：新建独立的 `QuickCookiesFinderSync` 扩展 Target，通过沙盒合规通道免权限检索 Finder 选中项，并在 Finder 中无感集成右键“用 Quick Cookies 预览”菜单，且在 `QuickLookOverlay.swift` 支持免辅助功能授权的鼠标坐标降级策略。
     2. **图片与 PDF 媒体预览**：通过 `MediaPreviewView.swift` 支持了 PDF 文件的翻阅与选择，以及图片（`.png`, `.jpg`, `.jpeg`, `.webp` 等）的分辨率/物理大小元数据卡片显示。
@@ -230,13 +230,21 @@
   - **高频滚动事件同步前置拦截（P2）**：在 `boundsDidChangeNotification` 触发的 `handleScroll` 回调中，增加同步前置 `guard` 检查 `state.hasMoreChunks` 与 `state.isIncrementalLoading`。若无需加载更多则立即拦截返回，避免在滚动中向主线程高频派发无意义的 RunLoop 任务。
   - **增量追加任务后台调度优化（P3）**：将 `appendChunk` 与后台全量高亮任务的优先级调整为 `qos: .utility`，避免后台任务与前台渲染滚动抢占 CPU 核心资源。
   - **文本与代码窗口滚动卡顿彻底修复与实时热联动优化（2026-06-01）**：
-    - **Finder 探测同步 AppleEvent 后台化**：在 [QuickLookOverlay.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/UI/QuickLookOverlay.swift) 中，将 150ms 周期性探测 Finder 选中文件的 `FileDetector.getSelectedFilePath()` 同步跨进程通信 (IPC) 移入后台全局队列（`qos: .userInteractive`）中执行，彻底释放主线程，杜绝了周期性探测引起的主线程丢帧挂起。
-    - **CodeView 滚动重载 Bug 修复**：在 [CodeView.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/UI/CodeView.swift) 中修复了 `fontChanged` 的判断逻辑。在 `Coordinator` 中新增 `lastFontSize` 缓存，直接比对缓存的字号与字体名，彻底消除了富文本渲染导致 `fontChanged` 被恒判定为 `true` 的重载顿挫。
-    - **EditorView 编辑滚动性能调优**：在 [EditorView.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/UI/EditorView.swift) 中开启了 `allowsNonContiguousLayout = true` 避免大文件主线程布局卡顿，开启了 `copiesOnScroll` 像素拷贝与 `usesPredominantAxisScrolling`。对 `updateNSView` 引入了防御性更新判断（仅在不同时更新 `font`、背景与文本色），避免了每次打字或重绘时无脑重新排版全文引起的严重卡顿。
-    - **字号与字体实时热联动恢复**：采纳体验设计反馈，恢复了 [ContentView.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/UI/ContentView.swift) 中的 `PreviewCodeView`、`EditContentView` 和 [MarkdownView.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/UI/MarkdownView.swift) 中的 `@ObservedObject settings` 实时联动绑定。由于有精确的缓存比对和防御属性更新拦截，日常滚动打字时 100% 零多余消耗，仅在用户切换字号时触发单次极轻量（1-3ms）的可视区重布局，达成了极致流畅与高端交互的共存。
-  - **js 等语言多后缀变体语法高亮支持扩充（2026-06-01）**：在 [Constants.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/Config/Constants.swift) 中追加支持了 `cjs`, `mjs`, `cts`, `mts`, `jsonc`, `json5`, `eyaml`, `command`, `ksh` 等变体后缀语法高亮，并扩充了 `mdown`, `mdwn`, `mkd`, `mkdn` 等 Markdown 的原生渲染分类。
-  - **MD 文件预览顶栏/文件名消失 Bug 修复（2026-06-01）**：在 [ContentView.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/UI/ContentView.swift) 中为工具栏加挂了 `.zIndex(1)` 层级锁定，彻底阻断了原生 SwiftUI ScrollView 背景色在忽略安全区域时穿透覆盖顶栏的视觉 Bug，完美解决了文件名一会又消失的问题。
+    - **Finder 探测同步 AppleEvent 后台化**：在 [QuickLookOverlay.swift](QuickCookies/UI/QuickLookOverlay.swift) 中，将 150ms 周期性探测 Finder 选中文件的 `FileDetector.getSelectedFilePath()` 同步跨进程通信 (IPC) 移入后台全局队列（`qos: .userInteractive`）中执行，彻底释放主线程，杜绝了周期性探测引起的主线程丢帧挂起。
+    - **CodeView 滚动重载 Bug 修复**：在 [CodeView.swift](QuickCookies/UI/CodeView.swift) 中修复了 `fontChanged` 的判断逻辑。在 `Coordinator` 中新增 `lastFontSize` 缓存，直接比对缓存的字号与字体名，彻底消除了富文本渲染导致 `fontChanged` 被恒判定为 `true` 的重载顿挫。
+    - **EditorView 编辑滚动性能调优**：在 [EditorView.swift](QuickCookies/UI/EditorView.swift) 中开启了 `allowsNonContiguousLayout = true` 避免大文件主线程布局卡顿，开启了 `copiesOnScroll` 像素拷贝与 `usesPredominantAxisScrolling`。对 `updateNSView` 引入了防御性更新判断（仅在不同时更新 `font`、背景与文本色），避免了每次打字或重绘时无脑重新排版全文引起的严重卡顿。
+    - **字号与字体实时热联动恢复**：采纳体验设计反馈，恢复了 [ContentView.swift](QuickCookies/UI/ContentView.swift) 中的 `PreviewCodeView`、`EditContentView` 和 [MarkdownView.swift](QuickCookies/UI/MarkdownView.swift) 中的 `@ObservedObject settings` 实时联动绑定。由于有精确的缓存比对和防御属性更新拦截，日常滚动打字时 100% 零多余消耗，仅在用户切换字号时触发单次极轻量（1-3ms）的可视区重布局，达成了极致流畅与高端交互的共存。
+  - **js 等语言多后缀变体语法高亮支持扩充（2026-06-01）**：在 [Constants.swift](QuickCookies/Config/Constants.swift) 中追加支持了 `cjs`, `mjs`, `cts`, `mts`, `jsonc`, `json5`, `eyaml`, `command`, `ksh` 等变体后缀语法高亮，并扩充了 `mdown`, `mdwn`, `mkd`, `mkdn` 等 Markdown 的原生渲染分类。
+  - **MD 文件预览顶栏/文件名消失 Bug 修复（2026-06-01）**：在 [ContentView.swift](QuickCookies/UI/ContentView.swift) 中为工具栏加挂了 `.zIndex(1)` 层级锁定，彻底阻断了原生 SwiftUI ScrollView 背景色在忽略安全区域时穿透覆盖顶栏的视觉 Bug，完美解决了文件名一会又消失的问题。
   - **构建验证**：项目重新编译 **BUILD SUCCEEDED**，顺利通过本地构建。
+- **Office 办公文档与富文本预览支持 & Markdown 导出 PDF 新功能集成（2026-06-01）**：
+  - **Office 与富文本文件放行与分类**：在 [FileTypeClassifier.swift](QuickCookies/Core/FileTypeClassifier.swift) 中扩充了 `.office` 渲染类型，直接支持 `.rtf`, `.rtfd`, `.doc`, `.docx`, `.xls`, `.xlsx`, `.ppt`, `.pptx`, `.key`, `.pages`, `.numbers`, `.csv` 的类型识别与直接放行，避免被快速二进制检测误拦截。
+  - **原生 QLPreviewView 预览封装**：新建了 [OfficePreviewView.swift](QuickCookies/UI/OfficePreviewView.swift) 组件，通过 `NSViewRepresentable` 将 AppKit 内置的 `QLPreviewView` 封装为 SwiftUI 视图，实现了对 Office 文档及富文本 100% 精确的本地渲染与 0 开发成本的多格式扩展，并在 `ContentView` 挂载此渲染逻辑、跳过了二进制文件的文本异步加载、在工具栏中拦截了编辑切换。
+  - **打包内置 marked.js (P0 离线保证)**：为了确保在无网络或离线时仍能实现完美排版，我们将完整版的 `marked.min.js` 编译成果以内置 Raw String `#"""..."""#` 形式保存在新建的 [MarkedJS.swift](QuickCookies/Core/MarkedJS.swift) 中，极大减轻了网络依赖和 Xcode Bundle 资源的打包配置负担。
+  - **WebKit createPDF 离屏导出方案**：新建了符合 `WKNavigationDelegate` 的 [MarkdownPDFExporter.swift](QuickCookies/Core/MarkdownPDFExporter.swift) 导出器，在主线程动态创建离屏 `WKWebView`，将 Raw Markdown 通过内置 `marked` 库解析为带有 GitHub Markdown 主题 CSS 样式的完整 HTML（包含 highlight.js 的在线代码着色支持）。并在网页渲染加载完毕后使用 `webView.createPDF(configuration:)` 异步生成 PDF 数据写入磁盘。
+  - **工具栏“导出 PDF”按钮与 NSSavePanel 调起**：在 [ContentView.swift](QuickCookies/UI/ContentView.swift) 顶部工具栏右侧新增了“导出 PDF”按钮（仅在预览 Markdown 时显示），点击后优雅调起 `NSSavePanel` 确认保存位置，并绑定导出器和 Toast 成功回调。
+  - **构建验证**：完成 `QuickCookies.xcodeproj/project.pbxproj` 对三个新增 Swift 文件的 PBXBuildFile/PBXFileReference 引入，项目整体编译 **BUILD SUCCEEDED**。
+
 
 
 

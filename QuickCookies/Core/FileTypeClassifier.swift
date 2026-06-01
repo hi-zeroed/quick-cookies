@@ -7,6 +7,7 @@ enum FileRenderType {
     case pdf            // PDF 预览
     case image          // 图片预览
     case unsupported    // 不支持预览的文件
+    case office         // [NEW] Word, Excel, PPT, RTF, RTFD, Pages, Numbers, Keynote, CSV 等
 }
 
 struct FileTypeClassifier {
@@ -28,6 +29,12 @@ struct FileTypeClassifier {
         let imageExtensions: Set<String> = ["png", "jpg", "jpeg", "webp", "gif", "bmp", "tiff", "tif", "heic", "heif", "ico"]
         if imageExtensions.contains(ext) {
             return .image
+        }
+
+        // [NEW] 优先匹配并分类办公文档和富文本类型，防止后续被 fast binary 误杀
+        let officeExtensions: Set<String> = ["rtf", "rtfd", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "key", "pages", "numbers", "csv"]
+        if officeExtensions.contains(ext) {
+            return .office
         }
 
         // 快速进行物理二进制检测 (只读取最前 1KB 字节检查 null 字节)
@@ -78,6 +85,12 @@ struct FileTypeClassifier {
         
         let imageExtensions: Set<String> = ["png", "jpg", "jpeg", "webp", "gif", "bmp", "tiff", "tif", "heic", "heif", "ico"]
         if imageExtensions.contains(ext) {
+            return true
+        }
+
+        // [NEW] 直接放行支持的办公文档和富文本格式
+        let officeExtensions: Set<String> = ["rtf", "rtfd", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "key", "pages", "numbers", "csv"]
+        if officeExtensions.contains(ext) {
             return true
         }
 
