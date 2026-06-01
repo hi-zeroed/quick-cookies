@@ -451,6 +451,11 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
     private func performQuickLookAnimation(previewPanel: NSPanel, sourceRect: CGRect, targetRect: CGRect) {
         guard let contentView = previewPanel.contentView, let layer = contentView.layer else { return }
         
+        // 动画开始前先将系统红绿灯控制按钮隐藏，防止其在动画播放前突兀亮在既定位置
+        previewPanel.standardWindowButton(.closeButton)?.alphaValue = 0.0
+        previewPanel.standardWindowButton(.miniaturizeButton)?.alphaValue = 0.0
+        previewPanel.standardWindowButton(.zoomButton)?.alphaValue = 0.0
+        
         // 再次校准 anchorPoint & position，以防挂载后被 AppKit 布局重置
         layer.anchorPoint = CGPoint(x: 0.5, y: 0.5)
         layer.position = CGPoint(x: targetRect.width / 2, y: targetRect.height / 2)
@@ -497,6 +502,16 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         CATransaction.begin()
         layer.add(group, forKey: "quickLookShow")
         CATransaction.commit()
+        
+        // 动画中后期渐显系统红绿灯按钮，达成呼吸感
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.22) {
+            NSAnimationContext.runAnimationGroup({ context in
+                context.duration = 0.15
+                previewPanel.standardWindowButton(.closeButton)?.animator().alphaValue = 1.0
+                previewPanel.standardWindowButton(.miniaturizeButton)?.animator().alphaValue = 1.0
+                previewPanel.standardWindowButton(.zoomButton)?.animator().alphaValue = 1.0
+            }, completionHandler: nil)
+        }
     }
 
     /// 高精度获取 Finder 中当前选中项的视觉物理坐标 (AXUIElement API)
@@ -820,6 +835,11 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
             close()
             return
         }
+
+        // 关闭时立刻隐藏系统红绿灯按钮，使其随着窗口收缩缩回原位而完美消失
+        window.standardWindowButton(.closeButton)?.alphaValue = 0.0
+        window.standardWindowButton(.miniaturizeButton)?.alphaValue = 0.0
+        window.standardWindowButton(.zoomButton)?.alphaValue = 0.0
 
         // 立即注销键盘事件监视器并销毁定时器，防止动画期间误触发
         if let monitor = localEventMonitor {

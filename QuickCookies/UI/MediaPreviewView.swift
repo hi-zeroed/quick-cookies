@@ -10,6 +10,11 @@ struct MediaPreviewView: View {
         Group {
             if renderType == .pdf {
                 PDFKitView(url: URL(fileURLWithPath: filePath))
+                    .cornerRadius(12)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(Color.appBorder.opacity(0.3), lineWidth: 1)
+                    )
             } else if renderType == .image {
                 ImageFileView(filePath: filePath)
             } else {

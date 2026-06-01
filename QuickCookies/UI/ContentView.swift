@@ -88,6 +88,12 @@ struct ContentView: View {
     @State private var showReloadAlert: Bool = false
     @State private var isSaving: Bool = false
     
+    // Markdown 导出 PDF 状态与本地 Toast 提示
+    @State private var isExportingPDF: Bool = false
+    @State private var showLocalToast: Bool = false
+    @State private var localToastMessage: String = ""
+    @State private var localToastIcon: String? = nil
+    
     // 状态化分段文件读取器
     @State private var chunkReader: FileChunkReader? = nil
 
@@ -111,6 +117,7 @@ struct ContentView: View {
         }
         .ignoresSafeArea(edges: .top)
         .background(Color.appBackground)
+        .toast(isShowing: $showLocalToast, message: localToastMessage, icon: localToastIcon)
         .alert("保存失败".localized(), isPresented: $showErrorAlert) {
             Button("确定".localized(), role: .cancel) { }
         } message: {
@@ -195,15 +202,22 @@ struct ContentView: View {
                 if state.filePath != nil && state.errorMessage == nil {
                     // 导出 PDF 按钮 (仅在预览 Markdown 时显示)
                     if state.renderType == .markdown && state.mode == .preview {
-                        Button(action: exportMarkdownToPDF) {
-                            Image(systemName: "arrow.down.doc")
-                                .renderingMode(.template)
-                                .resizable()
+                        if isExportingPDF {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle(tint: Color.appText.opacity(0.6)))
+                                .scaleEffect(0.8)
                                 .frame(width: 16, height: 16)
-                                .foregroundColor(Color.appText.opacity(0.8))
+                        } else {
+                            Button(action: exportMarkdownToPDF) {
+                                Image(systemName: "arrow.down.doc")
+                                    .renderingMode(.template)
+                                    .resizable()
+                                    .frame(width: 16, height: 16)
+                                    .foregroundColor(Color.appText.opacity(0.8))
+                            }
+                            .buttonStyle(.plain)
+                            .help("导出 PDF".localized())
                         }
-                        .buttonStyle(.plain)
-                        .help("导出 PDF".localized())
                     }
                     
                     if state.renderType != .pdf && state.renderType != .image && state.renderType != .office {
@@ -349,6 +363,11 @@ struct ContentView: View {
                 MediaPreviewView(filePath: path, renderType: renderType)
             case .office:
                 OfficePreviewView(fileURL: URL(fileURLWithPath: path))
+                    .cornerRadius(12)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(Color.appBorder.opacity(0.3), lineWidth: 1)
+                    )
             case .unsupported:
                 UnsupportedFileView(filePath: path, errorMessage: state.errorMessage)
             }
@@ -514,29 +533,38 @@ struct ContentView: View {
         
         let savePanel = NSSavePanel()
         savePanel.allowedContentTypes = [.pdf]
-        savePanel.nameFieldStringValue = (URL(fileURLWithPath: path).deletingPathExtension().lastPathComponent) + ".pdf"
+        let fileURL = URL(fileURLWithPath: path)
+        savePanel.directoryURL = fileURL.deletingLastPathComponent() // 默认导出路径保持与源文件一致
+        savePanel.nameFieldStringValue = fileURL.deletingPathExtension().lastPathComponent + ".pdf"
         savePanel.canCreateDirectories = true
         savePanel.prompt = "导出".localized()
         
         let completionHandler: (NSApplication.ModalResponse) -> Void = { response in
             if response == .OK, let targetURL = savePanel.url {
-                self.isLoading = true
+                self.isExportingPDF = true // 开启原位 Loading
                 
                 MarkdownPDFExporter.export(markdownText: self.content) { result in
                     DispatchQueue.main.async {
-                        self.isLoading = false
+                        self.isExportingPDF = false // 关闭原位 Loading
                         switch result {
                         case .success(let data):
                             do {
                                 try data.write(to: targetURL)
-                                QuickLookOverlay.shared.showToast(message: "PDF 导出成功".localized(), icon: "checkmark.circle")
+                                // 窗口内成功提醒
+                                self.localToastMessage = "PDF 导出成功".localized()
+                                self.localToastIcon = "checkmark.circle"
+                                self.showLocalToast = true
                             } catch {
-                                self.errorMessage = error.localizedDescription
-                                self.showErrorAlert = true
+                                // 窗口内失败提醒
+                                self.localToastMessage = error.localizedDescription
+                                self.localToastIcon = "xmark.circle"
+                                self.showLocalToast = true
                             }
                         case .failure(let error):
-                            self.errorMessage = error.localizedDescription
-                            self.showErrorAlert = true
+                            // 窗口内失败提醒
+                            self.localToastMessage = error.localizedDescription
+                            self.localToastIcon = "xmark.circle"
+                            self.showLocalToast = true
                         }
                     }
                 }

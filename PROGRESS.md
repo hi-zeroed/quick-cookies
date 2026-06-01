@@ -244,6 +244,13 @@
   - **WebKit createPDF 离屏导出方案**：新建了符合 `WKNavigationDelegate` 的 [MarkdownPDFExporter.swift](QuickCookies/Core/MarkdownPDFExporter.swift) 导出器，在主线程动态创建离屏 `WKWebView`，将 Raw Markdown 通过内置 `marked` 库解析为带有 GitHub Markdown 主题 CSS 样式的完整 HTML（包含 highlight.js 的在线代码着色支持）。并在网页渲染加载完毕后使用 `webView.createPDF(configuration:)` 异步生成 PDF 数据写入磁盘。
   - **工具栏“导出 PDF”按钮与 NSSavePanel 调起**：在 [ContentView.swift](QuickCookies/UI/ContentView.swift) 顶部工具栏右侧新增了“导出 PDF”按钮（仅在预览 Markdown 时显示），点击后优雅调起 `NSSavePanel` 确认保存位置，并绑定导出器和 Toast 成功回调。
   - **构建验证**：完成 `QuickCookies.xcodeproj/project.pbxproj` 对三个新增 Swift 文件的 PBXBuildFile/PBXFileReference 引入，项目整体编译 **BUILD SUCCEEDED**。
+- **UI 细节优化与动效打磨（2026-06-01）**：
+  - **PDF与Office视图圆角化**：在 [MediaPreviewView.swift](QuickCookies/UI/MediaPreviewView.swift)（针对PDF）和 [ContentView.swift](QuickCookies/UI/ContentView.swift)（针对Office）中对预览代表视图应用了 `.cornerRadius(12)` 并增加了超细描边叠加，解决了之前渲染底色直角突兀的问题，达成与背景磨砂窗口的完美圆润契合。
+  - **Markdown 导出交互提升 (进度条与窗口内提醒)**：在 [ContentView.swift](QuickCookies/UI/ContentView.swift) 中，当用户开始导出 PDF 时，工具栏右侧的“导出 PDF”按钮会原位无痕转化为旋转的 `ProgressView` 进度条，移除全屏 Loading 骨架屏；PDF 导出成功或失败后，会在窗口内中央动态浮现半透明高对比度 [ToastView.swift](QuickCookies/UI/ToastView.swift) 提醒并在 2.5 秒内自动渐变消失，避免系统 Toast 的视线盲区。
+  - **默认导出路径自动对齐源文件**：重构了 `NSSavePanel` 的配置，在调起时将 `directoryURL` 指向当前正在预览的 Markdown 文件的父级目录，使用户可以直接快速在源文件同级目录下进行另存为，大大节省手动寻找路径的时间。
+  - **红绿灯与窗口打开关闭动画高精度同步**：在 [QuickLookOverlay.swift](QuickCookies/UI/QuickLookOverlay.swift) 中，为解决窗口弹出/收缩时红绿灯按钮瞬间直挺挺亮起的突兀感，在动画第 0 毫秒强行将红绿灯按钮的 `alphaValue` 设为 0.0，等窗口仿射缩放弹簧动画运行到中后期（0.22 秒）时再以 0.15 秒渐变淡入；在关闭收缩动画启动前立即将其隐去（`alphaValue = 0.0`），彻底打通视觉惯性一致性。
+  - **构建验证**：项目重新编译 **BUILD SUCCEEDED**，顺利通过本地构建。
+
 
 
 
