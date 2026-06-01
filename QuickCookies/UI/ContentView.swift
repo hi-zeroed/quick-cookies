@@ -204,9 +204,8 @@ struct ContentView: View {
                     if state.renderType == .markdown && state.mode == .preview {
                         if isExportingPDF {
                             ProgressView()
-                                .progressViewStyle(CircularProgressViewStyle(tint: Color.appText.opacity(0.6)))
-                                .scaleEffect(0.8)
-                                .frame(width: 16, height: 16)
+                                .progressViewStyle(LinearProgressViewStyle(tint: Color.appText.opacity(0.6)))
+                                .frame(width: 60)
                         } else {
                             Button(action: exportMarkdownToPDF) {
                                 Image(systemName: "arrow.down.doc")

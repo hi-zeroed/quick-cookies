@@ -36,6 +36,13 @@ struct PDFKitView: NSViewRepresentable {
         pdfView.autoScales = true
         pdfView.displayMode = .singlePageContinuous
         pdfView.backgroundColor = .clear
+        
+        // 显式启用 layer 物理裁剪，防范底层渲染区域与背景分层导致的直角溢出
+        pdfView.wantsLayer = true
+        if let layer = pdfView.layer {
+            layer.cornerRadius = 12
+            layer.masksToBounds = true
+        }
         return pdfView
     }
     
