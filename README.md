@@ -116,7 +116,10 @@ open Build/Build/Products/Debug/QuickCookies.app
 ### 1. 应用图标来源
 本项目当前采用的卡通网格面包应用图标（AppIcon）源自 [iconfont 矢量图标库（合集 ID: 15128）](https://www.iconfont.cn/collections/detail?spm=a313x.manage_type_mylikes.0.da5a778a4.77973a81n26vWj&cid=15128)。
 
-### 2. 商用合规性评估
+### 2. SVG 图标来源
+本项目中使用的所有工具栏、状态栏及下拉菜单自定义 SVG 图标，均源自开源的 [Remix Icon](https://remixicon.com/) 矢量图标库（采用 Apache License 2.0 开源协议）。
+
+### 3. 商用合规性评估
 * **版权归属**：iconfont 上的图标资源（除阿里官方出品外）均由独立设计师或用户上传分享，其著作权属于原上传作者。平台不拥有这些图标的版权，亦无法提供统一的商用授权。
 * **非商用合规性**：若本项目处于个人学习、研究及非营利性开源阶段，按平台要求在 `README` 中明确标注出处即可合规引用。
 * **商用合规风险**：如果本项目未来有任何商业化计划（包括但不限于上架 Mac App Store 售卖、内购、收取捐赠等），直接使用此图标将存在侵权风险。**必须主动联系图标原作者以获取书面的商用授权**。
