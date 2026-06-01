@@ -258,7 +258,9 @@
   - **居上无 Icon 提示**：优化 [ToastView.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/UI/ToastView.swift)，删除提示信息中的 icon 字符并保持距顶部 60px 处以 slide-in transition 展现。
   - **回归与维护**：同步更新 `REQUIREMENTS.md`、`TEST_PLAN.md` 和 `TASKS.md` 里的所有任务状态。
   - **系统原生控件本地化激活**：在 [Info.plist](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/Info.plist) 中显式补充了 `CFBundleDevelopmentRegion` 为 `zh-Hans`，并配置 `CFBundleLocalizations` 列表包含 `zh-Hans` 和 `en`。这指示 LaunchServices 与 AppKit 将当前应用识别为已本地化的中文应用，自动让系统的 `NSSavePanel`（如重复文件替换提示）跟随系统语言（简体中文）渲染，完美解决了重复文件覆盖提示默认英文的 Bug。
+  - **PDF 导出图标自定义矢量化**：新建了 [ToolbarExport.imageset](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/Resources/Assets.xcassets/ToolbarExport.imageset) 资源并存入高档、精致的 [ToolbarExport.svg](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/Resources/Assets.xcassets/ToolbarExport.imageset/ToolbarExport.svg) 折角文档下载矢量图（Remix Icon 线条艺术风格），彻底将 [ContentView.swift](file:///Users/jiangwei/Git/QuickPeek/QuickCookies/UI/ContentView.swift) 中唯一遗留的 SF Symbol 占位符 `arrow.down.doc` 替换为 `ToolbarExport` 自定义模板矢量图，实现了工具栏视觉设计风格的 100% 连贯性与高档化。
   - **构建验证**：执行 `xcodebuild` 编译，输出 **BUILD SUCCEEDED**。
+
 
 
 

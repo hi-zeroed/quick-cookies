@@ -210,7 +210,7 @@ struct ContentView: View {
                                     .frame(width: 60)
                             } else {
                                 Button(action: exportMarkdownToPDF) {
-                                    Image(systemName: "arrow.down.doc")
+                                    Image("ToolbarExport")
                                         .renderingMode(.template)
                                         .resizable()
                                         .frame(width: 16, height: 16)
