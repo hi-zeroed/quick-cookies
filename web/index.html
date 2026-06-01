@@ -187,21 +187,38 @@
             z-index: 10;
         }
 
-        /* 渐进飞入 Reveal 动效 */
-        .reveal {
+        /* 物理弹簧 (Spring Physics) 级别交错飞入动效 */
+        .spring-reveal {
             opacity: 0;
-            transform: translateY(20px);
-            animation: revealUp 1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            transform: translateY(60px) scale(0.96);
+            animation: springEntrance 1.2s cubic-bezier(0.25, 1.1, 0.5, 1.02) forwards;
         }
 
-        .delay-1 { animation-delay: 0.15s; }
-        .delay-2 { animation-delay: 0.3s; }
-        .delay-3 { animation-delay: 0.45s; }
+        /* 优雅渐显动效（适合 Header 与 Footer，免去过于激烈的移动） */
+        .fade-reveal {
+            opacity: 0;
+            animation: fadeEntrance 1s ease-out forwards;
+        }
 
-        @keyframes revealUp {
+        /* 交错延迟微调序列 (Stagger Delays) */
+        .stagger-0 { animation-delay: 0s; }
+        .stagger-1 { animation-delay: 0.06s; }
+        .stagger-2 { animation-delay: 0.12s; }
+        .stagger-3 { animation-delay: 0.18s; }
+        .stagger-4 { animation-delay: 0.24s; }
+        .stagger-5 { animation-delay: 0.30s; }
+        .stagger-6 { animation-delay: 0.36s; }
+
+        @keyframes springEntrance {
             to {
                 opacity: 1;
-                transform: translateY(0);
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        @keyframes fadeEntrance {
+            to {
+                opacity: 1;
             }
         }
 
@@ -317,9 +334,13 @@
             border-radius: 13px;
             background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.02));
             box-shadow: 0 35px 75px rgba(0, 0, 0, 0.55);
-            animation: windowFloat 8s infinite ease-in-out;
+            /* 多重动画串联：先执行 springEntrance 入场(延迟 0.30s)，待稳定后于 1.50s 瞬间启动 windowFloat 浮动 */
+            opacity: 0;
             transform-style: preserve-3d;
             transform: rotateX(8deg) rotateY(-8deg);
+            animation: 
+                springEntrance 1.2s cubic-bezier(0.25, 1.1, 0.5, 1.02) 0.30s forwards,
+                windowFloat 8s infinite ease-in-out 1.50s;
         }
 
         /* 卡片旋转彩虹边框流光（微动效） */
@@ -435,7 +456,7 @@
     </div>
 
     <!-- 顶部导航与双语切换 -->
-    <header>
+    <header class="fade-reveal stagger-0">
         <div class="header-logo">
             <img src="logo.png" alt="Quick Cookies Logo">
             <span>Quick Cookies</span>
@@ -451,11 +472,11 @@
 
     <!-- 主体视口 -->
     <main>
-        <div class="tagline reveal" data-i18n="tagline">极速无感文件预览神器</div>
-        <h1 class="reveal delay-1" data-i18n="title">秒开，无缝，极简。</h1>
-        <p class="subtitle reveal delay-2" data-i18n="desc">双击 Option 瞬间呼出。为 macOS 深度定制的卡片式文件预览与快捷编辑工具。</p>
+        <div class="tagline spring-reveal stagger-1" data-i18n="tagline">极速无感文件预览/编辑</div>
+        <h1 class="spring-reveal stagger-2" data-i18n="title">秒开，无缝，极简。</h1>
+        <p class="subtitle spring-reveal stagger-3" data-i18n="desc">双击 Option 瞬间呼出。为 macOS 深度定制的卡片式文件预览与快捷编辑工具。</p>
         
-        <div class="cta-group reveal delay-3">
+        <div class="cta-group spring-reveal stagger-4">
             <a href="https://github.com/your-username/QuickPeek/releases" class="btn btn-primary">
                 <svg width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
                     <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
@@ -472,7 +493,7 @@
         </div>
 
         <!-- 3D 浮动仿 macOS 预览窗口 -->
-        <div class="window-wrapper reveal delay-3">
+        <div class="window-wrapper">
             <div class="mock-window">
                 <div class="mock-header">
                     <div class="traffic-lights">
@@ -495,7 +516,7 @@
     </main>
 
     <!-- 页脚 -->
-    <footer class="reveal delay-3" data-i18n="footer">
+    <footer class="fade-reveal stagger-6" data-i18n="footer">
         &copy; 2026 Quick Cookies. 以 MIT 协议开源。图标源自 Remix Icon。
     </footer>
 
