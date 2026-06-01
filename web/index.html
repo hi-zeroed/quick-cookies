@@ -485,45 +485,50 @@
     </header>
 
     <!-- 主体视口 -->
-    <main>
-        <div class="tagline spring-reveal stagger-1" data-i18n="tagline">极速无感文件预览/编辑</div>
-        <h1 class="spring-reveal stagger-2" data-i18n="title">秒开，无缝，极简。</h1>
-        <p class="subtitle spring-reveal stagger-3" data-i18n="desc">双击 Option 瞬间呼出。为 macOS 深度定制的卡片式文件预览与快捷编辑工具。</p>
-        
-        <div class="cta-group spring-reveal stagger-4">
-            <a href="https://github.com/your-username/QuickPeek/releases" class="btn btn-primary">
-                <svg width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
-                    <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
-                    <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
-                </svg>
-                <span data-i18n="download">下载 .DMG</span>
-            </a>
-            <a href="https://github.com/your-username/QuickPeek" class="btn btn-secondary" target="_blank">
-                <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="margin-right: 2px;">
-                    <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
-                </svg>
-                <span data-i18n="github">GitHub 仓库</span>
-            </a>
+    <main class="hero-container">
+        <!-- 左侧文本排版 -->
+        <div class="hero-content">
+            <div class="tagline spring-reveal stagger-1" data-i18n="tagline">极速无感文件预览/编辑</div>
+            <h1 class="spring-reveal stagger-2" data-i18n="title">秒开，无缝，极简。</h1>
+            <p class="subtitle spring-reveal stagger-3" data-i18n="desc">双击 Option 瞬间呼出。为 macOS 深度定制的卡片式文件预览与快捷编辑工具。</p>
+            
+            <div class="cta-group spring-reveal stagger-4">
+                <a href="https://github.com/your-username/QuickPeek/releases" class="btn btn-primary">
+                    <svg width="18" height="18" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                        <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+                    </svg>
+                    <span data-i18n="download">下载 .DMG</span>
+                </a>
+                <a href="https://github.com/your-username/QuickPeek" class="btn btn-secondary" target="_blank">
+                    <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="margin-right: 2px;">
+                        <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+                    </svg>
+                    <span data-i18n="github">GitHub 仓库</span>
+                </a>
+            </div>
         </div>
 
-        <!-- 3D 浮动仿 macOS 预览窗口 -->
-        <div class="window-wrapper">
-            <div class="mock-window">
-                <div class="mock-header">
-                    <div class="traffic-lights">
-                        <div class="dot red"></div>
-                        <div class="dot yellow"></div>
-                        <div class="dot green"></div>
+        <!-- 右侧仿真卡片 -->
+        <div class="hero-visual spring-reveal stagger-5">
+            <div class="window-wrapper">
+                <div class="mock-window">
+                    <div class="mock-header">
+                        <div class="traffic-lights">
+                            <div class="dot red"></div>
+                            <div class="dot yellow"></div>
+                            <div class="dot green"></div>
+                        </div>
+                        <div class="mock-filename" data-i18n="versionTitle">新版本已发布</div>
+                        <div style="width: 33px;"></div>
                     </div>
-                    <div class="mock-filename" data-i18n="versionTitle">新版本已发布</div>
-                    <div style="width: 33px;"></div>
-                </div>
-                <div class="mock-body">
-                    <div class="version-badge">v1.2.0</div>
-                    <div class="version-desc" data-i18n="versionInfo">
-                        🎉 优化 PDF/Office 圆角渲染与无界毛玻璃裁切<br>
-                        🚀 导出 Markdown 到 PDF 支持实时进度指示与顶层 Toast 提示<br>
-                        ✨ 深度适配 macOS 系统的明暗模式与中文本地化
+                    <div class="mock-body">
+                        <div class="version-badge">v1.2.0</div>
+                        <div class="version-desc" data-i18n="versionInfo">
+                            🎉 优化 PDF/Office 圆角渲染与无界毛玻璃裁切<br>
+                            🚀 导出 Markdown 到 PDF 支持实时进度指示与顶层 Toast 提示<br>
+                            ✨ 深度适配 macOS 系统的明暗模式与中文本地化
+                        </div>
                     </div>
                 </div>
             </div>
