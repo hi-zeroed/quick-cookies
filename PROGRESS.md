@@ -222,6 +222,13 @@
     - `isClosing = true`：在 `authTimer` / `animationTimer` 的 `onReceive` 回调顶部加 `guard !isClosing else { return }` 保护，让所有挂起中的 Timer 事件在 RunLoop 中立即无效
   - **动画节奏精简**：庆祝时长由 `0.8s` 缩短至 `0.6s`，淡出动画由 `0.22s` 缩短至 `0.18s`，整体关闭体验更加干脆利落
   - **构建验证**：`xcodebuild` 编译 **BUILD SUCCEEDED**，无 Warning/Error
+- **预览窗口滚动性能与拖拽感极致优化（2026-06-01）**：
+  - **主线程预构建变体字体缓存（P0）**：彻底移除了后台高亮线程对 `NSFontManager` 的并发调用，改在主线程中一次性生成 Regular、Bold、Italic、BoldItalic 变体并缓存于 `FontVariantCache` 中，后台线程仅需位运算从缓存获取字体，从根本上解决系统全局字体锁（Font Server Lock）争用导致的滚动不流畅与拖拽感。
+  - **主线程局部属性更新（P1）**：将后台高亮完成后在主线程中使用的 `setAttributedString` 整体重设操作，重构为在 `beginEditing()` / `endEditing()` 中遍历 `customFull` 并仅通过 `setAttributes` 局部更新样式属性。因为字符内容没有变化，`NSLayoutManager` 完整保留了全部的布局及行高缓存，消除了因丢弃缓存做全量排版重算引起的长帧卡顿。
+  - **高频滚动事件同步前置拦截（P2）**：在 `boundsDidChangeNotification` 触发的 `handleScroll` 回调中，增加同步前置 `guard` 检查 `state.hasMoreChunks` 与 `state.isIncrementalLoading`。若无需加载更多则立即拦截返回，避免在滚动中向主线程高频派发无意义的 RunLoop 任务。
+  - **增量追加任务后台调度优化（P3）**：将 `appendChunk` 与后台全量高亮任务的优先级调整为 `qos: .utility`，避免后台任务与前台渲染滚动抢占 CPU 核心资源。
+  - **构建验证**：项目重新编译 **BUILD SUCCEEDED**，顺利通过本地构建。
+
 
 
 
