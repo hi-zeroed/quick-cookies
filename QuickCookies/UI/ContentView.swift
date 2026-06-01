@@ -89,6 +89,7 @@ struct ContentView: View {
     @State private var isSaving: Bool = false
     
     // Markdown 导出 PDF 状态与本地 Toast 提示
+    @State private var isExportingPDFActive: Bool = false
     @State private var isExportingPDF: Bool = false
     @State private var showLocalToast: Bool = false
     @State private var localToastMessage: String = ""
@@ -202,21 +203,25 @@ struct ContentView: View {
                 if state.filePath != nil && state.errorMessage == nil {
                     // 导出 PDF 按钮 (仅在预览 Markdown 时显示)
                     if state.renderType == .markdown && state.mode == .preview {
-                        if isExportingPDF {
-                            ProgressView()
-                                .progressViewStyle(LinearProgressViewStyle(tint: Color.appText.opacity(0.6)))
-                                .frame(width: 60)
-                        } else {
-                            Button(action: exportMarkdownToPDF) {
-                                Image(systemName: "arrow.down.doc")
-                                    .renderingMode(.template)
-                                    .resizable()
-                                    .frame(width: 16, height: 16)
-                                    .foregroundColor(Color.appText.opacity(0.8))
+                        Group {
+                            if isExportingPDF {
+                                ProgressView()
+                                    .progressViewStyle(LinearProgressViewStyle(tint: Color.appText.opacity(0.6)))
+                                    .scaleEffect(x: 1.0, y: 0.4, anchor: .center)
+                                    .frame(width: 60)
+                            } else {
+                                Button(action: exportMarkdownToPDF) {
+                                    Image(systemName: "arrow.down.doc")
+                                        .renderingMode(.template)
+                                        .resizable()
+                                        .frame(width: 16, height: 16)
+                                        .foregroundColor(Color.appText.opacity(0.8))
+                                }
+                                .buttonStyle(.plain)
+                                .help("导出 PDF".localized())
                             }
-                            .buttonStyle(.plain)
-                            .help("导出 PDF".localized())
                         }
+                        .animation(.easeInOut(duration: 0.2), value: isExportingPDF)
                     }
                     
                     if state.renderType != .pdf && state.renderType != .image && state.renderType != .office {
@@ -540,11 +545,24 @@ struct ContentView: View {
         
         let completionHandler: (NSApplication.ModalResponse) -> Void = { response in
             if response == .OK, let targetURL = savePanel.url {
-                self.isExportingPDF = true // 开启原位 Loading
+                self.isExportingPDFActive = true
+                self.isExportingPDF = false
+                
+                // 延迟 0.25 秒决定是否显示进度条，避免快速导出时产生闪现
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) {
+                    if self.isExportingPDFActive {
+                        withAnimation(.easeInOut(duration: 0.2)) {
+                            self.isExportingPDF = true
+                        }
+                    }
+                }
                 
                 MarkdownPDFExporter.export(markdownText: self.content) { result in
                     DispatchQueue.main.async {
-                        self.isExportingPDF = false // 关闭原位 Loading
+                        self.isExportingPDFActive = false
+                        withAnimation(.easeInOut(duration: 0.15)) {
+                            self.isExportingPDF = false
+                        }
                         switch result {
                         case .success(let data):
                             do {
