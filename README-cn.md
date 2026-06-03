@@ -17,6 +17,7 @@
 
 <p align="center">
   <a href="#-核心特性">核心特性</a> •
+  <a href="#-支持的文件类型">支持的文件类型</a> •
   <a href="#-项目架构概览">项目架构</a> •
   <a href="#-使用指南">使用指南</a> •
   <a href="#-开发与构建">开发与构建</a> •
@@ -53,6 +54,55 @@
   - **Scripting Bridge 高性能检测**：通过内存级 AppleEvent 零开销同步获取 Finder 当前高亮文件路径，支持免辅助功能权限的鼠标定位降级策略。
   - **高精度物理飞回**：利用 `AXUIElement` 递归搜寻前台 Finder 窗口的选中项，在关闭窗口时，完美播放收缩动画“精准飞回”到 Finder 文件的原位图标处。
   - **自启动与静默运行**：基于 macOS 13+ 现代 `SMAppService` 登录项接口注册，后台 Agent 静默运行，无常驻垃圾后台，极简环保。
+
+
+## 📋 支持的文件类型
+
+### 代码语法高亮
+
+支持 **30+ 语言**、**60+ 文件扩展名** 的语法高亮：
+
+| 语言 | 扩展名 |
+| :--- | :--- |
+| **Web** | `html` `css` `scss` `sass` `less` `js` `jsx` `ts` `tsx` `vue` `svelte` `mdx` `graphql` `cjs` `mjs` `cts` `mts` |
+| **JSON / YAML / TOML / XML** | `json` `jsonc` `json5` `yaml` `yml` `eyaml` `toml` `xml` `plist` |
+| **Shell** | `sh` `zsh` `bash` `fish` `command` `ksh` |
+| **Python / Go / Rust** | `py` `go` `rs` |
+| **Java / Kotlin / Dart** | `java` `kt` `dart` |
+| **Swift / C / C++** | `swift` `c` `cpp` `h` `hpp` `cc` `cxx` |
+| **Ruby / PHP / Perl** | `rb` `php` `pl` `pm` `podspec` `fastfile` |
+| **Lua / Groovy / Scala** | `lua` `groovy` `scala` `gradle` `jenkinsfile` |
+| **Haskell / Erlang / Elixir** | `hs` `erl` `ex` `exs` |
+| **Clojure / Lisp / Scheme** | `clj` `cljs` `lisp` `lsp` `scheme` `scm` |
+| **SQL / INI / 配置** | `sql` `ini` `conf` `config` `properties` `env` |
+| **Docker / Make / 其他** | `dockerfile` `makefile` `log` `diff` `patch` `csv` `tsv` `lock` |
+
+### Markdown
+
+| 格式 | 扩展名 | 附加功能 |
+| :--- | :--- | :--- |
+| Markdown | `md` `markdown` `mdown` `mdwn` `mkd` `mkdn` | 支持导出为带样式的 PDF |
+
+### Office 与富文本文档
+
+| 格式 | 渲染方式 |
+| :--- | :--- |
+| Word（`.doc` `.docx`） | 原生 `QLPreviewView` |
+| Excel（`.xls` `.xlsx`） | 原生 `QLPreviewView` |
+| PowerPoint（`.ppt` `.pptx`） | 原生 `QLPreviewView` |
+| iWork — Pages, Numbers, Keynote | 原生 `QLPreviewView` |
+| PDF | 原生 `QLPreviewView` |
+| RTF / RTFD | 原生 `QLPreviewView` |
+
+### 媒体文件
+
+| 格式 | 扩展名 |
+| :--- | :--- |
+| 图片 | `png` `jpg` `jpeg` `gif` `bmp` `tiff` `webp` |
+
+### 纯文本（通用兜底）
+
+任何未在上述列表中明确列出的扩展名，且通过二进制检测的文件，一律以纯文本模式打开，并自动检测文件编码。不遗漏任何可读文件。
 
 ---
 

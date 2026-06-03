@@ -18,6 +18,7 @@
 <p align="center">
   <a href="README-cn.md">简体中文</a> •
   <a href="#-features">Features</a> •
+  <a href="#-supported-file-types">Supported File Types</a> •
   <a href="#-project-architecture">Project Structure</a> •
   <a href="#-usage-guide">Usage Guide</a> •
   <a href="#-development--build">Development & Build</a> •
@@ -54,6 +55,56 @@ The interface features a borderless frosted HUD card overlay with a golden-ratio
   - **Scripting Bridge Hook**: Zero-overhead AppleEvent query retrieves active Finder selection in microseconds, falling back to a safe mouse-coordinate pop-up when permissions are off.
   - **matchedGeometry Spring Transition**: Utilizes `AXUIElement` recursive target searching to fly the preview card back to the exact Finder cell position during close.
   - **SMAppService Startup**: Integrates modern macOS 13+ ServiceManagement login item API for lightweight, silent, and sandboxed auto-launch.
+
+---
+
+## 📋 Supported File Types
+
+### Code & Syntax Highlighting
+
+Quick Cookies provides syntax highlighting for **30+ languages** across **60+ file extensions**:
+
+| Language | Extensions |
+| :--- | :--- |
+| **Web** | `html` `css` `scss` `sass` `less` `js` `jsx` `ts` `tsx` `vue` `svelte` `mdx` `graphql` `cjs` `mjs` `cts` `mts` |
+| **JSON / YAML / TOML / XML** | `json` `jsonc` `json5` `yaml` `yml` `eyaml` `toml` `xml` `plist` |
+| **Shell** | `sh` `zsh` `bash` `fish` `command` `ksh` |
+| **Python / Go / Rust** | `py` `go` `rs` |
+| **Java / Kotlin / Dart** | `java` `kt` `dart` |
+| **Swift / C / C++** | `swift` `c` `cpp` `h` `hpp` `cc` `cxx` |
+| **Ruby / PHP / Perl** | `rb` `php` `pl` `pm` `podspec` `fastfile` |
+| **Lua / Groovy / Scala** | `lua` `groovy` `scala` `gradle` `jenkinsfile` |
+| **Haskell / Erlang / Elixir** | `hs` `erl` `ex` `exs` |
+| **Clojure / Lisp / Scheme** | `clj` `cljs` `lisp` `lsp` `scheme` `scm` |
+| **SQL / INI / Config** | `sql` `ini` `conf` `config` `properties` `env` |
+| **Docker / Make / Misc** | `dockerfile` `makefile` `log` `diff` `patch` `csv` `tsv` `lock` |
+
+### Markdown
+
+| Format | Extensions | Extra |
+| :--- | :--- | :--- |
+| Markdown | `md` `markdown` `mdown` `mdwn` `mkd` `mkdn` | Export to styled PDF via offscreen WebKit |
+
+### Office & Rich Documents
+
+| Format | Via |
+| :--- | :--- |
+| Word (`.doc` `.docx`) | Native `QLPreviewView` |
+| Excel (`.xls` `.xlsx`) | Native `QLPreviewView` |
+| PowerPoint (`.ppt` `.pptx`) | Native `QLPreviewView` |
+| iWork — Pages, Numbers, Keynote | Native `QLPreviewView` |
+| PDF | Native `QLPreviewView` |
+| RTF / RTFD | Native `QLPreviewView` |
+
+### Media
+
+| Format | Extensions |
+| :--- | :--- |
+| Images | `png` `jpg` `jpeg` `gif` `bmp` `tiff` `webp` |
+
+### Plain Text (Universal Fallback)
+
+Files with extensions not explicitly listed above — and that pass the binary detection check — are opened as plain text with automatic encoding detection. No file left unviewable.
 
 ---
 
