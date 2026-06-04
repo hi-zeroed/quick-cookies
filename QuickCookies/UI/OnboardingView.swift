@@ -30,13 +30,13 @@ struct ConfettiView: View {
             }
             .onAppear {
                 let colors: [Color] = [.red, .blue, .green, .yellow, .pink, .purple, .orange, .cyan]
-                for _ in 0..<70 {
+                for _ in 0..<85 {
                     particles.append(ConfettiParticle(
                         x: Double.random(in: 0...Double(geo.size.width)),
-                        y: Double.random(in: -150...0),
+                        y: Double.random(in: -100...Double(geo.size.height) * 0.5),
                         color: colors.randomElement()!,
                         size: Double.random(in: 8...15),
-                        speed: Double.random(in: 3...7),
+                        speed: Double.random(in: 4...9),
                         angle: Double.random(in: 0...360)
                     ))
                 }
@@ -98,6 +98,11 @@ struct VisualEffectView: NSViewRepresentable {
 struct OnboardingView: View {
     @State private var currentPage = 0
     @State private var isAccessibilityAuthorized = false
+    @State private var isFullDiskAccessAuthorized = false
+    @State private var isFinderExtensionAttempted = false
+    @State private var isCheckingAccessibility = false
+    @State private var isCheckingFDA = false
+    @State private var isStartingApp = false
     @State private var showConfetti = false
     @State private var isWelcomeAnimating = false
     @State private var demoAnimStep = 0
@@ -164,6 +169,7 @@ struct OnboardingView: View {
         .scaleEffect(windowScale)
         .frame(width: 620, height: 450)
         .onAppear {
+            isFinderExtensionAttempted = UserDefaults.standard.bool(forKey: "isFinderExtensionAttempted")
             checkPermissionState()
             withAnimation(.easeOut(duration: 0.8)) {
                 isWelcomeAnimating = true
@@ -173,6 +179,12 @@ struct OnboardingView: View {
             // 关闭序列启动后不再轮询权限，避免与 close/activationPolicy 产生 RunLoop 竞争
             guard !isClosing else { return }
             checkPermissionState()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            guard !isClosing else { return }
+            checkPermissionState()
+            isCheckingAccessibility = false
+            isCheckingFDA = false
         }
         .onReceive(animationTimer) { _ in
             // 关闭序列启动后停止动画更新
@@ -423,77 +435,92 @@ struct OnboardingView: View {
     
     // MARK: - Page 3: Permission Center (Progressive & Dual track)
     private var permissionPage: some View {
-        VStack(spacing: 16) {
-            VStack(spacing: 6) {
+        VStack(spacing: 14) {
+            VStack(spacing: 4) {
                 Text("运行模式与权限配置".localized())
-                    .font(.system(size: 16, weight: .bold))
+                    .font(.system(size: 15, weight: .bold))
                     .foregroundColor(Color.appText)
                 
                 Text("Quick Cookies 支持免系统高级权限运行，您可按需选择：".localized())
-                    .font(.system(size: 12))
+                    .font(.system(size: 11))
                     .foregroundColor(Color.appText.opacity(0.6))
                     .multilineTextAlignment(.center)
             }
-            .padding(.bottom, 4)
+            .padding(.bottom, 2)
             
-            HStack(spacing: 16) {
-                // Left track: Zero-permission Finder Sync
-                VStack(alignment: .leading, spacing: 10) {
-                    HStack {
-                        Image(systemName: "checkmark.shield.fill")
-                            .foregroundColor(.green)
-                            .font(.system(size: 16))
-                        Text("零权限模式 (推荐)".localized())
-                            .font(.system(size: 13, weight: .bold))
+            HStack(spacing: 12) {
+                // 1. Finder 扩展卡片
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(spacing: 6) {
+                        Image(systemName: isFinderExtensionAttempted ? "checkmark.circle.fill" : "arrow.up.forward.app")
+                            .foregroundColor(isFinderExtensionAttempted ? .green : .secondary)
+                            .font(.system(size: 14))
+                        Text("Finder 扩展".localized())
+                            .font(.system(size: 12, weight: .bold))
                             .foregroundColor(Color.appText)
                     }
                     
-                    Text("借助系统 Finder 扩展，零隐私风险运行。支持右键菜单预览和默认双击起跳预览。".localized())
-                        .font(.system(size: 11))
+                    Text("集成右键菜单与无感预览。零隐私风险。".localized())
+                        .font(.system(size: 10.5))
                         .foregroundColor(Color.appText.opacity(0.6))
-                        .lineSpacing(3)
-                        .frame(height: 54, alignment: .topLeading)
+                        .lineSpacing(2.5)
+                        .frame(height: 52, alignment: .topLeading)
                     
                     Spacer()
                     
-                    Button(action: {
-                        if let url = URL(string: "x-apple.systempreferences:com.apple.ExtensionsPreferences") {
-                            NSWorkspace.shared.open(url)
-                        }
-                    }) {
+                    if isFinderExtensionAttempted {
                         HStack {
-                            Image(systemName: "arrow.up.forward.app")
-                            Text("启用 Finder 扩展".localized())
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundColor(.green)
+                            Text("已尝试启用".localized())
+                                .foregroundColor(.green)
+                                .font(.system(size: 11, weight: .semibold))
                         }
                         .frame(maxWidth: .infinity)
+                        .padding(.vertical, 4)
+                    } else {
+                        Button(action: {
+                            if let url = URL(string: "x-apple.systempreferences:com.apple.ExtensionsPreferences") {
+                                NSWorkspace.shared.open(url)
+                                UserDefaults.standard.set(true, forKey: "isFinderExtensionAttempted")
+                                isFinderExtensionAttempted = true
+                            }
+                        }) {
+                            HStack(spacing: 4) {
+                                Image(systemName: "arrow.up.forward.app")
+                                Text("启用 Finder 扩展".localized())
+                                    .font(.system(size: 11))
+                            }
+                            .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.bordered)
+                        .controlSize(.regular)
                     }
-                    .buttonStyle(.bordered)
-                    .controlSize(.regular)
                 }
-                .padding(14)
+                .padding(12)
                 .background(Color.cardBackground)
-                .cornerRadius(12)
+                .cornerRadius(10)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .stroke(Color.appBorder, lineWidth: 1)
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(isFinderExtensionAttempted ? Color.green.opacity(0.3) : Color.appBorder, lineWidth: 1)
                 )
                 
-                // Right track: Advanced Accessibility Features
-                VStack(alignment: .leading, spacing: 10) {
-                    HStack {
+                // 2. 辅助功能卡片
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(spacing: 6) {
                         Image(systemName: isAccessibilityAuthorized ? "star.fill" : "star")
                             .foregroundColor(isAccessibilityAuthorized ? .orange : .secondary)
-                            .font(.system(size: 16))
+                            .font(.system(size: 14))
                         Text("高级动画模式".localized())
-                            .font(.system(size: 13, weight: .bold))
+                            .font(.system(size: 12, weight: .bold))
                             .foregroundColor(Color.appText)
                     }
                     
-                    Text("开启辅助功能后，预览窗将直接从 Finder 文件图标的原位飞出/缩回，交互极具连贯物理弹簧质感。".localized())
-                        .font(.system(size: 11))
+                    Text("允许从文件原位起跳，享受物理弹簧质感动画。".localized())
+                        .font(.system(size: 10.5))
                         .foregroundColor(Color.appText.opacity(0.6))
-                        .lineSpacing(3)
-                        .frame(height: 54, alignment: .topLeading)
+                        .lineSpacing(2.5)
+                        .frame(height: 52, alignment: .topLeading)
                     
                     Spacer()
                     
@@ -503,30 +530,103 @@ struct OnboardingView: View {
                                 .foregroundColor(.green)
                             Text("已成功授权".localized())
                                 .foregroundColor(.green)
-                                .font(.system(size: 12, weight: .semibold))
+                                .font(.system(size: 11, weight: .semibold))
                         }
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 4)
                     } else {
                         Button(action: {
+                            isCheckingAccessibility = true
                             HotkeyManager.shared.requestAccessibilityPermission()
                         }) {
-                            HStack {
-                                Image(systemName: "hand.raised.fill")
-                                Text("授予辅助功能".localized())
+                            HStack(spacing: 4) {
+                                if isCheckingAccessibility {
+                                    ProgressView()
+                                        .controlSize(.small)
+                                    Text("正在检测...".localized())
+                                        .font(.system(size: 11))
+                                } else {
+                                    Image(systemName: "hand.raised.fill")
+                                    Text("授予辅助功能".localized())
+                                        .font(.system(size: 11))
+                                }
                             }
                             .frame(maxWidth: .infinity)
                         }
                         .buttonStyle(.borderedProminent)
                         .controlSize(.regular)
+                        .disabled(isCheckingAccessibility)
                     }
                 }
-                .padding(14)
+                .padding(12)
                 .background(Color.cardBackground)
-                .cornerRadius(12)
+                .cornerRadius(10)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 12)
+                    RoundedRectangle(cornerRadius: 10)
                         .stroke(isAccessibilityAuthorized ? Color.orange.opacity(0.4) : Color.appBorder, lineWidth: 1)
+                )
+                
+                // 3. 所有文件夹访问 (FDA) 卡片
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack(spacing: 6) {
+                        Image(systemName: isFullDiskAccessAuthorized ? "folder.fill" : "folder")
+                            .foregroundColor(isFullDiskAccessAuthorized ? .green : .secondary)
+                            .font(.system(size: 14))
+                        Text("所有文件夹访问".localized())
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundColor(Color.appText)
+                    }
+                    
+                    Text("授权完全磁盘访问，消除受保护文件夹的频繁弹窗。".localized())
+                        .font(.system(size: 10.5))
+                        .foregroundColor(Color.appText.opacity(0.6))
+                        .lineSpacing(2.5)
+                        .frame(height: 52, alignment: .topLeading)
+                    
+                    Spacer()
+                    
+                    if isFullDiskAccessAuthorized {
+                        HStack {
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundColor(.green)
+                            Text("已成功授权".localized())
+                                .foregroundColor(.green)
+                                .font(.system(size: 11, weight: .semibold))
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 4)
+                    } else {
+                        Button(action: {
+                            isCheckingFDA = true
+                            if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles") {
+                                NSWorkspace.shared.open(url)
+                            }
+                        }) {
+                            HStack(spacing: 4) {
+                                if isCheckingFDA {
+                                    ProgressView()
+                                        .controlSize(.small)
+                                    Text("正在检测...".localized())
+                                        .font(.system(size: 11))
+                                } else {
+                                    Image(systemName: "lock.fill")
+                                    Text("去授权".localized())
+                                        .font(.system(size: 11))
+                                }
+                            }
+                            .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.regular)
+                        .disabled(isCheckingFDA)
+                    }
+                }
+                .padding(12)
+                .background(Color.cardBackground)
+                .cornerRadius(10)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(isFullDiskAccessAuthorized ? Color.green.opacity(0.4) : Color.appBorder, lineWidth: 1)
                 )
             }
             .frame(height: 170)
@@ -583,14 +683,23 @@ struct OnboardingView: View {
                 .buttonStyle(.plain)
             } else {
                 Button(action: handleFinishAction) {
-                    Text("开启 Quick Cookies".localized())
-                        .font(.system(size: 12, weight: .bold))
-                        .foregroundColor(.white)
-                        .frame(width: 140, height: 28)
-                        .background(Color.green)
-                        .cornerRadius(6)
+                    HStack(spacing: 6) {
+                        if isStartingApp {
+                            ProgressView()
+                                .controlSize(.small)
+                            Text("正在启动...".localized())
+                        } else {
+                            Text("开启 Quick Cookies".localized())
+                        }
+                    }
+                    .font(.system(size: 12, weight: .bold))
+                    .foregroundColor(.white)
+                    .frame(width: 140, height: 28)
+                    .background(isStartingApp ? Color.green.opacity(0.6) : Color.green)
+                    .cornerRadius(6)
                 }
                 .buttonStyle(.plain)
+                .disabled(isStartingApp)
             }
         }
         .padding(.horizontal, 24)
@@ -601,25 +710,52 @@ struct OnboardingView: View {
     // MARK: - Logic & Actions
     private func checkPermissionState() {
         let auth = AXIsProcessTrusted()
+        let fda = checkFullDiskAccess()
+        
+        var shouldShowConfetti = false
+        
         if auth != isAccessibilityAuthorized {
             withAnimation(.spring()) {
                 isAccessibilityAuthorized = auth
                 if auth {
-                    showConfetti = true
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
-                        self.showConfetti = false
-                    }
+                    shouldShowConfetti = true
+                }
+            }
+        }
+        
+        if fda != isFullDiskAccessAuthorized {
+            withAnimation(.spring()) {
+                isFullDiskAccessAuthorized = fda
+                if fda {
+                    shouldShowConfetti = true
+                }
+            }
+        }
+        
+        if shouldShowConfetti {
+            showConfetti = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+                if !isClosing {
+                    self.showConfetti = false
                 }
             }
         }
     }
     
+    private func checkFullDiskAccess() -> Bool {
+        let path = NSHomeDirectory() + "/Library/Safari/Bookmarks.plist"
+        return FileManager.default.isReadableFile(atPath: path)
+    }
+    
     private func handleFinishAction() {
+        guard !isStartingApp else { return }
+        isStartingApp = true
+        
         // Step 1: 触发彩屑庆祝动画
         showConfetti = true
         
-        // Step 2: 0.6s 庆祝后，启动窗口淡出
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+        // Step 2: 1.8s 庆祝后，启动窗口淡出
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.8) {
             withAnimation(.easeInOut(duration: 0.18)) {
                 windowOpacity = 0.0
                 windowScale = 0.96

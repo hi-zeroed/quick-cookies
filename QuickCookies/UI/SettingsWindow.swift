@@ -174,6 +174,11 @@ struct SettingsView: View {
     @State private var recordedKeyCode: UInt16 = 0
     @State private var hotkeyMonitor: Any? = nil
     
+    @State private var isAccessibilityAuthorized = false
+    @State private var isFullDiskAccessAuthorized = false
+    
+    let permissionTimer = Timer.publish(every: 1.0, on: .main, in: .common).autoconnect()
+    
 
 
     var body: some View {
@@ -336,10 +341,64 @@ struct SettingsView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     SectionHeader(title: "SYSTEM".localized())
                     SettingsCard {
-                        SettingsRow(title: "开机自启动".localized(), subtitle: "在您登录 macOS 系统时自动静默启动 Quick Cookies".localized()) {
-                            Toggle("", isOn: $settings.launchAtLogin)
-                                .toggleStyle(.switch)
-                                .labelsHidden()
+                        VStack(spacing: 0) {
+                            SettingsRow(title: "开机自启动".localized(), subtitle: "在您登录 macOS 系统时自动静默启动 Quick Cookies".localized()) {
+                                Toggle("", isOn: $settings.launchAtLogin)
+                                    .toggleStyle(.switch)
+                                    .labelsHidden()
+                            }
+                            
+                            Divider()
+                                .background(Color.appBorder)
+                                .padding(.horizontal, 16)
+                            
+                            // 辅助功能权限
+                            SettingsRow(title: "辅助功能权限".localized(), subtitle: "用于全局快捷键与高级动画定位".localized()) {
+                                if isAccessibilityAuthorized {
+                                    HStack(spacing: 4) {
+                                        Image(systemName: "checkmark.circle.fill")
+                                            .foregroundColor(.green)
+                                        Text("已授权".localized())
+                                            .foregroundColor(.green)
+                                            .font(.system(size: 12, weight: .semibold))
+                                    }
+                                } else {
+                                    Button(action: {
+                                        HotkeyManager.shared.requestAccessibilityPermission()
+                                    }) {
+                                        Text("去授权".localized())
+                                    }
+                                    .buttonStyle(.bordered)
+                                    .controlSize(.small)
+                                }
+                            }
+                            
+                            Divider()
+                                .background(Color.appBorder)
+                                .padding(.horizontal, 16)
+                            
+                            // 所有文件夹访问权限 (FDA)
+                            SettingsRow(title: "所有文件夹访问".localized(), subtitle: "授权完全磁盘访问，消除系统安全弹窗".localized()) {
+                                if isFullDiskAccessAuthorized {
+                                    HStack(spacing: 4) {
+                                        Image(systemName: "checkmark.circle.fill")
+                                            .foregroundColor(.green)
+                                        Text("已授权".localized())
+                                            .foregroundColor(.green)
+                                            .font(.system(size: 12, weight: .semibold))
+                                    }
+                                } else {
+                                    Button(action: {
+                                        if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles") {
+                                            NSWorkspace.shared.open(url)
+                                        }
+                                    }) {
+                                        Text("去授权".localized())
+                                    }
+                                    .buttonStyle(.bordered)
+                                    .controlSize(.small)
+                                }
+                            }
                         }
                     }
                 }
@@ -363,6 +422,13 @@ struct SettingsView: View {
         .background(Color.appBackground.ignoresSafeArea())
         .onAppear {
             setupHotkeyRecording()
+            checkPermissions()
+        }
+        .onReceive(permissionTimer) { _ in
+            checkPermissions()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+            checkPermissions()
         }
         .onDisappear {
             if let monitor = hotkeyMonitor {
@@ -370,6 +436,16 @@ struct SettingsView: View {
                 hotkeyMonitor = nil
             }
         }
+    }
+    
+    private func checkPermissions() {
+        isAccessibilityAuthorized = AXIsProcessTrusted()
+        isFullDiskAccessAuthorized = checkFDA()
+    }
+    
+    private func checkFDA() -> Bool {
+        let path = NSHomeDirectory() + "/Library/Safari/Bookmarks.plist"
+        return FileManager.default.isReadableFile(atPath: path)
     }
 
     private var hotkeyKeyNames: [String] {
