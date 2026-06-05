@@ -305,7 +305,7 @@ struct ContentView: View {
         .padding(.horizontal, 16)
         .padding(.top, 8)
         .padding(.bottom, 8)
-        .background(Color.toolbarBackground)
+        .background(VisualEffectView(material: .hudWindow, blendingMode: .behindWindow))
         .onHover { hovering in
             isHeaderHovered = hovering
         }
@@ -314,15 +314,14 @@ struct ContentView: View {
     @ViewBuilder
     private var contentArea: some View {
         ZStack(alignment: .bottom) {
-            // 主展示内容 (仅对展示区域添加实底、圆角与超细对比描边，使其与周围磨砂完美割离)
             mainContent
                 .background(Color.appBackground)
-                .cornerRadius(12)
+                .cornerRadius(15)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 12)
+                    RoundedRectangle(cornerRadius: 15)
                         .stroke(Color.appBorder.opacity(colorScheme == .dark ? 0.25 : 0.12), lineWidth: 0.8)
                 )
-                .padding([.horizontal, .bottom], 28) // 保留大内边距以透出底层磨砂
+                .padding([.horizontal, .bottom], 5) // 调整内边距至 5pt
             
             // 增量加载悬浮条
             if state.isIncrementalLoading {
@@ -425,9 +424,9 @@ struct ContentView: View {
                 MediaPreviewView(filePath: path, renderType: renderType)
             case .office:
                 OfficePreviewView(fileURL: URL(fileURLWithPath: path))
-                    .cornerRadius(12)
+                    .cornerRadius(15)
                     .overlay(
-                        RoundedRectangle(cornerRadius: 12)
+                        RoundedRectangle(cornerRadius: 15)
                             .stroke(Color.appBorder.opacity(0.3), lineWidth: 1)
                     )
             case .unsupported:
@@ -463,6 +462,8 @@ struct ContentView: View {
                             self.state.hasMoreChunks = false
                             self.isLoading = false
                             self.state.mode = .edit
+                            // 模式改变后，使窗口获得焦点以便能够键盘打字输入
+                            QuickLookOverlay.shared.focusWindowForEdit()
                         case .failure(let error):
                             self.errorMessage = (error.errorDescription ?? "读取剩余文件失败").localized()
                             self.isLoading = false
@@ -472,9 +473,13 @@ struct ContentView: View {
                 }
             } else {
                 state.mode = .edit
+                // 模式改变后，使窗口获得焦点以便能够键盘打字输入
+                QuickLookOverlay.shared.focusWindowForEdit()
             }
         } else {
             state.mode = .preview
+            // 返回预览模式时，把焦点交还给 Finder，窗口恢复为 non-key 状态
+            QuickLookOverlay.shared.unfocusWindowToFinder()
         }
     }
 
@@ -723,22 +728,45 @@ private struct EditContentView: View {
 
 // MARK: - 自定义灰色圆形控制按钮组件 (替代系统红绿灯)
 struct CircleControlButton: View {
+    @Environment(\.colorScheme) var colorScheme
     let iconName: String
     let isHovered: Bool
     let action: () -> Void
     
     @State private var isButtonHovered: Bool = false
     
+    private var circleFillColor: Color {
+        let isDark = colorScheme == .dark
+        if isButtonHovered {
+            if iconName == "xmark" {
+                return isDark ? Color.red.opacity(0.8) : Color.red.opacity(0.75)
+            } else {
+                return isDark ? Color.white.opacity(0.32) : Color.black.opacity(0.22)
+            }
+        } else {
+            return isDark ? Color.white.opacity(0.18) : Color.black.opacity(0.10)
+        }
+    }
+    
+    private var iconColor: Color {
+        let isDark = colorScheme == .dark
+        if isButtonHovered && iconName == "xmark" {
+            return .white
+        } else {
+            return isDark ? Color.white.opacity(0.8) : Color.black.opacity(0.8)
+        }
+    }
+    
     var body: some View {
         Button(action: action) {
             ZStack {
                 Circle()
-                    .fill(isButtonHovered ? Color.appText.opacity(0.18) : Color.appText.opacity(0.08))
+                    .fill(circleFillColor)
                     .frame(width: 13, height: 13)
                 
                 Image(systemName: iconName)
                     .font(.system(size: 7, weight: .bold))
-                    .foregroundColor(Color.appText.opacity(0.7))
+                    .foregroundColor(iconColor)
                     .opacity(isHovered ? 1 : 0)
                     .animation(.easeInOut(duration: 0.15), value: isHovered)
             }

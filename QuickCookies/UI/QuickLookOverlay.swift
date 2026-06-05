@@ -4,11 +4,11 @@ import AppKit
 /// 自定义 NSPanel 子类，允许 borderless 无标题栏窗口接收键盘焦点和快捷键事件
 class QuickLookPanel: NSPanel {
     override var canBecomeKey: Bool {
-        return true
+        return QuickLookOverlay.shared.canBecomeKeyDynamic
     }
     
     override var canBecomeMain: Bool {
-        return true
+        return QuickLookOverlay.shared.canBecomeKeyDynamic
     }
 }
 
@@ -38,6 +38,21 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
     
     // 用于通知 ContentView 状态的共享模型
     private let previewState = PreviewState()
+
+    var canBecomeKeyDynamic: Bool {
+        return previewState.mode == .edit
+    }
+    
+    func focusWindowForEdit() {
+        guard let window = previewWindow else { return }
+        window.makeKeyAndOrderFront(nil)
+    }
+    
+    func unfocusWindowToFinder() {
+        if let finderApp = NSWorkspace.shared.runningApplications.first(where: { $0.bundleIdentifier == "com.apple.finder" }) {
+            finderApp.activate(options: [.activateIgnoringOtherApps])
+        }
+    }
 
     /// 动态刷新已打开窗口的外观模式，并更新首帧的 layer 背景底色
     func updateAppearance() {
@@ -353,39 +368,22 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         self.previewWindow = previewPanel
         self.updateAppearance()
 
-        // 1. 注册本地键盘事件监视器（当预览窗口获得焦点成为 Key 窗口时生效）
+        // 1. 注册本地键盘事件监视器（当编辑模式下窗口成为 Key 窗口时，在此拦截按键）
         self.localEventMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event -> NSEvent? in
             guard let self = self else { return event }
             let keyCode = event.keyCode
             
-            // Esc 键关闭窗口
+            // Esc 键处理
             if keyCode == 53 {
-                self.performClose()
-                return nil
-            }
-            
-            // 126 = Up Arrow, 125 = Down Arrow
-            if keyCode == 126 || keyCode == 125 {
                 if self.previewState.mode == .edit {
-                    return event
+                    // 编辑模式下按 Esc 则是返回预览模式，并交还焦点给 Finder
+                    self.previewState.mode = .preview
+                    self.unfocusWindowToFinder()
+                } else {
+                    // 预览模式下按 Esc 为优雅关闭窗口
+                    self.closeWithAnimation()
                 }
-                
-                // 既然已经是 Key 窗口，按上下键说明用户还想切换文件
-                // 我们将 Finder 重新激活到前台，投递按键以保证其能够成功切换，并刷新预览
-                if let finderApp = NSWorkspace.shared.runningApplications.first(where: { $0.bundleIdentifier == "com.apple.finder" }) {
-                    finderApp.activate(options: [.activateIgnoringOtherApps])
-                    self.sendKeyToFinder(keyCode: keyCode)
-                    
-                    // 投递 0.05 秒后，极速将 Key 状态重新拿回给预览窗口，防止焦点真正丢失
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { [weak self] in
-                        self?.previewWindow?.makeKeyAndOrderFront(nil)
-                    }
-                    
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
-                        self?.updatePreviewFromFinder()
-                    }
-                }
-                return nil // 拦截该方向键事件
+                return nil
             }
             return event
         }
