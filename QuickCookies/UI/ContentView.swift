@@ -314,9 +314,15 @@ struct ContentView: View {
     @ViewBuilder
     private var contentArea: some View {
         ZStack(alignment: .bottom) {
-            // 主展示内容
+            // 主展示内容 (仅对展示区域添加实底、圆角与超细对比描边，使其与周围磨砂完美割离)
             mainContent
-                .padding([.horizontal, .bottom], 28) // 保留精美的大内边距
+                .background(Color.appBackground)
+                .cornerRadius(12)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .stroke(Color.appBorder.opacity(colorScheme == .dark ? 0.25 : 0.12), lineWidth: 0.8)
+                )
+                .padding([.horizontal, .bottom], 28) // 保留大内边距以透出底层磨砂
             
             // 增量加载悬浮条
             if state.isIncrementalLoading {
@@ -339,7 +345,6 @@ struct ContentView: View {
                 .padding(.bottom, 20)
             }
         }
-        .background(Color.appBackground)
     }
 
     @ViewBuilder
