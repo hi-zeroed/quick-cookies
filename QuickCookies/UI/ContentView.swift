@@ -314,12 +314,17 @@ struct ContentView: View {
     @ViewBuilder
     private var contentArea: some View {
         ZStack(alignment: .bottom) {
+            let isImage = state.renderType == .image
             mainContent
-                .background(Color.appBackground)
+                .background(isImage ? Color.clear : Color.appBackground)
                 .cornerRadius(15)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 15)
-                        .stroke(Color.appBorder.opacity(colorScheme == .dark ? 0.25 : 0.12), lineWidth: 0.8)
+                    Group {
+                        if !isImage {
+                            RoundedRectangle(cornerRadius: 15)
+                                .stroke(Color.appBorder.opacity(colorScheme == .dark ? 0.25 : 0.12), lineWidth: 0.8)
+                        }
+                    }
                 )
                 .padding([.horizontal, .bottom], 5) // 调整内边距至 5pt
             

@@ -407,7 +407,8 @@ struct Localization {
             "默认中心": [.en: "Default Center", .zhHans: "默认中心"],
             "Window 遍历成功": [.en: "Window traversal succeeded", .zhHans: "Window 遍历成功"],
             "未知错误": [.en: "Unknown error", .zhHans: "未知错误"],
-            "不支持此文件类型": [.en: "Unsupported file type", .zhHans: "不支持此文件类型"]
+            "不支持此文件类型": [.en: "Unsupported file type", .zhHans: "不支持此文件类型"],
+            "矢量图形 (SVG)": [.en: "Vector Graphics (SVG)", .zhHans: "矢量图形 (SVG)"]
         ]
         return dict[key]?[lang] ?? key
     }

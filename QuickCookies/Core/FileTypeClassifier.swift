@@ -26,7 +26,7 @@ struct FileTypeClassifier {
             return .pdf
         }
         
-        let imageExtensions: Set<String> = ["png", "jpg", "jpeg", "webp", "gif", "bmp", "tiff", "tif", "heic", "heif", "ico"]
+        let imageExtensions: Set<String> = ["png", "jpg", "jpeg", "webp", "gif", "bmp", "tiff", "tif", "heic", "heif", "ico", "svg"]
         if imageExtensions.contains(ext) {
             return .image
         }
@@ -83,7 +83,7 @@ struct FileTypeClassifier {
             return true
         }
         
-        let imageExtensions: Set<String> = ["png", "jpg", "jpeg", "webp", "gif", "bmp", "tiff", "tif", "heic", "heif", "ico"]
+        let imageExtensions: Set<String> = ["png", "jpg", "jpeg", "webp", "gif", "bmp", "tiff", "tif", "heic", "heif", "ico", "svg"]
         if imageExtensions.contains(ext) {
             return true
         }
