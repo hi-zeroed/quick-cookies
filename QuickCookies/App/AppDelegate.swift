@@ -9,9 +9,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         _ = Settings.shared
 
         let hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
+        let isAccessibilityAuthorized = AXIsProcessTrusted()
 
-        if !hasCompletedOnboarding {
-            // 普通激活策略，以便新手向导窗口能够居中并正常获取键盘焦点
+        if !hasCompletedOnboarding || !isAccessibilityAuthorized {
+            // 新手向导未完成或辅助功能权限缺失，强制前台展示 Onboarding 索要权限
             NSApp.setActivationPolicy(.regular)
             showOnboarding()
         } else {
@@ -36,6 +37,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     private func showOnboarding() {
+        // 如果 Onboarding 窗口已经存在且在屏幕上，直接置顶激活即可，防止重复创建
+        if let existingWindow = onboardingWindow {
+            existingWindow.makeKeyAndOrderFront(nil)
+            NSApp.activate(ignoringOtherApps: true)
+            return
+        }
+
         let window = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: 620, height: 450),
             styleMask: [.titled, .closable, .fullSizeContentView],
@@ -98,6 +106,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     /// 处理 URL Scheme 唤起事件（来自 Finder Sync 扩展）
     func application(_ application: NSApplication, open urls: [URL]) {
         guard let url = urls.first, url.scheme == "quickcookies", url.host == "preview" else { return }
+
+        // 检查辅助功能权限
+        if !AXIsProcessTrusted() {
+            // 若辅助功能权限缺失，强行拦截预览并显示 Onboarding 窗口引导用户授权
+            DispatchQueue.main.async {
+                NSApp.setActivationPolicy(.regular)
+                self.showOnboarding()
+            }
+            return
+        }
 
         let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
         if let pathItem = components?.queryItems?.first(where: { $0.name == "path" }),
