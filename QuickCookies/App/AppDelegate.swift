@@ -9,7 +9,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         _ = Settings.shared
 
         let hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
-        if !hasCompletedOnboarding {
+        let isAccessibilityAuthorized = HotkeyManager.shared.checkAccessibilityPermission()
+
+        if !hasCompletedOnboarding || !isAccessibilityAuthorized {
             // 普通激活策略，以便新手向导窗口能够居中并正常获取键盘焦点
             NSApp.setActivationPolicy(.regular)
             showOnboarding()
@@ -104,6 +106,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     func application(_ application: NSApplication, open urls: [URL]) {
         guard let url = urls.first, url.scheme == "quickcookies", url.host == "preview" else { return }
         
+        // 若在运行中用户撤销了辅助功能授权，此时通过右键菜单唤醒时进行防呆拦截，重新索要权限
+        if !HotkeyManager.shared.checkAccessibilityPermission() {
+            NSApp.setActivationPolicy(.regular)
+            showOnboarding()
+            return
+        }
+
         let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
         if let pathItem = components?.queryItems?.first(where: { $0.name == "path" }),
            let path = pathItem.value {

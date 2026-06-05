@@ -19,14 +19,8 @@ enum FileDetector {
         }
     }
 
-    /// 获取 Finder 当前选中的文件路径（使用高性能进程内 NSAppleScript，无缓存 Bug，零子进程）
-    static func getSelectedFilePath() -> Result<String, DetectError> {
-        // 检查 Finder 是否运行
-        guard isFinderRunning() else {
-            return .failure(.finderNotRunning)
-        }
-
-        // 用 AppleScript 保证实时与无缓存获取
+    /// 静态常驻预编译 AppleScript 对象，消除高频执行时的重复解析与编译开销
+    private static let finderSelectionScript: NSAppleScript? = {
         let scriptText = """
         tell application "Finder"
             set theSelection to selection
@@ -47,12 +41,21 @@ enum FileDetector {
             end if
         end tell
         """
+        return NSAppleScript(source: scriptText)
+    }()
 
-        var error: NSDictionary?
-        guard let script = NSAppleScript(source: scriptText) else {
+    /// 获取 Finder 当前选中的文件路径（使用高性能进程内 NSAppleScript，无缓存 Bug，零子进程）
+    static func getSelectedFilePath() -> Result<String, DetectError> {
+        // 检查 Finder 是否运行
+        guard isFinderRunning() else {
+            return .failure(.finderNotRunning)
+        }
+
+        guard let script = finderSelectionScript else {
             return .failure(.scriptingBridgeError("无法初始化 AppleScript 脚本"))
         }
 
+        var error: NSDictionary?
         let descriptor = script.executeAndReturnError(&error)
         if let error = error {
             let errorMsg = error["NSAppleScriptErrorMessage"] as? String ?? "未知 AppleScript 错误"

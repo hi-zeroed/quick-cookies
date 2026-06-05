@@ -547,19 +547,7 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
     private func getSourceRect() -> CGRect {
         lastDiagnosticMessage = ""
         
-        // 1. 如果没有辅助功能权限，直接优雅降级到当前鼠标位置，消除权限阻断
-        if !HotkeyManager.shared.checkAccessibilityPermission() {
-            let mouseLoc = NSEvent.mouseLocation
-            lastDiagnosticMessage = "免授权降级".localized()
-            return CGRect(
-                x: mouseLoc.x - 16,
-                y: mouseLoc.y - 16,
-                width: 32,
-                height: 32
-            )
-        }
-        
-        // 2. 获取 Finder 的 PID
+        // 1. 获取 Finder 的 PID
         guard let finderApp = NSWorkspace.shared.runningApplications.first(where: { $0.bundleIdentifier == "com.apple.finder" }) else {
             lastDiagnosticMessage = "Finder PID 失败".localized()
             return getDefaultSourceRect()
@@ -819,6 +807,12 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
     }
 
     private func updatePreviewFromFinder() {
+        // 仅当前台活动应用为 Finder 时才进行轮询检测，以节省 90% 以上挂机状态下的无用 CPU 消耗
+        if let frontmostApp = NSWorkspace.shared.frontmostApplication,
+           frontmostApp.bundleIdentifier != "com.apple.finder" {
+            return
+        }
+
         // PERF: 将同步 IPC (AppleEvent) 发送检测移至后台高优先级队列中执行，彻底消除周期轮询对主线程滚动渲染的挂起和丢帧
         DispatchQueue.global(qos: .userInteractive).async { [weak self] in
             guard let self = self else { return }
