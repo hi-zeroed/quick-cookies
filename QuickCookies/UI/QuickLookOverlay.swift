@@ -309,7 +309,7 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         // 融于底色的一体化毛玻璃/纯色配置
         previewPanel.backgroundColor = .clear
         previewPanel.isOpaque = false
-        previewPanel.hasShadow = true
+        previewPanel.hasShadow = false
         previewPanel.isReleasedWhenClosed = false
         previewPanel.delegate = self
 
@@ -512,17 +512,17 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         // 使用物理公式驱动的 CASpringAnimation 弹簧动画 (开启过冲回弹，释放极致的原生“空气/膨胀果冻感”)
         let springTransform = CASpringAnimation(keyPath: "transform")
         springTransform.damping = 15
-        springTransform.stiffness = 300
-        springTransform.mass = 0.35
+        springTransform.stiffness = 240
+        springTransform.mass = 0.4
         springTransform.fromValue = NSValue(caTransform3D: initialTransform)
         springTransform.toValue = NSValue(caTransform3D: CATransform3DIdentity)
-        springTransform.duration = 0.38 // 0.38s 截断，保留更完整的物理弹簧舒展动效
+        springTransform.duration = 0.38 // 0.38s 稍微拉长，呈现更饱满流畅的膨胀弹性
         
         // 透明度淡入动画
         let fadeAnim = CABasicAnimation(keyPath: "opacity")
         fadeAnim.fromValue = 0.0
         fadeAnim.toValue = 1.0
-        fadeAnim.duration = 0.15
+        fadeAnim.duration = 0.16
         
         let group = CAAnimationGroup()
         group.animations = [springTransform, fadeAnim]
@@ -922,7 +922,7 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         layer.anchorPoint = CGPoint(x: 0.5, y: 0.5)
         layer.position = CGPoint(x: targetRect.width / 2, y: targetRect.height / 2)
 
-        // 使用非常平稳的缩放与淡出动画 (拉长时间以配合平滑过渡)
+        // 使用非常平稳的缩放与淡出动画 (适当拉长到 0.20s/0.16s 提升过渡顺滑度)
         let shrinkAnim = CABasicAnimation(keyPath: "transform")
         shrinkAnim.fromValue = NSValue(caTransform3D: CATransform3DIdentity)
         shrinkAnim.toValue = NSValue(caTransform3D: finalTransform)
@@ -932,7 +932,7 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         let fadeAnim = CABasicAnimation(keyPath: "opacity")
         fadeAnim.fromValue = 1.0
         fadeAnim.toValue = 0.0
-        fadeAnim.duration = 0.15
+        fadeAnim.duration = 0.16
         fadeAnim.timingFunction = CAMediaTimingFunction(name: .easeIn)
         
         let group = CAAnimationGroup()
