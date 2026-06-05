@@ -36,95 +36,77 @@ struct CustomAlertModifier: ViewModifier {
     let secondaryButton: CustomAlertButton?
     
     func body(content: Content) -> some View {
-        ZStack {
-            content
-                .disabled(isPresented) // 弹窗时禁用主内容区域的交互
-            
-            if isPresented {
-                // 1. 半透明黑色遮罩层
-                Color.black.opacity(colorScheme == .dark ? 0.4 : 0.15)
-                    .edgesIgnoringSafeArea(.all)
-                    .transition(.opacity)
-                    .zIndex(100)
-                    .onTapGesture {
-                        // 如果仅有单按钮（提示确定类），允许点击背景空白处快速关闭
-                        if secondaryButton == nil {
-                            withAnimation(.easeOut(duration: 0.15)) {
-                                isPresented = false
-                            }
-                        }
-                    }
-                
-                // 2. 弹窗卡片主体（尺寸限制，防止溢出圆角）
-                VStack(spacing: 16) {
-                    Text(title)
-                        .font(.system(size: 15, weight: .bold))
-                        .foregroundColor(colorScheme == .dark ? .white : .black)
-                        .multilineTextAlignment(.center)
-                    
-                    Text(message)
-                        .font(.system(size: 13))
-                        .foregroundColor(colorScheme == .dark ? Color(white: 0.7) : Color(white: 0.4))
-                        .lineSpacing(4)
-                        .multilineTextAlignment(.center)
-                    
-                    // 按钮组
+        content
+            .overlay(alignment: .bottom) {
+                if isPresented {
                     HStack(spacing: 12) {
-                        if let secondary = secondaryButton {
+                        // 1. 状态指示圆点（信息/错误）
+                        Circle()
+                            .fill(primaryButton.style == .destructive ? Color.red : Color.blue)
+                            .frame(width: 7, height: 7)
+                        
+                        // 2. 消息内容（合并 title 与 message 以保持单行极简）
+                        let displayMessage = title.isEmpty ? message : "\(title)：\(message)"
+                        Text(displayMessage)
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundColor(colorScheme == .dark ? Color.white.opacity(0.9) : Color.black.opacity(0.8))
+                            .lineLimit(1)
+                        
+                        Spacer(minLength: 24)
+                        
+                        // 3. 按钮组
+                        HStack(spacing: 8) {
+                            // 主按钮
                             Button(action: {
-                                withAnimation(.easeOut(duration: 0.15)) {
+                                withAnimation(.spring(response: 0.32, dampingFraction: 0.82)) {
                                     isPresented = false
                                 }
-                                secondary.action()
+                                primaryButton.action()
                             }) {
-                                Text(secondary.title)
-                                    .font(.system(size: 13, weight: .medium))
-                                    .foregroundColor(colorScheme == .dark ? .white : .black)
-                                    .frame(maxWidth: .infinity)
-                                    .frame(height: 32)
-                                    .background(
-                                        RoundedRectangle(cornerRadius: 8)
-                                            .fill(colorScheme == .dark ? Color.white.opacity(0.12) : Color.black.opacity(0.06))
-                                    )
+                                Text(primaryButton.title.uppercased())
+                                    .font(.system(size: 11, weight: .bold))
+                                    .foregroundColor(primaryButton.style == .destructive ? Color.red : Color.blue)
                             }
                             .buttonStyle(.plain)
-                        }
-                        
-                        Button(action: {
-                            withAnimation(.easeOut(duration: 0.15)) {
-                                isPresented = false
+                            
+                            if let secondary = secondaryButton {
+                                // 优雅细分割线
+                                Text("|")
+                                    .font(.system(size: 11))
+                                    .foregroundColor(colorScheme == .dark ? Color.white.opacity(0.15) : Color.black.opacity(0.12))
+                                
+                                // 次要按钮
+                                Button(action: {
+                                    withAnimation(.spring(response: 0.32, dampingFraction: 0.82)) {
+                                        isPresented = false
+                                    }
+                                    secondary.action()
+                                }) {
+                                    Text(secondary.title.uppercased())
+                                        .font(.system(size: 11, weight: .bold))
+                                        .foregroundColor(colorScheme == .dark ? Color.white.opacity(0.6) : Color.black.opacity(0.5))
+                                }
+                                .buttonStyle(.plain)
                             }
-                            primaryButton.action()
-                        }) {
-                            Text(primaryButton.title)
-                                .font(.system(size: 13, weight: .medium))
-                                .foregroundColor(.white)
-                                .frame(maxWidth: .infinity)
-                                .frame(height: 32)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .fill(primaryButton.style == .destructive ? Color.red : (primaryButton.style == .secondary ? (colorScheme == .dark ? Color.white.opacity(0.12) : Color.black.opacity(0.06)) : Color.blue))
-                                )
                         }
-                        .buttonStyle(.plain)
                     }
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 9)
+                    .background(
+                        Capsule()
+                            .fill(colorScheme == .dark ? Color(white: 0.16).opacity(0.95) : Color.white.opacity(0.95))
+                            .shadow(color: Color.black.opacity(colorScheme == .dark ? 0.25 : 0.08), radius: 8, x: 0, y: 4)
+                    )
+                    .overlay(
+                        Capsule()
+                            .stroke(colorScheme == .dark ? Color.white.opacity(0.12) : Color.black.opacity(0.06), lineWidth: 0.5)
+                    )
+                    .padding(.bottom, 16)
+                    .padding(.horizontal, 16)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                    .zIndex(100)
                 }
-                .padding(.horizontal, 20)
-                .padding(.vertical, 18)
-                .frame(width: 290)
-                .background(
-                    RoundedRectangle(cornerRadius: 16)
-                        .fill(colorScheme == .dark ? Color(white: 0.16) : Color.white)
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(colorScheme == .dark ? Color.white.opacity(0.12) : Color.black.opacity(0.08), lineWidth: 0.5)
-                )
-                .shadow(color: Color.black.opacity(0.15), radius: 10, x: 0, y: 5)
-                .zIndex(101)
-                .transition(.scale(scale: 0.92).combined(with: .opacity))
             }
-        }
     }
 }
 
