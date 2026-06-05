@@ -32,6 +32,7 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
     private var activeToastPanel: NSPanel?
     private var lastDiagnosticMessage: String = ""
     private var localEventMonitor: Any?
+    private var globalEventMonitor: Any?
     private var pollingTimer: Timer?
     
     // 用于通知 ContentView 状态的共享模型
@@ -366,8 +367,14 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
                 if let finderApp = NSWorkspace.shared.runningApplications.first(where: { $0.bundleIdentifier == "com.apple.finder" }) {
                     finderApp.activate(options: [.activateIgnoringOtherApps])
                     self.sendKeyToFinder(keyCode: keyCode)
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
-                        self.updatePreviewFromFinder()
+                    
+                    // 投递 0.05 秒后，极速将 Key 状态重新拿回给预览窗口，防止焦点真正丢失
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { [weak self] in
+                        self?.previewWindow?.makeKeyAndOrderFront(nil)
+                    }
+                    
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+                        self?.updatePreviewFromFinder()
                     }
                 }
                 return nil // 拦截该方向键事件
@@ -375,7 +382,21 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
             return event
         }
 
-        // 2. 启动 150ms 周期定时监测，利用高性能 Scripting Bridge 内存 IPC 无感拉取选中项变化
+        // 2. 注册全局键盘事件监视器，用于在焦点在 Finder 时捕获 Esc 键以流畅飞回收缩关闭
+        self.globalEventMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            guard let self = self else { return }
+            if self.isVisible,
+               self.previewState.mode == .preview,
+               let frontApp = NSWorkspace.shared.frontmostApplication,
+               frontApp.bundleIdentifier == "com.apple.finder",
+               event.keyCode == 53 {
+                DispatchQueue.main.async {
+                    self.closeWithAnimation()
+                }
+            }
+        }
+
+        // 3. 启动 150ms 周期定时监测，利用高性能 NSAppleScript 内存级实时拉取选中项变化
         self.pollingTimer = Timer.scheduledTimer(withTimeInterval: 0.15, repeats: true) { [weak self] _ in
             self?.updatePreviewFromFinder()
         }
@@ -745,10 +766,14 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
     }
 
     private func performClose() {
-        // 1. 注销本地键盘监视器并销毁定时器
+        // 1. 注销本地/全局键盘监视器并销毁定时器
         if let monitor = localEventMonitor {
             NSEvent.removeMonitor(monitor)
             localEventMonitor = nil
+        }
+        if let monitor = globalEventMonitor {
+            NSEvent.removeMonitor(monitor)
+            globalEventMonitor = nil
         }
         if let timer = pollingTimer {
             timer.invalidate()
@@ -845,6 +870,10 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         if let monitor = localEventMonitor {
             NSEvent.removeMonitor(monitor)
             localEventMonitor = nil
+        }
+        if let monitor = globalEventMonitor {
+            NSEvent.removeMonitor(monitor)
+            globalEventMonitor = nil
         }
         if let timer = pollingTimer {
             timer.invalidate()

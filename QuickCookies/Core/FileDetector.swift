@@ -1,6 +1,5 @@
 import Foundation
 import AppKit
-import ScriptingBridge
 
 enum FileDetector {
     enum DetectError: Error, LocalizedError {
@@ -20,44 +19,52 @@ enum FileDetector {
         }
     }
 
-    /// 获取 Finder 当前选中的文件路径（使用高性能 Scripting Bridge，内存级 IPC，零子进程）
+    /// 获取 Finder 当前选中的文件路径（使用高性能进程内 NSAppleScript，无缓存 Bug，零子进程）
     static func getSelectedFilePath() -> Result<String, DetectError> {
         // 检查 Finder 是否运行
         guard isFinderRunning() else {
             return .failure(.finderNotRunning)
         }
 
-        guard let finderApp = SBApplication(bundleIdentifier: "com.apple.finder") else {
-            return .failure(.scriptingBridgeError("无法获取 Finder 脚本桥实例"))
+        // 用 AppleScript 保证实时与无缓存获取
+        let scriptText = """
+        tell application "Finder"
+            set theSelection to selection
+            if theSelection is not {} then
+                try
+                    return POSIX path of (item 1 of theSelection as alias)
+                on error
+                    return ""
+                end try
+            else
+                if (count of Finder windows) > 0 then
+                    try
+                        return POSIX path of (target of window 1 as alias)
+                    on error
+                        return ""
+                    end try
+                end if
+            end if
+        end tell
+        """
+
+        var error: NSDictionary?
+        guard let script = NSAppleScript(source: scriptText) else {
+            return .failure(.scriptingBridgeError("无法初始化 AppleScript 脚本"))
         }
 
-        // 1. 尝试获取选中项
-        if let selection = finderApp.value(forKey: "selection") as? SBObject,
-           let items = selection.get() as? [AnyObject],
-           !items.isEmpty {
-            let firstItem = items[0]
-            if let urlString = firstItem.value?(forKey: "URL") as? String {
-                return parseUrlString(urlString)
-            }
+        let descriptor = script.executeAndReturnError(&error)
+        if let error = error {
+            let errorMsg = error["NSAppleScriptErrorMessage"] as? String ?? "未知 AppleScript 错误"
+            return .failure(.scriptingBridgeError(errorMsg))
         }
 
-        // 2. 兜底：如果未选中任何项，且有打开的 Finder 窗口，则使用最前窗口的 target 路径
-        if let windows = finderApp.value(forKey: "FinderWindows") as? SBElementArray,
-           windows.count > 0,
-           let firstWindow = windows.object(at: 0) as? SBObject,
-           let target = firstWindow.value(forKey: "target") as? SBObject,
-           let urlString = target.value(forKey: "URL") as? String {
-            return parseUrlString(urlString)
+        let path = descriptor.stringValue ?? ""
+        if path.isEmpty {
+            return .failure(.noFileSelected)
         }
 
-        return .failure(.noFileSelected)
-    }
-
-    private static func parseUrlString(_ urlString: String) -> Result<String, DetectError> {
-        guard let url = URL(string: urlString) else {
-            return .failure(.scriptingBridgeError("无法解析 Finder 返回的 URL: \(urlString)"))
-        }
-        return .success(url.path)
+        return .success(path)
     }
 
     /// 检查 Finder 是否运行
