@@ -89,12 +89,12 @@ class Settings: ObservableObject {
         // 先初始化所有 stored properties（使用默认值）
         hotkeyModifiers = Constants.defaultHotkeyModifiers
         hotkeyKeyCode = Constants.defaultHotkeyKeyCode
-        fontSize = 14
+        fontSize = 13
         showLineNumbers = true
         themeMode = .system
         language = .en
         Settings.currentLanguage = .en
-        editorFont = "System Default (Inter)"
+        editorFont = "JetBrains Mono"
         launchAtLogin = false
 
         // 然后从 UserDefaults 加载实际值

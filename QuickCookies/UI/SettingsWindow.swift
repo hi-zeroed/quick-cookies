@@ -564,7 +564,7 @@ struct SettingsView: View {
             modifiers: Constants.defaultHotkeyModifiers,
             keyCode: Constants.defaultHotkeyKeyCode
         )
-        settings.fontSize = 14
+        settings.saveFontSize(13)
         settings.showLineNumbers = true
         settings.themeMode = .system
         
@@ -575,7 +575,7 @@ struct SettingsView: View {
             settings.language = .en
         }
         
-        settings.editorFont = "System Default (Inter)"
+        settings.editorFont = "JetBrains Mono"
         settings.launchAtLogin = false
 
         // 重新注册热键
