@@ -568,12 +568,7 @@ struct SettingsView: View {
         settings.showLineNumbers = true
         settings.themeMode = .system
         
-        let preferredLanguage = Locale.preferredLanguages.first ?? ""
-        if preferredLanguage.hasPrefix("zh") {
-            settings.language = .zhHans
-        } else {
-            settings.language = .en
-        }
+        settings.language = Language.system
         
         settings.editorFont = "JetBrains Mono"
         settings.launchAtLogin = false

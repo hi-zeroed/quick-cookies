@@ -20,6 +20,7 @@ enum ThemeMode: String, CaseIterable, Identifiable {
 }
 
 enum Language: String, CaseIterable, Identifiable {
+    case system = "system"
     case en = "en"
     case zhHans = "zhHans"
     
@@ -27,6 +28,7 @@ enum Language: String, CaseIterable, Identifiable {
     
     var displayName: String {
         switch self {
+        case .system: return "Follow System".localized()
         case .en: return "English"
         case .zhHans: return "简体中文"
         }
@@ -63,10 +65,19 @@ class Settings: ObservableObject {
     @Published var language: Language {
         didSet {
             defaults.set(language.rawValue, forKey: Keys.language)
-            Settings.currentLanguage = language
+            Settings.currentLanguage = (language == Language.system) ? Settings.getSystemLanguage() : language
             DispatchQueue.main.async {
                 SettingsWindowController.shared.updateTitle()
             }
+        }
+    }
+
+    static func getSystemLanguage() -> Language {
+        let preferredLanguage = Locale.preferredLanguages.first ?? ""
+        if preferredLanguage.hasPrefix("zh") {
+            return .zhHans
+        } else {
+            return .en
         }
     }
 
@@ -92,8 +103,8 @@ class Settings: ObservableObject {
         fontSize = 13
         showLineNumbers = true
         themeMode = .system
-        language = .en
-        Settings.currentLanguage = .en
+        language = Language.system
+        Settings.currentLanguage = Settings.getSystemLanguage()
         editorFont = "JetBrains Mono"
         launchAtLogin = false
 
@@ -135,14 +146,9 @@ class Settings: ObservableObject {
            let lang = Language(rawValue: savedLang) {
             language = lang
         } else {
-            let preferredLanguage = Locale.preferredLanguages.first ?? ""
-            if preferredLanguage.hasPrefix("zh") {
-                language = .zhHans
-            } else {
-                language = .en
-            }
+            language = Language.system
         }
-        Settings.currentLanguage = language
+        Settings.currentLanguage = (language == Language.system) ? Settings.getSystemLanguage() : language
 
         // 编辑器字体
         if let savedFont = defaults.string(forKey: Keys.editorFont) {
@@ -361,6 +367,7 @@ struct Localization {
             // Language
             "Language": [.en: "Language", .zhHans: "语言"],
             "Choose display language": [.en: "Choose display language", .zhHans: "选择界面的显示语言"],
+            "Follow System": [.en: "Follow System", .zhHans: "跟随系统"],
             
             // Menu
             "Open Selected File": [.en: "Open Selected File", .zhHans: "打开选中文件"],
