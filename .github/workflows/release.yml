@@ -1,0 +1,184 @@
+name: Build and Release DMG
+
+on:
+  push:
+    tags:
+      - 'v*'  # 当推送格式为 v1.2.0 等 v* 形式的 tag 时触发构建
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: macos-14  # 使用 macOS 14 硅芯片容器，拥有极佳的编译速度
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Build macOS App (Unsigned)
+        run: |
+          xcodebuild -project QuickCookies.xcodeproj \
+                     -scheme QuickCookies \
+                     -configuration Release \
+                     -derivedDataPath ./derived_data \
+                     CODE_SIGN_IDENTITY="" \
+                     CODE_SIGNING_REQUIRED=NO \
+                     CODE_SIGNING_ALLOWED=NO \
+                     clean build
+
+      - name: Ad-hoc Force Sign App & Extension
+        run: |
+          APP_PATH="./derived_data/Build/Products/Release/QuickCookies.app"
+          
+          # 1. 强制对内置的 Finder Sync 插件进行 Ad-hoc 覆盖签名
+          codesign --force --deep --sign - "$APP_PATH/Contents/PlugIns/QuickCookiesFinderSync.appex"
+          
+          # 2. 强制对主应用进行 Ad-hoc 覆盖签名
+          codesign --force --deep --sign - "$APP_PATH"
+          
+          # 3. 校验签名状态
+          codesign -vvv --deep --display "$APP_PATH"
+
+      - name: Install create-dmg
+        run: brew install create-dmg
+
+      - name: Pack App to DMG
+        run: |
+          mkdir -p ./release_dist
+          mkdir -p ./dmg_source
+          
+          # 仅将自签名完毕的 App 本体复制到专属源文件夹中
+          cp -R "./derived_data/Build/Products/Release/QuickCookies.app" ./dmg_source/
+          
+          # 检查打包所用图标是否存在，如不存在则使用应用内置 icns
+          ICON_PATH="./QuickCookies/Resources/Assets.xcassets/AppIcon.appiconset/AppIcon.icns"
+          if [ ! -f "$ICON_PATH" ]; then
+            ICON_PATH="./dmg_source/QuickCookies.app/Contents/Resources/AppIcon.icns"
+          fi
+          
+          create-dmg \
+            --volname "Quick Cookies" \
+            --volicon "$ICON_PATH" \
+            --window-size 500 340 \
+            --icon-size 90 \
+            --icon "QuickCookies.app" 130 110 \
+            --hide-extension "QuickCookies.app" \
+            --app-drop-link 370 110 \
+            "./release_dist/QuickCookies-macOS.dmg" \
+            ./dmg_source/
+
+      - name: Auto Create GitHub Release and Upload DMG
+        uses: softprops/action-gh-release@v2
+        with:
+          files: ./release_dist/QuickCookies-macOS.dmg
+          body: |
+            # Quick Cookies Release
+
+            ## 🍺 通过 Homebrew Cask 一键安装 / Install via Homebrew Cask
+            
+            ```bash
+            brew tap hi-zeroed/tap
+            brew install --cask quick-cookies
+            ```
+
+            ---
+
+            ## 📥 手动安装运行说明 / Manual Installation & Running Guide
+
+            ---
+
+            ### 🇨🇳 简体中文说明
+            
+            由于本软件为个人开源项目，未加入苹果开发者付费计划，下载后可能提示“已损坏，移至废纸篓”或“无法确认开发者”警告。请按照以下方式运行：
+            
+            #### 💡 方法一：右键授权打开 (推荐)
+            1. 将 `QuickCookies.app` 拖入 **Applications (应用程序)** 文件夹。
+            2. 在 Applications 文件夹中，**按住 Control 键并右键点击** `QuickCookies` 图标，在菜单中选择 **打开 (Open)**。
+            3. 在弹出的警告窗口中，点击 **打开 (Open)** 按钮。此后系统会永久豁免该提醒，双击直接运行。
+            
+            #### 💻 方法二：终端命令行消除隔离标签
+            若双击提示损坏，这是浏览器对下载文件施加的隔离限制。只需打开 **终端 (Terminal)** 运行以下指令：
+            ```bash
+            sudo xattr -r -d com.apple.quarantine /Applications/QuickCookies.app
+            ```
+
+            ---
+
+            ### 🇺🇸 English Guide
+            
+            Since this software is a personal open-source project and is not signed with a paid Apple Developer certificate, macOS Gatekeeper may show "App is damaged" or "Cannot confirm developer" warnings upon opening. Please follow either method below to run it:
+            
+            #### 💡 Method 1: Right-Click to Open (Recommended)
+            1. Drag `QuickCookies.app` into your **Applications** folder.
+            2. In the Applications folder, **hold down the Control key and right-click** the `QuickCookies` icon, then select **Open**.
+            3. In the pop-up warning dialog, click the **Open** button. macOS will remember this exception, and you can open it by double-clicking in the future.
+            
+            #### 💻 Method 2: Clear Quarantine Attribute via Terminal
+            If macOS reports the app is damaged, it is because the browser adds a quarantine flag to downloaded files. Simply open your **Terminal** and execute:
+            ```bash
+            sudo xattr -r -d com.apple.quarantine /Applications/QuickCookies.app
+            ```
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update Homebrew Tap
+        env:
+          TAP_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }}
+        run: |
+          if [ -z "$TAP_TOKEN" ]; then
+            echo "未检测到 TAP_GITHUB_TOKEN 密钥，跳过 Homebrew Tap 自动更新。/ TAP_GITHUB_TOKEN secret not found. Skipping."
+            exit 0
+          fi
+          
+          # 1. 计算 DMG 文件的 SHA256 校验和
+          SHA256_HASH=$(shasum -a 256 "./release_dist/QuickCookies-macOS.dmg" | awk '{print $1}')
+          TAG_NAME="${{ github.ref_name }}"
+          VERSION="${TAG_NAME#v}" # 去除 v 前缀，如 v1.0.0 -> 1.0.0
+          
+          # 2. 临时克隆自建的 homebrew-tap 仓库 (使用 PAT 鉴权)
+          git clone https://x-access-token:$TAP_TOKEN@github.com/hi-zeroed/homebrew-tap.git ./homebrew_tap_temp
+          
+          # 3. 替换或自动初始化 Casks/quick-cookies.rb
+          CASK_PATH="./homebrew_tap_temp/Casks/quick-cookies.rb"
+          mkdir -p "./homebrew_tap_temp/Casks"
+          
+          if [ ! -f "$CASK_PATH" ]; then
+            echo 'cask "quick-cookies" do' > "$CASK_PATH"
+            echo '  version ""' >> "$CASK_PATH"
+            echo '  sha256 ""' >> "$CASK_PATH"
+            echo '' >> "$CASK_PATH"
+            echo '  url "https://github.com/hi-zeroed/quick-cookies/releases/download/v#{version}/QuickCookies-macOS.dmg"' >> "$CASK_PATH"
+            echo '  name "Quick Cookies"' >> "$CASK_PATH"
+            echo '  desc "Instant code and document preview tool for macOS Finder"' >> "$CASK_PATH"
+            echo '  homepage "https://github.com/hi-zeroed/quick-cookies"' >> "$CASK_PATH"
+            echo '' >> "$CASK_PATH"
+            echo '  app "QuickCookies.app"' >> "$CASK_PATH"
+            echo '' >> "$CASK_PATH"
+            echo '  zap trash: [' >> "$CASK_PATH"
+            echo '    "~/Library/Application Support/com.quickcookies.app",' >> "$CASK_PATH"
+            echo '    "~/Library/Preferences/com.quickcookies.app.plist",' >> "$CASK_PATH"
+            echo '  ]' >> "$CASK_PATH"
+            echo 'end' >> "$CASK_PATH"
+          fi
+          
+          # 使用 perl 跨平台安全正则替换 version 和 sha256
+          perl -pi -e "s/version \".*\"/version \"$VERSION\"/g" "$CASK_PATH"
+          perl -pi -e "s/sha256 \".*\"/sha256 \"$SHA256_HASH\"/g" "$CASK_PATH"
+          
+          # 4. 提交并推送修改到 homebrew-tap 仓库
+          cd ./homebrew_tap_temp
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add Casks/quick-cookies.rb
+          
+          # 若无实际内容变化则跳过 commit 防止报错
+          if git diff --staged --quiet; then
+            echo "Cask 脚本内容无任何实质改变，跳过推送。/ No changes in Cask. Skipping push."
+          else
+            git commit -m "Update quick-cookies to v$VERSION"
+            git push origin main
+          fi
+
