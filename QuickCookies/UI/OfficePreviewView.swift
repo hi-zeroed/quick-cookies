@@ -5,8 +5,11 @@ struct OfficePreviewView: NSViewRepresentable {
     let fileURL: URL
 
     func makeNSView(context: Context) -> QLPreviewView {
-        let view = QLPreviewView(frame: .zero, style: .normal) ?? QLPreviewView()
+        let view = QLPreviewView(frame: .zero, style: .compact) ?? QLPreviewView()
         view.previewItem = fileURL as QLPreviewItem
+        
+        // 配置 autoresizingMask 允许其跟随父 HostingView 实时流式拉伸大小以铺开铺满
+        view.autoresizingMask = [.width, .height]
         
         // 显式启用 layer 物理裁剪，防范底层渲染区域与背景分层导致的直角溢出
         view.wantsLayer = true

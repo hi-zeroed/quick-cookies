@@ -174,9 +174,7 @@ struct OnboardingView: View {
         .onAppear {
             isFinderExtensionAttempted = UserDefaults.standard.bool(forKey: "isFinderExtensionAttempted")
             checkPermissionState()
-            withAnimation(.easeOut(duration: 0.8)) {
-                isWelcomeAnimating = true
-            }
+            isWelcomeAnimating = true
         }
         .onReceive(authTimer) { _ in
             // 关闭序列启动后不再轮询权限，避免与 close/activationPolicy 产生 RunLoop 竞争

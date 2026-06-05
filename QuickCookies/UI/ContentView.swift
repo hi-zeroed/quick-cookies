@@ -108,6 +108,9 @@ struct ContentView: View {
     // 头部顶栏 Hover 状态
     @State private var isHeaderHovered: Bool = false
 
+    // 起跳缩放动画期间的状态锁定，用于延迟重型组件挂载，防范闪变
+    @State private var isAnimationActive: Bool = true
+
     // NOTE: 不在 ContentView 根节点订阅 Settings.shared，
     //       避免任意设置变化触发整个视图树 invalidate + CodeView.updateNSView 冒餐调用。
     //       fontSize / editorFont 只在 previewView / editView 子节点内读取，训练范围最小化。
@@ -166,10 +169,19 @@ struct ContentView: View {
             chunkReader = nil
         }
         .task {
+            // 在起跳缩放动画播放期间（380ms），将 isAnimationActive 设为 true 屏蔽重载渲染，
+            // 播放完毕后解除占位，从而消除因大视图排版在缩放期间重排产生的闪烁
+            isAnimationActive = true
+            
             if let path = state.filePath {
                 await loadFileAsync(path: path)
                 startWatchingFile(path: path)
             }
+            
+            do {
+                try await Task.sleep(nanoseconds: 380_000_000)
+            } catch {}
+            isAnimationActive = false
         }
         .onChange(of: state.filePath) { newPath in
             if let path = newPath {
@@ -353,6 +365,14 @@ struct ContentView: View {
         }
     }
 
+    private var isHeavyViewLoading: Bool {
+        // 对于图片、PDF 和 Office 等重型排版组件，在初次起跑缩放动画期间，强制视为加载中（渲染占位屏）
+        if isAnimationActive {
+            return state.renderType == .image || state.renderType == .pdf || state.renderType == .office
+        }
+        return false
+    }
+
     @ViewBuilder
     private var mainContent: some View {
         if let err = state.errorMessage {
@@ -371,7 +391,7 @@ struct ContentView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .transition(.opacity)
-        } else if isLoading {
+        } else if isLoading || isHeavyViewLoading {
             VStack(spacing: 16) {
                 Spacer()
                 ProgressView()
@@ -431,6 +451,7 @@ struct ContentView: View {
                 MediaPreviewView(filePath: path, renderType: renderType)
             case .office:
                 OfficePreviewView(fileURL: URL(fileURLWithPath: path))
+                    .frame(maxWidth: .infinity, maxHeight: .infinity) // 强制铺满所有可用横向与纵向区域
                     .cornerRadius(15)
                     .overlay(
                         RoundedRectangle(cornerRadius: 15)

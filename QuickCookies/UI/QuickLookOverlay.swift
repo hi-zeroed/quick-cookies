@@ -510,7 +510,15 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
             CATransform3DMakeTranslation(translationX, translationY, 0)
         )
         
-        // 窗口本身的透明度直接置为 1.0 呈现
+        // 1. 先用 disableActions 强制在第 0 帧将图层 transform 和 opacity 设为起跑状态，
+        //    防止窗口在 orderFront 瞬间大尺寸在屏幕中央闪现
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        layer.transform = initialTransform
+        layer.opacity = 0.0
+        CATransaction.commit()
+
+        // 2. 此时可以安全将窗口透明度恢复为 1.0，因为图层已经被隐形并收缩在起跑点上
         previewPanel.alphaValue = 1.0
 
         // 使用物理公式驱动的 CASpringAnimation 弹簧动画 (开启过冲回弹，释放极致的原生“空气/膨胀果冻感”)
@@ -535,6 +543,11 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         group.fillMode = .removed           // 移除后自动采用模型图层的真实属性值（即最终态）
         
         CATransaction.begin()
+        CATransaction.setCompletionBlock {
+            // 动画播完后，显式将 layer 的真实属性恢复为 1.0 和 identity，防止隐式回退
+            layer.transform = CATransform3DIdentity
+            layer.opacity = 1.0
+        }
         layer.add(group, forKey: "quickLookShow")
         CATransaction.commit()
         
@@ -864,6 +877,10 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
 
     /// 关闭窗口并附带平滑缩小到图标位置的 GPU 变换动画
     func closeWithAnimation() {
+        // 1. 同步瞬间重置预览状态，促使 ContentView 立即卸载 QLPreviewView 等重型组件，
+        //    防止重型视图在缩小动画期间（特别是缩小到极小时）产生布局冲突和刺眼的闪白/灰块
+        self.previewState.reset()
+
         guard let window = previewWindow, let contentView = window.contentView, let layer = contentView.layer else {
             close()
             return
