@@ -240,6 +240,9 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
             return
         }
 
+        // 在打开前同步极速获取当前 Finder 选中文件图标的物理坐标，作为飞出起跳点
+        self.sourceRectBackup = self.getSourceRect()
+
         // 3. 尝试同步获取当前 Finder 选中文件路径（一般耗时很低，~5-15ms），以防不支持文件先大后小
         var detectedPath: String? = nil
         let result = FileDetector.getSelectedFilePath()
@@ -257,6 +260,9 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
     /// 显示预览窗口（Quick Look 动画） - 秒开重构版
     func show(filePath: String?) {
         if let path = filePath {
+            // 同步极速获取当前 Finder 选中文件图标的物理坐标，作为飞出起跳点
+            self.sourceRectBackup = self.getSourceRect()
+
             let resolvedPath = FileUtils.resolveSymlink(at: path)
             let renderType = FileTypeClassifier.classify(path: resolvedPath)
             let language = FileTypeClassifier.getLanguageName(path: resolvedPath)
@@ -407,8 +413,8 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
             self?.updatePreviewFromFinder()
         }
 
-        // 3. 0ms 瞬间起跳：获取鼠标位置作为打开时的初始起跳点，保证无阻塞，体验丝滑
-        let initialSourceRect = self.getMouseOrCenterSourceRect(targetRect: targetRect)
+        // 3. 0ms 瞬间起跳：优先使用轮询预取的文件图标物理位置，若无缓存再降级到鼠标位置，保证零局限与零阻塞
+        let initialSourceRect = self.sourceRectBackup ?? self.getMouseOrCenterSourceRect(targetRect: targetRect)
         self.performQuickLookAnimation(
             previewPanel: previewPanel,
             sourceRect: initialSourceRect,
