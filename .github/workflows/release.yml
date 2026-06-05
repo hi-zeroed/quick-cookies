@@ -27,6 +27,17 @@ jobs:
                      CODE_SIGNING_ALLOWED=NO \
                      clean build
 
+      - name: Copy Highlightr Static Resources
+        run: |
+          APP_PATH="./derived_data/Build/Products/Release/QuickCookies.app"
+          HIGHLIGHTR_BUNDLE_RESOURCES="$APP_PATH/Contents/Resources/Highlightr_Highlightr.bundle/Contents/Resources"
+          if [ -d "$HIGHLIGHTR_BUNDLE_RESOURCES" ]; then
+            cp -R "$HIGHLIGHTR_BUNDLE_RESOURCES/"* "$APP_PATH/Contents/Resources/"
+            echo "Highlightr resources copied successfully."
+          else
+            echo "Warning: Highlightr.bundle not found."
+          fi
+
       - name: Ad-hoc Force Sign App & Extension
         run: |
           APP_PATH="./derived_data/Build/Products/Release/QuickCookies.app"

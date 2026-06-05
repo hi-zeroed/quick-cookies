@@ -208,19 +208,32 @@ struct CodeView: NSViewRepresentable {
 
     /// 首次异步语法高亮（首屏 500 行秒开展示 + 后台全量高亮平滑刷入）
     private func loadSyntaxHighlightFirstTime(for textView: NSTextView, isDark: Bool, fontCache: FontVariantCache) {
-        guard let language = language else { return }
-        
-        let modDate = FileUtils.getModificationDate(at: filePath)
+        let fullContent = content
         let themeName = isDark ? "atom-one-dark" : "atom-one-light"
+        let modDate = FileUtils.getModificationDate(at: filePath)
+
+        // 1. 安全降级防护网：如果无指定语言（纯文本），或者高亮引擎初始化失败（Release 包环境差异）
+        //    则以用户配置的默认字体与高对比度前景颜色渲染并覆写 textStorage，消除默认的“黑底黑字”空白现象
+        guard let language = language,
+              let highlighter = SyntaxHighlighter.shared else {
+            let attributes: [NSAttributedString.Key: Any] = [
+                .font: NSFont.editorFont(name: fontName, size: fontSize),
+                .foregroundColor: isDark ? NSColor(white: 0.85, alpha: 1.0) : NSColor(white: 0.15, alpha: 1.0)
+            ]
+            let attributed = NSAttributedString(string: fullContent, attributes: attributes)
+            DispatchQueue.main.async {
+                textView.textStorage?.setAttributedString(attributed)
+            }
+            return
+        }
         
-        // 尝试从内存缓存中直接匹配高亮文本
+        // 2. 尝试从内存缓存中直接匹配高亮文本
         if let cached = HighlightCache.shared.get(for: filePath, themeName: themeName, fontName: fontName, fontSize: fontSize, modificationDate: modDate) {
             textView.textStorage?.setAttributedString(cached)
             return
         }
 
-        let fullContent = content
-        
+        // 3. 异步后台执行语法高亮
         DispatchQueue.global(qos: .userInteractive).async {
             let lines = fullContent.components(separatedBy: "\n")
             

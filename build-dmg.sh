@@ -92,6 +92,21 @@ xcodebuild -project QuickCookies.xcodeproj \
 log_success "编译 Release 产物成功。 / Build Release target succeeded."
 
 # ==========================================
+# 步骤 3.5: 拷贝 Highlightr 高亮依赖资源至主 App 资源根目录下
+# Step 3.5: Copy Highlightr resources to main App resources root
+# ==========================================
+APP_PATH="$BUILD_DIR/Build/Products/Release/QuickCookies.app"
+HIGHLIGHTR_BUNDLE_RESOURCES="$APP_PATH/Contents/Resources/Highlightr_Highlightr.bundle/Contents/Resources"
+
+log_info "正在拷贝 Highlightr 代码高亮资源包至主 App 根目录... / Copying Highlightr resources to main App root..."
+if [ -d "$HIGHLIGHTR_BUNDLE_RESOURCES" ]; then
+    cp -R "$HIGHLIGHTR_BUNDLE_RESOURCES/"* "$APP_PATH/Contents/Resources/"
+    log_success "Highlightr 依赖资源拷贝成功！ / Highlightr resources copied successfully."
+else
+    log_warning "未检测到 Highlightr.bundle，跳过拷贝。 / Highlightr.bundle not found. Skipping."
+fi
+
+# ==========================================
 # 步骤 4: 强制进行 Ad-hoc 自签名
 # Step 4: Force Ad-hoc signing (App & Ext)
 # ==========================================
