@@ -26,53 +26,26 @@ class FinderMenuIntegration {
     /// 获取 MenuBarExtra 菜单内容
     @ViewBuilder
     static func getMenuBarMenu() -> some View {
-        VStack(alignment: .leading, spacing: 4) {
-            // 快速打开选中文件（使用 Unicode 字符替代图标）
-            Button(action: openSelectedFile) {
-                HStack(spacing: 8) {
-                    Image("MenuOpen")
-                        .renderingMode(.template)
-                        .resizable()
-                        .frame(width: 16, height: 16)
-                    Text("Open Selected File".localized())
-                }
-            }
-            .buttonStyle(.plain)
-            .help("Double-press Option or click here to open the selected Finder file".localized())
-
-            Divider()
-
-            // 设置
-            Button(action: {
-                DispatchQueue.main.async {
-                    SettingsWindowController.shared.show()
-                }
-            }) {
-                HStack(spacing: 8) {
-                    Image("MenuSettings")
-                        .renderingMode(.template)
-                        .resizable()
-                        .frame(width: 16, height: 16)
-                    Text("Settings".localized())
-                }
-            }
-            .buttonStyle(.plain)
-
-            Divider()
-
-            // 退出
-            Button(action: { NSApplication.shared.terminate(nil) }) {
-                HStack(spacing: 8) {
-                    Image("MenuQuit")
-                        .renderingMode(.template)
-                        .resizable()
-                        .frame(width: 16, height: 16)
-                    Text("Quit".localized())
-                }
-            }
-            .buttonStyle(.plain)
+        Button(action: openSelectedFile) {
+            Label("Open Selected File".localized(), image: "MenuOpen")
         }
-        .padding(8)
+        .help("Double-press Option or click here to open the selected Finder file".localized())
+
+        Divider()
+
+        Button(action: {
+            DispatchQueue.main.async {
+                SettingsWindowController.shared.show()
+            }
+        }) {
+            Label("Settings".localized(), image: "MenuSettings")
+        }
+
+        Divider()
+
+        Button(action: { NSApplication.shared.terminate(nil) }) {
+            Label("Quit".localized(), image: "MenuQuit")
+        }
     }
 
     /// 注册 Services 菜单（通过 Info.plist 配置，这里提供辅助方法）
