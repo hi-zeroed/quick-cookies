@@ -506,7 +506,7 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
 
         // 使用物理公式驱动的 CASpringAnimation 弹簧动画
         let springTransform = CASpringAnimation(keyPath: "transform")
-        springTransform.damping = 16
+        springTransform.damping = 24
         springTransform.stiffness = 170
         springTransform.mass = 0.8
         springTransform.fromValue = NSValue(caTransform3D: initialTransform)
