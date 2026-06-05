@@ -16,8 +16,8 @@ struct EditorView: NSViewRepresentable {
         scrollView.autohidesScrollers = true
         scrollView.borderType = .noBorder
         
-        scrollView.backgroundColor = .clear
-        scrollView.drawsBackground = false
+        scrollView.backgroundColor = .appBackground
+        scrollView.drawsBackground = true
         
         // PERF: 显式开启方向轴锁定优化，防止滚动时抖动
         scrollView.usesPredominantAxisScrolling = true
@@ -28,8 +28,8 @@ struct EditorView: NSViewRepresentable {
         textView.isEditable = true
         textView.isSelectable = true
         textView.font = NSFont.editorFont(name: fontName, size: fontSize)
-        textView.backgroundColor = .clear
-        textView.drawsBackground = false
+        textView.backgroundColor = .appBackground
+        textView.drawsBackground = true
         textView.textColor = .appText
         textView.isRichText = false
         textView.allowsUndo = true
@@ -70,17 +70,17 @@ struct EditorView: NSViewRepresentable {
         }
 
         // PERF: 只有在不同时才更新颜色属性，避免触发 NSTextView 冗余的 needsDisplay 和整屏重绘，守护滚动流畅度
-        if scrollView.backgroundColor != .clear {
-            scrollView.backgroundColor = .clear
+        if scrollView.backgroundColor != .appBackground {
+            scrollView.backgroundColor = .appBackground
         }
-        if scrollView.drawsBackground != false {
-            scrollView.drawsBackground = false
+        if scrollView.drawsBackground != true {
+            scrollView.drawsBackground = true
         }
-        if textView.backgroundColor != .clear {
-            textView.backgroundColor = .clear
+        if textView.backgroundColor != .appBackground {
+            textView.backgroundColor = .appBackground
         }
-        if textView.drawsBackground != false {
-            textView.drawsBackground = false
+        if textView.drawsBackground != true {
+            textView.drawsBackground = true
         }
         if textView.textColor != .appText {
             textView.textColor = .appText

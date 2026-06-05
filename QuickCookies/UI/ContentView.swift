@@ -339,6 +339,7 @@ struct ContentView: View {
                 .padding(.bottom, 20)
             }
         }
+        .background(Color.appBackground)
     }
 
     @ViewBuilder
