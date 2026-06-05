@@ -407,7 +407,6 @@ struct Localization {
             "Export": [.en: "Export", .zhHans: "导出"],
             "Failed to load remaining text": [.en: "Failed to load remaining text", .zhHans: "载入后续文本失败"],
             "Failed to read remaining file": [.en: "Failed to read remaining file", .zhHans: "读取剩余文件失败"],
-            "Enter Edit Mode": [.en: "Enter Edit Mode", .zhHans: "进入编辑模式"],
             "Finder Extension": [.en: "Finder Extension", .zhHans: "Finder 扩展"],
             "Integrate right-click menu and seamless preview. Zero privacy risk.": [.en: "Integrate right-click menu and seamless preview. Zero privacy risk.", .zhHans: "集成右键菜单与无感预览。零隐私风险。"],
             "Allow flying from file position with smooth spring physics animations.": [.en: "Allow flying from file position with smooth spring physics animations.", .zhHans: "允许从文件原位起跳，享受物理弹簧质感动画。"],
