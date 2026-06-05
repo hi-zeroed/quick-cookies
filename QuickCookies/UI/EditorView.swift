@@ -18,9 +18,8 @@ struct EditorView: NSViewRepresentable {
         
         scrollView.backgroundColor = .appBackground
         scrollView.drawsBackground = true
-
-        // PERF: 显式开启像素滚动复制和方向轴锁定优化，防止滚动时抖动
-        scrollView.contentView.copiesOnScroll = true
+        
+        // PERF: 显式开启方向轴锁定优化，防止滚动时抖动
         scrollView.usesPredominantAxisScrolling = true
 
         // 创建 TextView 并定制样式以契合参考图

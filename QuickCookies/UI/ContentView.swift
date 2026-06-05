@@ -39,6 +39,11 @@ class PreviewState: ObservableObject {
             if !isResetting { onStateChanged?() }
         }
     }
+    @Published var isExpanded: Bool = false {
+        didSet {
+            if !isResetting { onStateChanged?() }
+        }
+    }
     
     // 大文件分段增量读取状态
     @Published var hasMoreChunks: Bool = false
@@ -56,6 +61,7 @@ class PreviewState: ObservableObject {
         hasMoreChunks = false
         isIncrementalLoading = false
         mode = .preview
+        isExpanded = false
         isResetting = false
         onStateChanged?()
     }
@@ -69,6 +75,7 @@ class PreviewState: ObservableObject {
         self.isLoadingPath = isLoadingPath
         self.errorMessage = errorMessage
         self.mode = .preview
+        self.isExpanded = false
         isResetting = false
         onStateChanged?()
     }
@@ -97,6 +104,9 @@ struct ContentView: View {
     
     // 状态化分段文件读取器
     @State private var chunkReader: FileChunkReader? = nil
+    
+    // 头部顶栏 Hover 状态
+    @State private var isHeaderHovered: Bool = false
 
     // NOTE: 不在 ContentView 根节点订阅 Settings.shared，
     //       避免任意设置变化触发整个视图树 invalidate + CodeView.updateNSView 冒餐调用。
@@ -165,21 +175,51 @@ struct ContentView: View {
         }
     }
 
+    // 文件类型小图标名称
+    private func fileIconName(for renderType: FileRenderType?) -> String {
+        guard let type = renderType else { return "doc" }
+        switch type {
+        case .markdown: return "doc.text"
+        case .code: return "curlybraces"
+        case .plainText: return "doc.plaintext"
+        case .image: return "photo"
+        case .pdf: return "doc.richtext"
+        case .office: return "briefcase"
+        case .unsupported: return "doc"
+        }
+    }
+
     @ViewBuilder
     private var toolbar: some View {
         HStack {
-            // 左侧占位（完美避让 macOS 系统红绿灯按钮，占位 100px）
-            Spacer()
-                .frame(width: 100)
+            // 左侧自定义关闭与展开按钮，控制在 72px 宽度中靠左对齐，替代系统红绿灯
+            HStack(spacing: 8) {
+                // 关闭按钮
+                CircleControlButton(iconName: "xmark", isHovered: isHeaderHovered) {
+                    QuickLookOverlay.shared.closeWithAnimation()
+                }
+                
+                // 展开/收起按钮
+                CircleControlButton(iconName: "arrow.left.and.right", isHovered: isHeaderHovered) {
+                    state.isExpanded.toggle()
+                }
+            }
+            .frame(width: 72, alignment: .leading)
             
             Spacer()
 
-            // 中间文件名 + 状态修饰点
+            // 中间文件名 + 文件类型小图标 + 状态修饰点
             HStack(spacing: 6) {
                 if let path = state.filePath {
-                    Text(URL(fileURLWithPath: path).lastPathComponent)
-                        .font(.system(size: 13, weight: .semibold, design: .monospaced))
-                        .foregroundColor(Color.appText)
+                    HStack(spacing: 5) {
+                        Image(systemName: fileIconName(for: state.renderType))
+                            .font(.system(size: 11))
+                            .foregroundColor(Color.appText.opacity(0.6))
+                        
+                        Text(URL(fileURLWithPath: path).lastPathComponent)
+                            .font(.system(size: 13, weight: .semibold, design: .monospaced))
+                            .foregroundColor(Color.appText)
+                    }
                 } else if state.errorMessage != nil {
                     Text("获取失败".localized())
                         .font(.system(size: 13, weight: .semibold, design: .monospaced))
@@ -198,7 +238,7 @@ struct ContentView: View {
 
             Spacer()
 
-            // 右侧控制区域（模式切换与保存，右对齐固定 100px）
+            // 右侧控制区域（模式切换与保存，右对齐固定 72px）
             HStack(spacing: 12) {
                 if state.filePath != nil && state.errorMessage == nil {
                     // 导出 PDF 按钮 (仅在预览 Markdown 时显示)
@@ -250,12 +290,15 @@ struct ContentView: View {
                     }
                 }
             }
-            .frame(width: 100, alignment: .trailing)
+            .frame(width: 72, alignment: .trailing)
         }
         .padding(.horizontal, 16)
         .padding(.top, 8)
         .padding(.bottom, 8)
         .background(Color.toolbarBackground)
+        .onHover { hovering in
+            isHeaderHovered = hovering
+        }
     }
 
     @ViewBuilder
@@ -659,5 +702,34 @@ private struct EditContentView: View {
             showLineNumbers: settings.showLineNumbers,
             onSave: onSave
         )
+    }
+}
+
+// MARK: - 自定义灰色圆形控制按钮组件 (替代系统红绿灯)
+struct CircleControlButton: View {
+    let iconName: String
+    let isHovered: Bool
+    let action: () -> Void
+    
+    @State private var isButtonHovered: Bool = false
+    
+    var body: some View {
+        Button(action: action) {
+            ZStack {
+                Circle()
+                    .fill(isButtonHovered ? Color.appText.opacity(0.18) : Color.appText.opacity(0.08))
+                    .frame(width: 13, height: 13)
+                
+                Image(systemName: iconName)
+                    .font(.system(size: 7, weight: .bold))
+                    .foregroundColor(Color.appText.opacity(0.7))
+                    .opacity(isHovered ? 1 : 0)
+                    .animation(.easeInOut(duration: 0.15), value: isHovered)
+            }
+        }
+        .buttonStyle(.plain)
+        .onHover { hovering in
+            isButtonHovered = hovering
+        }
     }
 }

@@ -17,7 +17,7 @@ struct HighlightrCodeSyntaxHighlighter: CodeSyntaxHighlighter {
         case .dark:
             isDark = true
         case .system:
-            isDark = NSAppearance.current.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+            isDark = NSAppearance.currentDrawing().bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
         }
         let themeName = isDark ? "atom-one-dark" : "atom-one-light"
 

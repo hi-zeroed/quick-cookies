@@ -82,7 +82,12 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
             return
         }
         
-        // 计算目标内容区 450x320 对应的窗口物理 Frame 大小，以兼容标题栏高度
+        // 强制重置 isExpanded，防范未缩回状态
+        if previewState.isExpanded {
+            previewState.isExpanded = false
+        }
+        
+        // 计算目标内容区 450x320 对应的窗口物理 Frame 大小
         let contentRect = NSRect(x: 0, y: 0, width: 450, height: 320)
         let frameRect = window.frameRect(forContentRect: contentRect)
         let targetWidth = frameRect.width
@@ -112,7 +117,9 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         }
         let screenVisibleFrame = NSScreen.main?.visibleFrame ?? NSRect(x: 0, y: 0, width: 1920, height: 1080)
         
-        let contentWidth = screenVisibleFrame.width * 0.38
+        // 依据 isExpanded（true 为 68%，false 为 38%）平滑变换宽度
+        let widthRatio = previewState.isExpanded ? 0.68 : 0.38
+        let contentWidth = screenVisibleFrame.width * widthRatio
         let contentHeight = screenVisibleFrame.height * 0.88
         
         let contentRect = NSRect(x: 0, y: 0, width: contentWidth, height: contentHeight)
@@ -278,10 +285,10 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
             height: windowHeight
         )
 
-        // 2. 瞬间在主线程实例化窗口并展现
+        // 2. 瞬间在主线程实例化窗口并展现 (borderless 极简自研控制按钮模式)
         let previewPanel = QuickLookPanel(
             contentRect: targetRect,
-            styleMask: [.titled, .closable, .miniaturizable, .resizable, .fullSizeContentView],
+            styleMask: [.borderless, .resizable],
             backing: .buffered,
             defer: false
         )
@@ -303,8 +310,6 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         previewPanel.hasShadow = true
         previewPanel.isReleasedWhenClosed = false
         previewPanel.delegate = self
-        previewPanel.titlebarAppearsTransparent = true
-        previewPanel.titleVisibility = .hidden
 
         // 重置状态并在已知路径时原子化更新，防范多余重绘
         previewState.reset()
@@ -335,7 +340,7 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
             layer.anchorPoint = CGPoint(x: 0.5, y: 0.5)
             layer.position = CGPoint(x: targetRect.width / 2, y: targetRect.height / 2)
             layer.backgroundColor = NSColor(red: 0.09, green: 0.09, blue: 0.11, alpha: 1.0).cgColor
-            layer.cornerRadius = 12
+            layer.cornerRadius = 20
             layer.masksToBounds = true
         }
 
