@@ -305,8 +305,8 @@ struct SettingsView: View {
                                 } else {
                                     Button(action: { isRecordingHotkey = true }) {
                                         HStack(spacing: 4) {
-                                            ForEach(hotkeyKeyNames, id: \.self) { key in
-                                                KbdKeyView(key: key)
+                                            ForEach(0..<hotkeyKeyNames.count, id: \.self) { index in
+                                                KbdKeyView(key: hotkeyKeyNames[index])
                                             }
                                         }
                                     }
@@ -441,8 +441,12 @@ struct SettingsView: View {
     }
     
     private func checkPermissions() {
-        isAccessibilityAuthorized = AXIsProcessTrusted()
-        isFullDiskAccessAuthorized = checkFDA()
+        let auth = AXIsProcessTrusted()
+        let fda = checkFDA()
+        DispatchQueue.main.async {
+            self.isAccessibilityAuthorized = auth
+            self.isFullDiskAccessAuthorized = fda
+        }
     }
     
     private func checkFDA() -> Bool {

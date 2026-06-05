@@ -714,29 +714,31 @@ struct OnboardingView: View {
         
         var shouldShowConfetti = false
         
-        if auth != isAccessibilityAuthorized {
-            withAnimation(.spring()) {
-                isAccessibilityAuthorized = auth
-                if auth {
-                    shouldShowConfetti = true
+        DispatchQueue.main.async {
+            if auth != self.isAccessibilityAuthorized {
+                withAnimation(.spring()) {
+                    self.isAccessibilityAuthorized = auth
+                    if auth {
+                        shouldShowConfetti = true
+                    }
                 }
             }
-        }
-        
-        if fda != isFullDiskAccessAuthorized {
-            withAnimation(.spring()) {
-                isFullDiskAccessAuthorized = fda
-                if fda {
-                    shouldShowConfetti = true
+            
+            if fda != self.isFullDiskAccessAuthorized {
+                withAnimation(.spring()) {
+                    self.isFullDiskAccessAuthorized = fda
+                    if fda {
+                        shouldShowConfetti = true
+                    }
                 }
             }
-        }
-        
-        if shouldShowConfetti {
-            showConfetti = true
-            DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
-                if !isClosing {
-                    self.showConfetti = false
+            
+            if shouldShowConfetti {
+                self.showConfetti = true
+                DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
+                    if !self.isClosing {
+                        self.showConfetti = false
+                    }
                 }
             }
         }
