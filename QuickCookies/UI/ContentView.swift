@@ -117,42 +117,14 @@ struct ContentView: View {
     }
 
     var body: some View {
-        ZStack {
-            VStack(spacing: 0) {
-                // 工具栏
-                toolbar
-                    .zIndex(1) // 锁定层级，确保工具栏处于最前，防止 MarkdownView 的 ScrollView 穿透遮挡
+        VStack(spacing: 0) {
+            // 工具栏
+            toolbar
+                .zIndex(1) // 锁定层级，确保工具栏处于最前，防止 MarkdownView 的 ScrollView 穿透遮挡
 
-                // 内容区域（去除原本的 padding，改在 contentArea 内部 ZStack 包装）
-                contentArea
-                    .zIndex(0)
-            }
-            
-            // 自定义遮罩与弹窗层
-            if showErrorAlert || showReloadAlert {
-                Color.black.opacity(colorScheme == .dark ? 0.4 : 0.15)
-                    .edgesIgnoringSafeArea(.all)
-                    .transition(.opacity)
-                    .zIndex(2)
-                    .onTapGesture {
-                        // 允许点击遮罩关闭保存错误弹窗，但文件冲突弹窗必须强制交互
-                        if showErrorAlert {
-                            withAnimation(.easeOut(duration: 0.15)) {
-                                showErrorAlert = false
-                            }
-                        }
-                    }
-                
-                if showReloadAlert {
-                    customReloadAlert
-                        .zIndex(3)
-                        .transition(.scale(scale: 0.92).combined(with: .opacity))
-                } else if showErrorAlert {
-                    customErrorAlert
-                        .zIndex(3)
-                        .transition(.scale(scale: 0.92).combined(with: .opacity))
-                }
-            }
+            // 内容区域（去除原本的 padding，改在 contentArea 内部 ZStack 包装）
+            contentArea
+                .zIndex(0)
         }
         .ignoresSafeArea(edges: .top)
         .background(
@@ -167,6 +139,26 @@ struct ContentView: View {
         .padding(40) // 核心透明留白，用于支撑弹簧过冲回弹的防裁剪与阴影扩散
         .background(Color.clear) // 根容器背景必须是透明 clear，保持留白边缘穿透
         .toast(isShowing: $showLocalToast, message: localToastMessage, icon: localToastIcon)
+        .customAlert(
+            isPresented: $showReloadAlert,
+            title: "文件已被外部修改".localized(),
+            message: "该文件已被其他编辑器修改，是否重新加载最新内容？".localized(),
+            primaryButton: .primary("重新加载".localized()) {
+                if let path = state.filePath {
+                    isLoading = true
+                    Task {
+                        await loadFileAsync(path: path)
+                    }
+                }
+            },
+            secondaryButton: .secondary("忽略".localized())
+        )
+        .customAlert(
+            isPresented: $showErrorAlert,
+            title: "保存失败".localized(),
+            message: errorMessage.localized(),
+            primaryButton: .primary("确定".localized())
+        )
         .onDisappear {
             fileWatcher?.stop()
             fileWatcher = nil
@@ -206,91 +198,6 @@ struct ContentView: View {
         case .pdf: return "doc.richtext"
         case .office: return "briefcase"
         case .unsupported: return "doc"
-        }
-    }
-
-    // MARK: - 自定义弹窗属性
-    
-    private var customReloadAlert: some View {
-        CustomDialog(title: "文件已被外部修改".localized()) {
-            VStack(spacing: 16) {
-                Text("该文件已被其他编辑器修改，是否重新加载最新内容？".localized())
-                    .font(.system(size: 13))
-                    .foregroundColor(colorScheme == .dark ? Color(white: 0.7) : Color(white: 0.4))
-                    .lineSpacing(4)
-                    .multilineTextAlignment(.center)
-                
-                HStack(spacing: 12) {
-                    Button(action: {
-                        withAnimation(.easeOut(duration: 0.15)) {
-                            showReloadAlert = false
-                        }
-                    }) {
-                        Text("忽略".localized())
-                            .font(.system(size: 13, weight: .medium))
-                            .foregroundColor(colorScheme == .dark ? .white : .black)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 32)
-                            .background(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .fill(colorScheme == .dark ? Color.white.opacity(0.12) : Color.black.opacity(0.06))
-                            )
-                    }
-                    .buttonStyle(.plain)
-                    
-                    Button(action: {
-                        withAnimation(.easeOut(duration: 0.15)) {
-                            showReloadAlert = false
-                        }
-                        if let path = state.filePath {
-                            isLoading = true
-                            Task {
-                                await loadFileAsync(path: path)
-                            }
-                        }
-                    }) {
-                        Text("重新加载".localized())
-                            .font(.system(size: 13, weight: .medium))
-                            .foregroundColor(.white)
-                            .frame(maxWidth: .infinity)
-                            .frame(height: 32)
-                            .background(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .fill(Color.blue)
-                            )
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-        }
-    }
-    
-    private var customErrorAlert: some View {
-        CustomDialog(title: "保存失败".localized()) {
-            VStack(spacing: 16) {
-                Text(errorMessage.localized())
-                    .font(.system(size: 13))
-                    .foregroundColor(colorScheme == .dark ? Color(white: 0.7) : Color(white: 0.4))
-                    .lineSpacing(4)
-                    .multilineTextAlignment(.center)
-                
-                Button(action: {
-                    withAnimation(.easeOut(duration: 0.15)) {
-                        showErrorAlert = false
-                    }
-                }) {
-                    Text("确定".localized())
-                        .font(.system(size: 13, weight: .medium))
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .frame(height: 32)
-                        .background(
-                            RoundedRectangle(cornerRadius: 8)
-                                .fill(Color.blue)
-                        )
-                }
-                .buttonStyle(.plain)
-            }
         }
     }
 
@@ -881,40 +788,5 @@ struct CircleControlButton: View {
         .onHover { hovering in
             isButtonHovered = hovering
         }
-    }
-}
-
-// MARK: - 自定义卡片内弹窗卡片框架
-struct CustomDialog<Content: View>: View {
-    @Environment(\.colorScheme) var colorScheme
-    let title: String
-    let content: Content
-    
-    init(title: String, @ViewBuilder content: () -> Content) {
-        self.title = title
-        self.content = content()
-    }
-    
-    var body: some View {
-        VStack(spacing: 16) {
-            Text(title)
-                .font(.system(size: 15, weight: .bold))
-                .foregroundColor(colorScheme == .dark ? .white : .black)
-                .multilineTextAlignment(.center)
-            
-            content
-        }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 18)
-        .frame(width: 290)
-        .background(
-            RoundedRectangle(cornerRadius: 16)
-                .fill(colorScheme == .dark ? Color(white: 0.16) : Color.white)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(colorScheme == .dark ? Color.white.opacity(0.12) : Color.black.opacity(0.08), lineWidth: 0.5)
-        )
-        .shadow(color: Color.black.opacity(0.15), radius: 10, x: 0, y: 5)
     }
 }

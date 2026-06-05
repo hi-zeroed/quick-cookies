@@ -30,6 +30,7 @@
 		C2B47F163AC772A6BD9CD6B5 /* SettingsWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = B87D7CAF1B4B8FAFF363B543 /* SettingsWindow.swift */; };
 		CC3B6172EFBB3884582E6DB9 /* MarkdownView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6240A15DD8E31603B40D6CC6 /* MarkdownView.swift */; };
 		D02C04567F8A13B8EE46D917 /* ToastView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC8B9C87C1019A1BEC529314 /* ToastView.swift */; };
+		D02C04567F8A13B8EE46D927 /* CustomAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC8B9C87C1019A1BEC529324 /* CustomAlert.swift */; };
 		D89BC4645FD2337D32C9072C /* EncodingDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2724C2DCD3C66C24CC15D6E7 /* EncodingDetector.swift */; };
 		DA83EA46F6AB177473BC0393 /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = D643EEA9D20E7A954D49ED4C /* Settings.swift */; };
 		FC17D463B0B7C2B8817DCA5B /* SyntaxHighlighter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4282BAE5CE686021AF7F3F5C /* SyntaxHighlighter.swift */; };
@@ -91,6 +92,7 @@
 		BBB222222222222222222222 /* QuickCookiesApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickCookiesApp.swift; sourceTree = "<group>"; };
 		C61407483B4F8F25CF2BA6C7 /* FileDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileDetector.swift; sourceTree = "<group>"; };
 		CC8B9C87C1019A1BEC529314 /* ToastView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToastView.swift; sourceTree = "<group>"; };
+		CC8B9C87C1019A1BEC529324 /* CustomAlert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomAlert.swift; sourceTree = "<group>"; };
 		CCC333333333333333333333 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		D643EEA9D20E7A954D49ED4C /* Settings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
 		DDD444444444444444444444 /* QuickCookies.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = QuickCookies.entitlements; sourceTree = "<group>"; };
@@ -182,6 +184,7 @@
 				835FB6192FCA950400D2395F /* QuickLookOverlayModifier.swift */,
 				B87D7CAF1B4B8FAFF363B543 /* SettingsWindow.swift */,
 				CC8B9C87C1019A1BEC529314 /* ToastView.swift */,
+				CC8B9C87C1019A1BEC529324 /* CustomAlert.swift */,
 				MEDPREVREF00000000000001 /* MediaPreviewView.swift */,
 				ONBOARDREF00000000000001 /* OnboardingView.swift */,
 				835FB7012FCA950400D23AAA /* UnsupportedFileView.swift */,
@@ -361,6 +364,7 @@
 				835FB69A2FCA950400D23999 /* FileChunkReader.swift in Sources */,
 				FC17D463B0B7C2B8817DCA5B /* SyntaxHighlighter.swift in Sources */,
 				D02C04567F8A13B8EE46D917 /* ToastView.swift in Sources */,
+				D02C04567F8A13B8EE46D927 /* CustomAlert.swift in Sources */,
 				CC3B6172EFBB3884582E6DB9 /* MarkdownView.swift in Sources */,
 				21D2DE1178C6759287E735C5 /* CodeView.swift in Sources */,
 				8EA7E2FA49A52C6CB2AE5A5E /* EditorView.swift in Sources */,
