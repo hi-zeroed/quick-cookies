@@ -9,9 +9,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         _ = Settings.shared
 
         let hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
-        let isAccessibilityAuthorized = HotkeyManager.shared.checkAccessibilityPermission()
 
-        if !hasCompletedOnboarding || !isAccessibilityAuthorized {
+        if !hasCompletedOnboarding {
             // 普通激活策略，以便新手向导窗口能够居中并正常获取键盘焦点
             NSApp.setActivationPolicy(.regular)
             showOnboarding()
@@ -24,12 +23,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     private func setupNormalFlow() {
         // 设置为后台 Agent，不显示 Dock 图标与顶部菜单栏，仅显示独立窗口
         NSApp.setActivationPolicy(.accessory)
-
-        // 检查 Accessibility 权限，若未开启但在后台运行仍会开启热键绑定
-        if !HotkeyManager.shared.checkAccessibilityPermission() {
-            // 仅静默申请，由用户自由选择，已通过 Finder Sync 扩展降级
-            HotkeyManager.shared.requestAccessibilityPermission()
-        }
 
         // 注册热键（双击 Option）- 使用 QuickLookOverlay 新动画系统
         HotkeyManager.shared.registerWithSettings {
@@ -105,13 +98,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     /// 处理 URL Scheme 唤起事件（来自 Finder Sync 扩展）
     func application(_ application: NSApplication, open urls: [URL]) {
         guard let url = urls.first, url.scheme == "quickcookies", url.host == "preview" else { return }
-        
-        // 若在运行中用户撤销了辅助功能授权，此时通过右键菜单唤醒时进行防呆拦截，重新索要权限
-        if !HotkeyManager.shared.checkAccessibilityPermission() {
-            NSApp.setActivationPolicy(.regular)
-            showOnboarding()
-            return
-        }
 
         let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
         if let pathItem = components?.queryItems?.first(where: { $0.name == "path" }),
