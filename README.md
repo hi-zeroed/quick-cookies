@@ -28,7 +28,7 @@
 
 ---
 
-**Quick Cookies** is a lightweight, elegant card-style preview and editor utility designed specifically for macOS. It bypasses the tedious "double-click to open file" cycle by allowing users to instantly preview files with a global double <kbd>⌥ Option</kbd> hotkey and make quick edits directly inside the preview window.
+**Quick Cookies** is a lightweight, elegant card-style preview and editor utility designed specifically for macOS. It bypasses the tedious "double-click to open file" cycle by allowing users to instantly preview files with a global double <kbd>⌘ Command</kbd> hotkey and make quick edits directly inside the preview window.
 
 The interface features a borderless frosted HUD card overlay with a golden-ratio reading width, accompanied by an `AXUIElement`-anchored physical spring fly-back animation. Seamlessly integrated with Finder, it brings an incredibly responsive, non-intrusive workspace boost to developers and writers.
 
@@ -124,13 +124,32 @@ QuickCookies/
 
 ---
 
+## 📥 Installation
+
+### Option 1: Install via Homebrew Cask (Recommended 🍺)
+
+This is the most convenient way to install and keep the application updated automatically. Simply run in your Terminal:
+
+```bash
+brew tap hi-zeroed/tap
+brew install --cask quick-cookies
+```
+
+### Option 2: Download DMG Package Manually
+
+1. Navigate to the [GitHub Releases](https://github.com/hi-zeroed/quick-cookies/releases) page and download the latest `QuickCookies-macOS.dmg` archive.
+2. Double-click the DMG and drag `QuickCookies.app` into your **Applications** folder.
+3. Due to the lack of an Apple Developer Program subscription, macOS Gatekeeper may block launch. Hold the **Control** key and right-click `QuickCookies.app` on the first launch, select **Open**, and click "Open" to save the exception.
+
+---
+
 ## ⌨️ Usage Guide
 
 Quick Cookies runs silently in the background. Use the following global keystrokes to control the workflow:
 
 | Action                       | Shortcut (Kbd)                          | Description                                                                                                                                               |
 | :--------------------------- | :-------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Instant Preview / Toggle** | <kbd>⌥ Option</kbd> <kbd>⌥ Option</kbd> | Double-click Option to open when a file is selected in Finder. Trigger again (or click background) to fade out and fly back. _(Configurable in Settings)_ |
+| **Instant Preview / Toggle** | <kbd>⌘ Command</kbd> <kbd>⌘ Command</kbd> | Double-click Command to open when a file is selected in Finder. Trigger again (or click background) to fade out and fly back. _(Configurable in Settings)_ |
 | **Edit Mode Switch**         | <kbd>⌘ Command</kbd> + <kbd>E</kbd>     | Toggle between reader preview mode and editor text mode.                                                                                                  |
 | **Save Modifications**       | <kbd>⌘ Command</kbd> + <kbd>S</kbd>     | Commit editor buffer changes back to the physical disk.                                                                                                   |
 | **Dismiss Window**           | <kbd>Esc</kbd>                          | Close the window safely and shrink it back to Finder file icon.                                                                                           |
@@ -156,8 +175,8 @@ The project uses SPM to load two external libraries:
 
 ```bash
 # 1. Clone the project and enter workspace
-git clone https://github.com/your-username/QuickPeek.git
-cd QuickPeek
+git clone https://github.com/hi-zeroed/quick-cookies.git
+cd quick-cookies
 
 # 2. Trigger clean Debug build phase
 xcodebuild -project QuickCookies.xcodeproj -scheme QuickCookies -configuration Debug -derivedDataPath Build/ clean build

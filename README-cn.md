@@ -27,7 +27,7 @@
 
 ---
 
-**Quick Cookies** 是一款专为 macOS 设计的极轻量、卡片式文件预览与快捷编辑工具。它致力于消除传统“双击打开文件”的繁琐步骤，通过全局双击 `⌥ Option` 热键实现文件的 0ms 瞬间预览，并支持在预览窗口中直接快捷编辑、实时保存修改。
+**Quick Cookies** 是一款专为 macOS 设计的极轻量、卡片式文件预览与快捷编辑工具。它致力于消除传统“双击打开文件”的繁琐步骤，通过全局双击 `⌘ Command` 热键实现文件的 0ms 瞬间预览，并支持在预览窗口中直接快捷编辑、实时保存修改。
 
 界面采用高对比度的毛玻璃 HUD 视感与黄金阅读比例，配备原生的 `matchedGeometry` 空间轨迹弹簧动效，与 macOS 访达（Finder）深度集成，为您的日常研发、文档审阅与阅读带来无感、丝滑的极速体验。
 
@@ -122,13 +122,32 @@ QuickCookies/
 
 ---
 
+## 📥 安装指南 (Installation)
+
+### 选项一：通过 Homebrew Cask 一键安装 (推荐 🍺)
+
+这是最便捷的安装与后续自动升级方式。直接在您的终端中运行：
+
+```bash
+brew tap hi-zeroed/tap
+brew install --cask quick-cookies
+```
+
+### 选项二：手动下载 DMG 安装包
+
+1. 前往 [GitHub Releases](https://github.com/hi-zeroed/quick-cookies/releases) 页面下载最新版 `QuickCookies-macOS.dmg` 映像。
+2. 双击挂载后，将 `QuickCookies.app` 拖入您的 **Applications (应用程序)** 文件夹。
+3. 首次启动时，**按住 Control 键并右键点击**应用图标，选择 **打开 (Open)** 并在确认窗口中点击“打开”以豁免 macOS 开发者证书信任限制。
+
+---
+
 ## ⌨️ 使用指南
 
 应用在后台静默运行，您可以通过以下物理快捷键控制全局工作流：
 
 | 动作                      | 物理快捷键 (Kbd)                        | 作用描述                                                                                                                   |
 | :------------------------ | :-------------------------------------- | :------------------------------------------------------------------------------------------------------------------------- |
-| **快捷预览 / Toggle关闭** | <kbd>⌥ Option</kbd> <kbd>⌥ Option</kbd> | 在 Finder 中选中文件，**双击 Option** 瞬间呼出预览；再次双击或在窗口聚焦时按任意键即可关闭。_(支持在设置中自定义组合热键)_ |
+| **快捷预览 / Toggle关闭** | <kbd>⌘ Command</kbd> <kbd>⌘ Command</kbd> | 在 Finder 中选中文件，**双击 Command** 瞬间呼出预览；再次双击或在窗口聚焦时按任意键即可关闭。_(支持在设置中自定义组合热键)_ |
 | **切换编辑 / 预览模式**   | <kbd>⌘ Command</kbd> + <kbd>E</kbd>     | 在预览窗口打开时，一键进入编辑模式修改内容；再次按下返回预览模式。                                                         |
 | **实时保存修改**          | <kbd>⌘ Command</kbd> + <kbd>S</kbd>     | 在编辑模式且内容有改动时，保存当前修改到物理文件中。                                                                       |
 | **安全退出窗口**          | <kbd>Esc</kbd>                          | 在预览/编辑窗口中按下，安全关闭并使窗口缩小飞回 Finder 原位置。                                                            |
@@ -154,8 +173,8 @@ QuickCookies/
 
 ```bash
 # 1. 克隆项目并进入根目录
-git clone https://github.com/your-username/QuickPeek.git
-cd QuickPeek
+git clone https://github.com/hi-zeroed/quick-cookies.git
+cd quick-cookies
 
 # 2. 执行 clean 编译构建 Debug 版本
 xcodebuild -project QuickCookies.xcodeproj -scheme QuickCookies -configuration Debug -derivedDataPath Build/ clean build
