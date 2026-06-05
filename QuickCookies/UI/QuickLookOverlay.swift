@@ -516,17 +516,17 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         springTransform.mass = 0.35
         springTransform.fromValue = NSValue(caTransform3D: initialTransform)
         springTransform.toValue = NSValue(caTransform3D: CATransform3DIdentity)
-        springTransform.duration = 0.30 // 0.30s 截断，保留最生动的过冲回弹并迅速静止
+        springTransform.duration = 0.38 // 0.38s 截断，保留更完整的物理弹簧舒展动效
         
         // 透明度淡入动画
         let fadeAnim = CABasicAnimation(keyPath: "opacity")
         fadeAnim.fromValue = 0.0
         fadeAnim.toValue = 1.0
-        fadeAnim.duration = 0.12
+        fadeAnim.duration = 0.15
         
         let group = CAAnimationGroup()
         group.animations = [springTransform, fadeAnim]
-        group.duration = 0.30
+        group.duration = 0.38
         group.isRemovedOnCompletion = true // 动画播完自动从层级移除
         group.fillMode = .removed           // 移除后自动采用模型图层的真实属性值（即最终态）
         
@@ -535,9 +535,9 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         CATransaction.commit()
         
         // 动画中后期渐显系统红绿灯按钮，达成呼吸感
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.16) {
             NSAnimationContext.runAnimationGroup({ context in
-                context.duration = 0.10
+                context.duration = 0.12
                 previewPanel.standardWindowButton(.closeButton)?.animator().alphaValue = 1.0
                 previewPanel.standardWindowButton(.miniaturizeButton)?.animator().alphaValue = 1.0
                 previewPanel.standardWindowButton(.zoomButton)?.animator().alphaValue = 1.0
@@ -922,22 +922,22 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         layer.anchorPoint = CGPoint(x: 0.5, y: 0.5)
         layer.position = CGPoint(x: targetRect.width / 2, y: targetRect.height / 2)
 
-        // 使用非常平稳的缩放与淡出动画
+        // 使用非常平稳的缩放与淡出动画 (拉长时间以配合平滑过渡)
         let shrinkAnim = CABasicAnimation(keyPath: "transform")
         shrinkAnim.fromValue = NSValue(caTransform3D: CATransform3DIdentity)
         shrinkAnim.toValue = NSValue(caTransform3D: finalTransform)
-        shrinkAnim.duration = 0.15
+        shrinkAnim.duration = 0.20
         shrinkAnim.timingFunction = CAMediaTimingFunction(name: .easeIn)
         
         let fadeAnim = CABasicAnimation(keyPath: "opacity")
         fadeAnim.fromValue = 1.0
         fadeAnim.toValue = 0.0
-        fadeAnim.duration = 0.12
+        fadeAnim.duration = 0.15
         fadeAnim.timingFunction = CAMediaTimingFunction(name: .easeIn)
         
         let group = CAAnimationGroup()
         group.animations = [shrinkAnim, fadeAnim]
-        group.duration = 0.15
+        group.duration = 0.20
         group.isRemovedOnCompletion = false
         group.fillMode = .forwards
         

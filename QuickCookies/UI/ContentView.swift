@@ -129,6 +129,10 @@ struct ContentView: View {
         .ignoresSafeArea(edges: .top)
         .background(Color.appBackground)
         .cornerRadius(20) // 卡片自身的圆角
+        .overlay(
+            RoundedRectangle(cornerRadius: 20)
+                .stroke(Color.appText.opacity(colorScheme == .dark ? 0.12 : 0.08), lineWidth: 1)
+        )
         .shadow(color: Color.black.opacity(colorScheme == .dark ? 0.45 : 0.18), radius: 16, x: 0, y: 10) // 卡片精致的外阴影
         .padding(40) // 核心透明留白，用于支撑弹簧过冲回弹的防裁剪与阴影扩散
         .background(Color.clear) // 根容器背景必须是透明 clear，保持留白边缘穿透
