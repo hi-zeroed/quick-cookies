@@ -26,6 +26,7 @@ class ToastPanel: NSPanel {
 class QuickLookOverlay: NSObject, NSWindowDelegate {
     static let shared = QuickLookOverlay()
 
+    private let windowPadding: CGFloat = 40
     private var previewWindow: NSWindow?
     var currentWindow: NSWindow? { previewWindow }
     private var sourceRectBackup: CGRect?
@@ -52,7 +53,7 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         }
         
         if let layer = window.contentView?.layer {
-            layer.backgroundColor = NSColor.appBackground.cgColor
+            layer.backgroundColor = NSColor.clear.cgColor
         }
     }
 
@@ -87,8 +88,8 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
             previewState.isExpanded = false
         }
         
-        // 计算目标内容区 450x320 对应的窗口物理 Frame 大小
-        let contentRect = NSRect(x: 0, y: 0, width: 450, height: 320)
+        // 计算目标内容区 450x320（加上 padding 缓冲）对应的窗口物理 Frame 大小
+        let contentRect = NSRect(x: 0, y: 0, width: 450 + windowPadding * 2, height: 320 + windowPadding * 2)
         let frameRect = window.frameRect(forContentRect: contentRect)
         let targetWidth = frameRect.width
         let targetHeight = frameRect.height
@@ -122,7 +123,8 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         let contentWidth = screenVisibleFrame.width * widthRatio
         let contentHeight = screenVisibleFrame.height * 0.88
         
-        let contentRect = NSRect(x: 0, y: 0, width: contentWidth, height: contentHeight)
+        // 计算加上 padding 缓冲对应的窗口物理 Frame 大小
+        let contentRect = NSRect(x: 0, y: 0, width: contentWidth + windowPadding * 2, height: contentHeight + windowPadding * 2)
         let frameRect = window.frameRect(forContentRect: contentRect)
         let targetWidth = frameRect.width
         let targetHeight = frameRect.height
@@ -264,18 +266,18 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         // 关闭旧窗口
         close()
 
-        // 1. 瞬间确定窗口比例（若已知为不支持类型，则使用较矮的原生 Quick Look 风格卡片尺寸）
+        // 1. 瞬间确定窗口比例（若已知为不支持类型，则使用较矮的原生 Quick Look 风格卡片尺寸，加上 padding 缓冲）
         let screenVisibleFrame = NSScreen.main?.visibleFrame ?? NSRect(x: 0, y: 0, width: 1920, height: 1080)
         let isUnsupported = renderType == .unsupported
         
         let windowWidth: CGFloat
         let windowHeight: CGFloat
         if isUnsupported {
-            windowWidth = 450
-            windowHeight = 320
+            windowWidth = 450 + windowPadding * 2
+            windowHeight = 320 + windowPadding * 2
         } else {
-            windowWidth = screenVisibleFrame.width * 0.38  // 宽度调窄
-            windowHeight = screenVisibleFrame.height * 0.88 // 高度调高
+            windowWidth = screenVisibleFrame.width * 0.38 + windowPadding * 2
+            windowHeight = screenVisibleFrame.height * 0.88 + windowPadding * 2
         }
         
         let targetRect = NSRect(
@@ -339,9 +341,10 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         if let layer = hostingView.layer {
             layer.anchorPoint = CGPoint(x: 0.5, y: 0.5)
             layer.position = CGPoint(x: targetRect.width / 2, y: targetRect.height / 2)
-            layer.backgroundColor = NSColor(red: 0.09, green: 0.09, blue: 0.11, alpha: 1.0).cgColor
-            layer.cornerRadius = 20
-            layer.masksToBounds = true
+            // layer 自身保持透明且不剪切，由 SwiftUI 内部卡片渲染圆角和背景
+            layer.backgroundColor = NSColor.clear.cgColor
+            layer.cornerRadius = 0
+            layer.masksToBounds = false
         }
 
         // 先让预览窗口以极透明状态挂载，置顶显示但不抢占焦点（保持 Finder 在前台）
@@ -486,12 +489,14 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         layer.anchorPoint = CGPoint(x: 0.5, y: 0.5)
         layer.position = CGPoint(x: targetRect.width / 2, y: targetRect.height / 2)
 
-        // 计算从图标（sourceRect）缩放到中心（targetRect）所需的 Scale 和 Translation
-        let scaleX = sourceRect.width / targetRect.width
-        let scaleY = sourceRect.height / targetRect.height
+        // 扩展 sourceRect 加上 padding 缓冲，保持仿射变换中心与起跳大小 100% 精确匹配
+        let paddedSourceRect = sourceRect.insetBy(dx: -windowPadding, dy: -windowPadding)
+        
+        let scaleX = paddedSourceRect.width / targetRect.width
+        let scaleY = paddedSourceRect.height / targetRect.height
         
         let targetCenter = CGPoint(x: targetRect.midX, y: targetRect.midY)
-        let sourceCenter = CGPoint(x: sourceRect.midX, y: sourceRect.midY)
+        let sourceCenter = CGPoint(x: paddedSourceRect.midX, y: paddedSourceRect.midY)
         let translationX = sourceCenter.x - targetCenter.x
         let translationY = sourceCenter.y - targetCenter.y
         
@@ -504,14 +509,14 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         // 窗口本身的透明度直接置为 1.0 呈现
         previewPanel.alphaValue = 1.0
 
-        // 使用物理公式驱动的 CASpringAnimation 弹簧动画 (高爆发速度，瞬时收敛且杜绝拖尾)
+        // 使用物理公式驱动的 CASpringAnimation 弹簧动画 (开启过冲回弹，释放极致的原生“空气/膨胀果冻感”)
         let springTransform = CASpringAnimation(keyPath: "transform")
         springTransform.damping = 15
-        springTransform.stiffness = 500
-        springTransform.mass = 0.1
+        springTransform.stiffness = 300
+        springTransform.mass = 0.35
         springTransform.fromValue = NSValue(caTransform3D: initialTransform)
         springTransform.toValue = NSValue(caTransform3D: CATransform3DIdentity)
-        springTransform.duration = springTransform.settlingDuration
+        springTransform.duration = 0.30 // 0.30s 截断，保留最生动的过冲回弹并迅速静止
         
         // 透明度淡入动画
         let fadeAnim = CABasicAnimation(keyPath: "opacity")
@@ -521,7 +526,7 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         
         let group = CAAnimationGroup()
         group.animations = [springTransform, fadeAnim]
-        group.duration = springTransform.settlingDuration
+        group.duration = 0.30
         group.isRemovedOnCompletion = true // 动画播完自动从层级移除
         group.fillMode = .removed           // 移除后自动采用模型图层的真实属性值（即最终态）
         
@@ -530,9 +535,9 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         CATransaction.commit()
         
         // 动画中后期渐显系统红绿灯按钮，达成呼吸感
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.07) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) {
             NSAnimationContext.runAnimationGroup({ context in
-                context.duration = 0.08
+                context.duration = 0.10
                 previewPanel.standardWindowButton(.closeButton)?.animator().alphaValue = 1.0
                 previewPanel.standardWindowButton(.miniaturizeButton)?.animator().alphaValue = 1.0
                 previewPanel.standardWindowButton(.zoomButton)?.animator().alphaValue = 1.0
@@ -897,11 +902,14 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         let targetRect = window.frame
         let sourceRect = sourceRectBackup ?? getDefaultSourceRect()
         
-        let scaleX = sourceRect.width / targetRect.width
-        let scaleY = sourceRect.height / targetRect.height
+        // 同样在关闭时也要将 sourceRect 进行 padding 扩展以精准反向对齐
+        let paddedSourceRect = sourceRect.insetBy(dx: -windowPadding, dy: -windowPadding)
+        
+        let scaleX = paddedSourceRect.width / targetRect.width
+        let scaleY = paddedSourceRect.height / targetRect.height
         
         let targetCenter = CGPoint(x: targetRect.midX, y: targetRect.midY)
-        let sourceCenter = CGPoint(x: sourceRect.midX, y: sourceRect.midY)
+        let sourceCenter = CGPoint(x: paddedSourceRect.midX, y: paddedSourceRect.midY)
         let translationX = sourceCenter.x - targetCenter.x
         let translationY = sourceCenter.y - targetCenter.y
         
