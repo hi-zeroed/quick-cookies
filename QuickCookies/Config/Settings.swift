@@ -408,7 +408,23 @@ struct Localization {
             "Window 遍历成功": [.en: "Window traversal succeeded", .zhHans: "Window 遍历成功"],
             "未知错误": [.en: "Unknown error", .zhHans: "未知错误"],
             "不支持此文件类型": [.en: "Unsupported file type", .zhHans: "不支持此文件类型"],
-            "矢量图形 (SVG)": [.en: "Vector Graphics (SVG)", .zhHans: "矢量图形 (SVG)"]
+            "矢量图形 (SVG)": [.en: "Vector Graphics (SVG)", .zhHans: "矢量图形 (SVG)"],
+            
+            // Custom Message Bar & Translation Cleanups
+            "文件已被外部修改": [.en: "File Updated Externally", .zhHans: "文件已被外部修改"],
+            "该文件已被其他编辑器修改，是否重新加载最新内容？": [.en: "This file has been modified by another editor. Reload the latest changes?", .zhHans: "该文件已被其他编辑器修改，是否重新加载最新内容？"],
+            "重新加载": [.en: "Reload", .zhHans: "重新加载"],
+            "忽略": [.en: "Ignore", .zhHans: "忽略"],
+            "正在载入后续内容...": [.en: "Loading remaining content...", .zhHans: "正在载入后续内容..."],
+            "正在载入内容...": [.en: "Loading content...", .zhHans: "正在载入内容..."],
+            "PDF 导出成功": [.en: "PDF exported successfully", .zhHans: "PDF 导出成功"],
+            "导出": [.en: "Export", .zhHans: "导出"],
+            "载入后续文本失败": [.en: "Failed to load remaining text", .zhHans: "载入后续文本失败"],
+            "读取剩余文件失败": [.en: "Failed to read remaining file", .zhHans: "读取剩余文件失败"],
+            "进入编辑模式": [.en: "Enter Edit Mode", .zhHans: "进入编辑模式"],
+            "Finder 扩展": [.en: "Finder Extension", .zhHans: "Finder 扩展"],
+            "集成右键菜单与无感预览。零隐私风险。": [.en: "Integrate right-click menu and seamless preview. Zero privacy risk.", .zhHans: "集成右键菜单与无感预览。零隐私风险。"],
+            "允许从文件原位起跳，享受物理弹簧质感动画。": [.en: "Allow flying from file position with smooth spring physics animations.", .zhHans: "允许从文件原位起跳，享受物理弹簧质感动画。"]
         ]
         return dict[key]?[lang] ?? key
     }
