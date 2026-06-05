@@ -173,6 +173,8 @@ struct SettingsView: View {
     @State private var recordedModifiers: NSEvent.ModifierFlags = []
     @State private var recordedKeyCode: UInt16 = 0
     @State private var hotkeyMonitor: Any? = nil
+    @State private var lastRecordModifier: NSEvent.ModifierFlags? = nil
+    @State private var lastRecordModifierTime: Date? = nil
     
     @State private var isAccessibilityAuthorized = false
     @State private var isFullDiskAccessAuthorized = false
@@ -450,8 +452,12 @@ struct SettingsView: View {
 
     private var hotkeyKeyNames: [String] {
         let modifiers = settings.hotkeyModifiers
-        if settings.hotkeyKeyCode == 0 && modifiers == [.option] {
-            return ["⌥", "⌥"]
+        if settings.hotkeyKeyCode == 0 {
+            var sym = "⌘"
+            if modifiers.contains(.option) { sym = "⌥" }
+            else if modifiers.contains(.shift) { sym = "⇧" }
+            else if modifiers.contains(.control) { sym = "⌃" }
+            return [sym, sym]
         }
         
         var names: [String] = []
@@ -483,9 +489,41 @@ struct SettingsView: View {
     private func setupHotkeyRecording() {
         if hotkeyMonitor != nil { return }
         
-        hotkeyMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+        // 同时监听 keyDown 与 flagsChanged，确保修饰键双击也能被顺利录入
+        hotkeyMonitor = NSEvent.addLocalMonitorForEvents(matching: [.keyDown, .flagsChanged]) { event in
             if isRecordingHotkey {
-                // 忽略单独的修饰键
+                if event.type == .flagsChanged {
+                    let coreFlags: NSEvent.ModifierFlags = [.command, .option, .shift, .control]
+                    let currentModifiers = event.modifierFlags.intersection(coreFlags)
+                    
+                    // 只有在按下修饰键（不是释放）时检测
+                    if !currentModifiers.isEmpty {
+                        let currentTime = Date()
+                        if let lastMod = lastRecordModifier, lastMod == currentModifiers,
+                           let lastTime = lastRecordModifierTime, currentTime.timeIntervalSince(lastTime) < Constants.doublePressInterval {
+                            // 判定双击修饰键录制成功
+                            recordedModifiers = currentModifiers
+                            recordedKeyCode = 0
+                            
+                            settings.saveHotkey(modifiers: recordedModifiers, keyCode: recordedKeyCode)
+                            isRecordingHotkey = false
+                            
+                            HotkeyManager.shared.registerWithSettings {
+                                QuickLookOverlay.shared.showFromFinder()
+                            }
+                            
+                            lastRecordModifier = nil
+                            lastRecordModifierTime = nil
+                            return nil
+                        } else {
+                            lastRecordModifier = currentModifiers
+                            lastRecordModifierTime = currentTime
+                        }
+                    }
+                    return nil
+                }
+                
+                // 忽略普通的单独修饰键 keyDown
                 let keyCode = event.keyCode
                 if keyCode == 54 || keyCode == 55 || // Cmd (右、左)
                    keyCode == 58 || keyCode == 61 || // Option (左、右)

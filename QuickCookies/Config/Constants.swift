@@ -2,9 +2,9 @@ import Foundation
 import AppKit
 
 enum Constants {
-    // 默认快捷键：双击 Option 键（类似 PopClip）
-    static let defaultHotkeyModifiers: NSEvent.ModifierFlags = [.option]
-    static let defaultHotkeyKeyCode: UInt16 = 0 // Option 键没有 keycode，使用 modifier 检测
+    // 默认快捷键：双击 Command 键（类似 PopClip）
+    static let defaultHotkeyModifiers: NSEvent.ModifierFlags = [.command]
+    static let defaultHotkeyKeyCode: UInt16 = 0 // Command 键没有 keycode，使用 modifier 检测
 
     // 双击 Option 触发的时间间隔（毫秒）
     static let doublePressInterval: TimeInterval = 0.5 // 500ms

@@ -11,9 +11,9 @@ class HotkeyManager {
     private var localFlagsChangedMonitor: Any?
     private var onKeyDown: (() -> Void)?
 
-    // 双击 Option 检测
-    private var lastOptionPressTime: Date?
-    private var isOptionPressed: Bool = false
+    // 双击修饰键检测
+    private var lastModifierPressTime: Date?
+    private var isModifierPressed: Bool = false
 
     private init() {}
 
@@ -54,50 +54,54 @@ class HotkeyManager {
         return eventModifiers == modifiers && event.keyCode == keyCode
     }
 
-    /// 注册双击 Option 触发（保留作为辅助触发方式，或配合未来切换）
-    func registerDoubleOptionPress(handler: @escaping () -> Void) {
+    /// 注册双击修饰键（如 Command/Option）触发
+    func registerDoubleModifierPress(modifier: NSEvent.ModifierFlags, handler: @escaping () -> Void) {
         unregister()
 
         onKeyDown = handler
 
         // 1. 全局监听 (当其他 App 处于前台时)
         flagsChangedMonitor = NSEvent.addGlobalMonitorForEvents(matching: .flagsChanged) { [weak self] event in
-            self?.handleFlagsChanged(event, handler: handler)
+            self?.handleFlagsChanged(event, modifier: modifier, handler: handler)
         }
 
         // 2. 本地监听 (当本 App 处于前台聚焦时)
         localFlagsChangedMonitor = NSEvent.addLocalMonitorForEvents(matching: .flagsChanged) { [weak self] event in
-            self?.handleFlagsChanged(event, handler: handler)
+            self?.handleFlagsChanged(event, modifier: modifier, handler: handler)
             return event
         }
 
-        print("Double-Option hotkey registered (Global & Local)")
+        print("Double-\(modifier) hotkey registered (Global & Local)")
     }
 
-    private func handleFlagsChanged(_ event: NSEvent, handler: @escaping () -> Void) {
-        let optionPressed = event.modifierFlags.contains(.option)
+    private func handleFlagsChanged(_ event: NSEvent, modifier: NSEvent.ModifierFlags, handler: @escaping () -> Void) {
+        let coreFlags: NSEvent.ModifierFlags = [.command, .option, .shift, .control]
+        let eventModifiers = event.modifierFlags.intersection(coreFlags)
+        
+        // 精确判定目标修饰键是否被按下
+        let modifierPressed = eventModifiers == modifier
 
-        if optionPressed && !self.isOptionPressed {
-            self.isOptionPressed = true
+        if modifierPressed && !self.isModifierPressed {
+            self.isModifierPressed = true
             let currentTime = Date()
 
-            if let lastTime = self.lastOptionPressTime {
+            if let lastTime = self.lastModifierPressTime {
                 let interval = currentTime.timeIntervalSince(lastTime)
                 if interval < Constants.doublePressInterval {
                     DispatchQueue.main.async {
                         handler()
                     }
-                    self.lastOptionPressTime = nil
+                    self.lastModifierPressTime = nil
                 } else {
-                    self.lastOptionPressTime = currentTime
+                    self.lastModifierPressTime = currentTime
                 }
             } else {
-                self.lastOptionPressTime = currentTime
+                self.lastModifierPressTime = currentTime
             }
         }
 
-        if !optionPressed && self.isOptionPressed {
-            self.isOptionPressed = false
+        if !modifierPressed && self.isModifierPressed {
+            self.isModifierPressed = false
         }
     }
 
@@ -105,9 +109,16 @@ class HotkeyManager {
     func registerWithSettings(handler: @escaping () -> Void) {
         let settings = Settings.shared
         
-        // 智能路由：如果 keyCode == 0 且修饰键中包含 Option，则注册为双击 Option 模式
-        if settings.hotkeyKeyCode == 0 && settings.hotkeyModifiers.contains(.option) {
-            registerDoubleOptionPress(handler: handler)
+        // 智能路由：如果 keyCode == 0 且修饰键中包含 Command 或 Option，则注册为对应的双击模式
+        if settings.hotkeyKeyCode == 0 {
+            if settings.hotkeyModifiers.contains(.command) {
+                registerDoubleModifierPress(modifier: .command, handler: handler)
+            } else if settings.hotkeyModifiers.contains(.option) {
+                registerDoubleModifierPress(modifier: .option, handler: handler)
+            } else {
+                // 兜底默认双击 command
+                registerDoubleModifierPress(modifier: .command, handler: handler)
+            }
         } else {
             // 否则注册为常规的组合快捷键模式（如 Cmd + Shift + Space 等）
             registerHotkey(
@@ -137,8 +148,8 @@ class HotkeyManager {
             localFlagsChangedMonitor = nil
         }
         onKeyDown = nil
-        lastOptionPressTime = nil
-        isOptionPressed = false
+        lastModifierPressTime = nil
+        isModifierPressed = false
     }
 
     /// 检查是否需要 Accessibility 权限
