@@ -176,8 +176,11 @@ struct SettingsView: View {
     @State private var lastRecordModifier: NSEvent.ModifierFlags? = nil
     @State private var lastRecordModifierTime: Date? = nil
     
-    @State private var isAccessibilityAuthorized = false
-    @State private var isFullDiskAccessAuthorized = false
+    @State private var isAccessibilityAuthorized = AXIsProcessTrusted()
+    @State private var isFullDiskAccessAuthorized = {
+        let path = NSHomeDirectory() + "/Library/Safari/Bookmarks.plist"
+        return FileManager.default.isReadableFile(atPath: path)
+    }()
     
     let permissionTimer = Timer.publish(every: 1.0, on: .main, in: .common).autoconnect()
     
@@ -293,7 +296,7 @@ struct SettingsView: View {
                     SectionHeader(title: "KEYBINDINGS".localized())
                     SettingsCard {
                         VStack(spacing: 0) {
-                            SettingsRow(title: "全局快捷预览".localized(), subtitle: "Click keys on the right to record custom hotkey".localized()) {
+                            SettingsRow(title: "Global Preview".localized(), subtitle: "Click keys on the right to record custom hotkey".localized()) {
                                 if isRecordingHotkey {
                                     Text("Press new shortcut keys...".localized())
                                         .font(.system(size: 11, design: .monospaced))

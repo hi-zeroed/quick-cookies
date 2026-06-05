@@ -97,8 +97,11 @@ struct VisualEffectView: NSViewRepresentable {
 // MARK: - Onboarding View
 struct OnboardingView: View {
     @State private var currentPage = 0
-    @State private var isAccessibilityAuthorized = false
-    @State private var isFullDiskAccessAuthorized = false
+    @State private var isAccessibilityAuthorized = AXIsProcessTrusted()
+    @State private var isFullDiskAccessAuthorized = {
+        let path = NSHomeDirectory() + "/Library/Safari/Bookmarks.plist"
+        return FileManager.default.isReadableFile(atPath: path)
+    }()
     @State private var isFinderExtensionAttempted = false
     @State private var isCheckingAccessibility = false
     @State private var isCheckingFDA = false
