@@ -504,11 +504,11 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         // 窗口本身的透明度直接置为 1.0 呈现
         previewPanel.alphaValue = 1.0
 
-        // 使用物理公式驱动的 CASpringAnimation 弹簧动画
+        // 使用物理公式驱动的 CASpringAnimation 弹簧动画 (高爆发速度，瞬时收敛且杜绝拖尾)
         let springTransform = CASpringAnimation(keyPath: "transform")
-        springTransform.damping = 22
-        springTransform.stiffness = 320
-        springTransform.mass = 0.35
+        springTransform.damping = 15
+        springTransform.stiffness = 500
+        springTransform.mass = 0.1
         springTransform.fromValue = NSValue(caTransform3D: initialTransform)
         springTransform.toValue = NSValue(caTransform3D: CATransform3DIdentity)
         springTransform.duration = springTransform.settlingDuration
@@ -530,9 +530,9 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         CATransaction.commit()
         
         // 动画中后期渐显系统红绿灯按钮，达成呼吸感
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.12) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.07) {
             NSAnimationContext.runAnimationGroup({ context in
-                context.duration = 0.10
+                context.duration = 0.08
                 previewPanel.standardWindowButton(.closeButton)?.animator().alphaValue = 1.0
                 previewPanel.standardWindowButton(.miniaturizeButton)?.animator().alphaValue = 1.0
                 previewPanel.standardWindowButton(.zoomButton)?.animator().alphaValue = 1.0
