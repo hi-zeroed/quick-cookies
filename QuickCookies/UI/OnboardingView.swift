@@ -127,7 +127,7 @@ struct OnboardingView: View {
             
             VStack(spacing: 0) {
                 // Header Title
-                Text("新手向导".localized())
+                Text("Onboarding".localized())
                     .font(.system(size: 14, weight: .bold))
                     .foregroundColor(Color.appText)
                     .opacity(0.8)
@@ -221,7 +221,7 @@ struct OnboardingView: View {
                 .font(.system(size: 28, weight: .bold, design: .rounded))
                 .foregroundColor(Color.appText)
             
-            Text("秒级代码与文档预览".localized())
+            Text("Instant Code & Document Preview".localized())
                 .font(.system(size: 14))
                 .foregroundColor(Color.appText.opacity(0.6))
                 .kerning(1.2)
@@ -237,15 +237,15 @@ struct OnboardingView: View {
         HStack(spacing: 24) {
             // Left Content: Text Steps & Key Cap
             VStack(alignment: .leading, spacing: 14) {
-                Text("极速唤起预览".localized())
+                Text("Instant Preview".localized())
                     .font(.system(size: 16, weight: .bold))
                     .foregroundColor(Color.appText)
                 
                 VStack(alignment: .leading, spacing: 12) {
-                    StepRow(text: "1. 在 Finder 中选中任意代码或 Markdown 文件".localized())
+                    StepRow(text: "1. Select any code or Markdown file in Finder".localized())
                     
                     HStack(spacing: 6) {
-                        StepRow(text: "2. 键盘上快速双击".localized())
+                        StepRow(text: "2. Quickly double-press".localized())
                         
                         // Interactive keycap with pulse animation
                         Text("⌥ Option")
@@ -262,7 +262,7 @@ struct OnboardingView: View {
                             .scaleEffect(optionPulse ? 1.1 : 1.0)
                     }
                     
-                    StepRow(text: "3. 预览窗口瞬间飞出，支持即时修改与保存".localized())
+                    StepRow(text: "3. The preview window flies out instantly, supporting live edit & save".localized())
                 }
                 .padding(.top, 4)
             }
@@ -381,18 +381,18 @@ struct OnboardingView: View {
     // MARK: - Page 2: Config Page
     private var configPage: some View {
         VStack(alignment: .leading, spacing: 12) {
-            Text("个性化定制".localized())
+            Text("Personalized Settings".localized())
                 .font(.system(size: 16, weight: .bold))
                 .foregroundColor(Color.appText)
             
-            Text("正式使用前，您可以进行一些核心的偏好设定：".localized())
+            Text("Before getting started, you can customize some core preferences:".localized())
                 .font(.system(size: 13))
                 .foregroundColor(Color.appText.opacity(0.6))
                 .padding(.bottom, 6)
             
             SettingsCard {
                 // Exterior Theme Settings Row
-                SettingsRow(title: "外观主题".localized(), subtitle: "自适应匹配您的系统外观".localized()) {
+                SettingsRow(title: "Theme Mode".localized(), subtitle: "Adapt to your system appearance".localized()) {
                     Picker("", selection: $settings.themeMode) {
                         ForEach(ThemeMode.allCases) { mode in
                             Text(mode.displayName).tag(mode)
@@ -408,7 +408,7 @@ struct OnboardingView: View {
                     .padding(.horizontal, 16)
                 
                 // Language Settings Row
-                SettingsRow(title: "界面语言".localized(), subtitle: "支持中文与 English 热切换".localized()) {
+                SettingsRow(title: "Interface Language".localized(), subtitle: "Support dynamic toggle between English & Chinese".localized()) {
                     Picker("", selection: $settings.language) {
                         ForEach(Language.allCases) { lang in
                             Text(lang.displayName).tag(lang)
@@ -424,7 +424,7 @@ struct OnboardingView: View {
                     .padding(.horizontal, 16)
                 
                 // Startup Launch Settings Row
-                SettingsRow(title: "开机自启动".localized(), subtitle: "登录系统时自动静默在后台启动".localized()) {
+                SettingsRow(title: "Launch at Login".localized(), subtitle: "Silently start in the background when you log in".localized()) {
                     Toggle("", isOn: $settings.launchAtLogin)
                         .toggleStyle(.switch)
                         .labelsHidden()
@@ -437,11 +437,11 @@ struct OnboardingView: View {
     private var permissionPage: some View {
         VStack(spacing: 14) {
             VStack(spacing: 4) {
-                Text("运行模式与权限配置".localized())
+                Text("Running Mode & Permissions".localized())
                     .font(.system(size: 15, weight: .bold))
                     .foregroundColor(Color.appText)
                 
-                Text("Quick Cookies 支持免系统高级权限运行，您可按需选择：".localized())
+                Text("QuickCookies supports running without high-level permissions. Choose as you need:".localized())
                     .font(.system(size: 11))
                     .foregroundColor(Color.appText.opacity(0.6))
                     .multilineTextAlignment(.center)
@@ -455,12 +455,12 @@ struct OnboardingView: View {
                         Image(systemName: isFinderExtensionAttempted ? "checkmark.circle.fill" : "arrow.up.forward.app")
                             .foregroundColor(isFinderExtensionAttempted ? .green : .secondary)
                             .font(.system(size: 14))
-                        Text("Finder 扩展".localized())
+                        Text("Finder Extension".localized())
                             .font(.system(size: 12, weight: .bold))
                             .foregroundColor(Color.appText)
                     }
                     
-                    Text("集成右键菜单与无感预览。零隐私风险。".localized())
+                    Text("Integrate right-click menu and seamless preview. Zero privacy risk.".localized())
                         .font(.system(size: 10.5))
                         .foregroundColor(Color.appText.opacity(0.6))
                         .lineSpacing(2.5)
@@ -472,7 +472,7 @@ struct OnboardingView: View {
                         HStack {
                             Image(systemName: "checkmark.circle.fill")
                                 .foregroundColor(.green)
-                            Text("已尝试启用".localized())
+                            Text("Attempted".localized())
                                 .foregroundColor(.green)
                                 .font(.system(size: 11, weight: .semibold))
                         }
@@ -488,7 +488,7 @@ struct OnboardingView: View {
                         }) {
                             HStack(spacing: 4) {
                                 Image(systemName: "arrow.up.forward.app")
-                                Text("启用 Finder 扩展".localized())
+                                Text("Enable Finder Extension".localized())
                                     .font(.system(size: 11))
                             }
                             .frame(maxWidth: .infinity)
@@ -511,12 +511,12 @@ struct OnboardingView: View {
                         Image(systemName: isAccessibilityAuthorized ? "star.fill" : "star")
                             .foregroundColor(isAccessibilityAuthorized ? .orange : .secondary)
                             .font(.system(size: 14))
-                        Text("高级动画模式".localized())
+                        Text("Advanced Animation Mode".localized())
                             .font(.system(size: 12, weight: .bold))
                             .foregroundColor(Color.appText)
                     }
                     
-                    Text("允许从文件原位起跳，享受物理弹簧质感动画。".localized())
+                    Text("Allow flying from file position with smooth spring physics animations.".localized())
                         .font(.system(size: 10.5))
                         .foregroundColor(Color.appText.opacity(0.6))
                         .lineSpacing(2.5)
@@ -528,7 +528,7 @@ struct OnboardingView: View {
                         HStack {
                             Image(systemName: "checkmark.circle.fill")
                                 .foregroundColor(.green)
-                            Text("已成功授权".localized())
+                            Text("Permission Granted".localized())
                                 .foregroundColor(.green)
                                 .font(.system(size: 11, weight: .semibold))
                         }
@@ -543,11 +543,11 @@ struct OnboardingView: View {
                                 if isCheckingAccessibility {
                                     ProgressView()
                                         .controlSize(.small)
-                                    Text("正在检测...".localized())
+                                    Text("Checking...".localized())
                                         .font(.system(size: 11))
                                 } else {
                                     Image(systemName: "hand.raised.fill")
-                                    Text("授予辅助功能".localized())
+                                    Text("Grant Accessibility".localized())
                                         .font(.system(size: 11))
                                 }
                             }
@@ -572,12 +572,12 @@ struct OnboardingView: View {
                         Image(systemName: isFullDiskAccessAuthorized ? "folder.fill" : "folder")
                             .foregroundColor(isFullDiskAccessAuthorized ? .green : .secondary)
                             .font(.system(size: 14))
-                        Text("所有文件夹访问".localized())
+                        Text("Full Disk Access".localized())
                             .font(.system(size: 12, weight: .bold))
                             .foregroundColor(Color.appText)
                     }
                     
-                    Text("授权完全磁盘访问，消除受保护文件夹的频繁弹窗。".localized())
+                    Text("Grant Full Disk Access to avoid folder permission prompts.".localized())
                         .font(.system(size: 10.5))
                         .foregroundColor(Color.appText.opacity(0.6))
                         .lineSpacing(2.5)
@@ -589,7 +589,7 @@ struct OnboardingView: View {
                         HStack {
                             Image(systemName: "checkmark.circle.fill")
                                 .foregroundColor(.green)
-                            Text("已成功授权".localized())
+                            Text("Permission Granted".localized())
                                 .foregroundColor(.green)
                                 .font(.system(size: 11, weight: .semibold))
                         }
@@ -606,11 +606,11 @@ struct OnboardingView: View {
                                 if isCheckingFDA {
                                     ProgressView()
                                         .controlSize(.small)
-                                    Text("正在检测...".localized())
+                                    Text("Checking...".localized())
                                         .font(.system(size: 11))
                                 } else {
                                     Image(systemName: "lock.fill")
-                                    Text("去授权".localized())
+                                    Text("Grant Access".localized())
                                         .font(.system(size: 11))
                                 }
                             }
@@ -653,7 +653,7 @@ struct OnboardingView: View {
                         currentPage -= 1
                     }
                 }) {
-                    Text("上一步".localized())
+                    Text("Back".localized())
                         .font(.system(size: 12, weight: .medium))
                         .foregroundColor(Color.appText)
                         .frame(width: 72, height: 28)
@@ -673,7 +673,7 @@ struct OnboardingView: View {
                         currentPage += 1
                     }
                 }) {
-                    Text("下一步".localized())
+                    Text("Next".localized())
                         .font(.system(size: 12, weight: .bold))
                         .foregroundColor(.white)
                         .frame(width: 72, height: 28)
@@ -687,9 +687,9 @@ struct OnboardingView: View {
                         if isStartingApp {
                             ProgressView()
                                 .controlSize(.small)
-                            Text("正在启动...".localized())
+                            Text("Starting...".localized())
                         } else {
-                            Text("开启 Quick Cookies".localized())
+                            Text("Start Using Quick Cookies".localized())
                         }
                     }
                     .font(.system(size: 12, weight: .bold))

@@ -128,9 +128,9 @@ struct ContentView: View {
         }
         .customAlert(
             isPresented: $showReloadAlert,
-            title: "文件已被外部修改".localized(),
-            message: "该文件已被其他编辑器修改，是否重新加载最新内容？".localized(),
-            primaryButton: .primary("重新加载".localized()) {
+            title: "File Updated Externally".localized(),
+            message: "This file has been modified by another editor. Reload the latest changes?".localized(),
+            primaryButton: .primary("Reload".localized()) {
                 if let path = state.filePath {
                     isLoading = true
                     Task {
@@ -138,13 +138,13 @@ struct ContentView: View {
                     }
                 }
             },
-            secondaryButton: .secondary("忽略".localized())
+            secondaryButton: .secondary("Ignore".localized())
         )
         .customAlert(
             isPresented: $showErrorAlert,
-            title: "保存失败".localized(),
+            title: "Save Failed".localized(),
             message: errorMessage.localized(),
-            primaryButton: .primary("确定".localized())
+            primaryButton: .primary("OK".localized())
         )
         .ignoresSafeArea(edges: .top)
         .background(
@@ -233,11 +233,11 @@ struct ContentView: View {
                             .foregroundColor(Color.appText)
                     }
                 } else if state.errorMessage != nil {
-                    Text("获取失败".localized())
+                    Text("Failed to Get".localized())
                         .font(.system(size: 13, weight: .semibold, design: .monospaced))
                         .foregroundColor(.red.opacity(0.8))
                 } else {
-                    Text("定位中...".localized())
+                    Text("Locating...".localized())
                         .font(.system(size: 13, weight: .semibold, design: .monospaced))
                         .foregroundColor(Color.appText.opacity(0.6))
                 }
@@ -269,7 +269,7 @@ struct ContentView: View {
                                         .foregroundColor(Color.appText.opacity(0.8))
                                 }
                                 .buttonStyle(.plain)
-                                .help("导出 PDF".localized())
+                                .help("Export PDF".localized())
                             }
                         }
                         .animation(.easeInOut(duration: 0.2), value: isExportingPDF)
@@ -285,7 +285,7 @@ struct ContentView: View {
                                 .foregroundColor(Color.appText.opacity(0.8))
                         }
                         .buttonStyle(.plain)
-                        .help(state.mode == .preview ? "进入编辑 (Cmd+E)".localized() : "回到预览 (Esc)".localized())
+                        .help(state.mode == .preview ? "Enter Edit (Cmd+E)".localized() : "Back to Preview (Esc)".localized())
 
                         // 保存按钮
                         if state.mode == .edit && isModified {
@@ -297,7 +297,7 @@ struct ContentView: View {
                                    .foregroundColor(.orange)
                             }
                             .buttonStyle(.plain)
-                            .help("保存 (Cmd+S)".localized())
+                            .help("Save (Cmd+S)".localized())
                         }
                     }
                 }
@@ -336,7 +336,7 @@ struct ContentView: View {
                     ProgressView()
                         .progressViewStyle(CircularProgressViewStyle(tint: .white.opacity(0.8)))
                         .scaleEffect(0.8)
-                    Text("正在载入后续内容...".localized())
+                    Text("Loading remaining content...".localized())
                         .font(.system(size: 11, design: .monospaced))
                         .foregroundColor(.white.opacity(0.9))
                 }
@@ -364,7 +364,7 @@ struct ContentView: View {
                 ProgressView()
                     .progressViewStyle(CircularProgressViewStyle(tint: .white.opacity(0.6)))
                     .scaleEffect(1.2)
-                Text("正在定位 Finder 选中文件...".localized())
+                Text("Locating selected file in Finder...".localized())
                     .font(.system(size: 13, weight: .medium, design: .monospaced))
                     .foregroundColor(.white.opacity(0.5))
                 Spacer()
@@ -376,7 +376,7 @@ struct ContentView: View {
                 Spacer()
                 ProgressView()
                     .progressViewStyle(CircularProgressViewStyle(tint: .white.opacity(0.4)))
-                Text("正在载入内容...".localized())
+                Text("Loading content...".localized())
                     .font(.system(size: 11, design: .monospaced))
                     .foregroundColor(.white.opacity(0.3))
                 Spacer()
@@ -617,7 +617,7 @@ struct ContentView: View {
         savePanel.directoryURL = fileURL.deletingLastPathComponent() // 默认导出路径保持与源文件一致
         savePanel.nameFieldStringValue = fileURL.deletingPathExtension().lastPathComponent + ".pdf"
         savePanel.canCreateDirectories = true
-        savePanel.prompt = "导出".localized()
+        savePanel.prompt = "Export".localized()
         
         let completionHandler: (NSApplication.ModalResponse) -> Void = { response in
             if response == .OK, let targetURL = savePanel.url {
@@ -644,7 +644,7 @@ struct ContentView: View {
                             do {
                                 try data.write(to: targetURL)
                                 // 窗口内成功提醒
-                                self.localToastMessage = "PDF 导出成功".localized()
+                                self.localToastMessage = "PDF exported successfully".localized()
                                 self.localToastIcon = "checkmark.circle"
                                 self.showLocalToast = true
                             } catch {

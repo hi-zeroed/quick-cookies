@@ -34,11 +34,11 @@ class FinderMenuIntegration {
                         .renderingMode(.template)
                         .resizable()
                         .frame(width: 16, height: 16)
-                    Text("打开选中文件".localized())
+                    Text("Open Selected File".localized())
                 }
             }
             .buttonStyle(.plain)
-            .help("双击 Option 或点击此按钮打开 Finder 选中的文件".localized())
+            .help("Double-press Option or click here to open the selected Finder file".localized())
 
             Divider()
 
@@ -53,7 +53,7 @@ class FinderMenuIntegration {
                         .renderingMode(.template)
                         .resizable()
                         .frame(width: 16, height: 16)
-                    Text("设置".localized())
+                    Text("Settings".localized())
                 }
             }
             .buttonStyle(.plain)
@@ -67,7 +67,7 @@ class FinderMenuIntegration {
                         .renderingMode(.template)
                         .resizable()
                         .frame(width: 16, height: 16)
-                    Text("退出".localized())
+                    Text("Quit".localized())
                 }
             }
             .buttonStyle(.plain)

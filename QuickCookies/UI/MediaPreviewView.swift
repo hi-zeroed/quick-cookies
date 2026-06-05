@@ -18,7 +18,7 @@ struct MediaPreviewView: View {
             } else if renderType == .image {
                 ImageFileView(filePath: filePath)
             } else {
-                Text("不支持的文件格式".localized())
+                Text("Unsupported file format".localized())
                     .foregroundColor(.secondary)
             }
         }
@@ -101,7 +101,7 @@ struct ImageFileView: View {
             if isSVG || imageSize != .zero {
                 HStack(spacing: 16) {
                     if isSVG {
-                        Label("矢量图形 (SVG)".localized() + (imageSize != .zero ? " \(Int(imageSize.width)) × \(Int(imageSize.height))" : ""), systemImage: "pencil.and.outline")
+                        Label("Vector Graphics (SVG)".localized() + (imageSize != .zero ? " \(Int(imageSize.width)) × \(Int(imageSize.height))" : ""), systemImage: "pencil.and.outline")
                     } else {
                         Label("\(Int(imageSize.width)) × \(Int(imageSize.height)) Px", systemImage: "arrow.up.and.down.and.arrow.left.and.right")
                     }

@@ -147,7 +147,7 @@ class MarkdownPDFExporter: NSObject, WKNavigationDelegate {
                     self.cleanup()
                 }
             } else {
-                let error = NSError(domain: "QuickCookies", code: -1, userInfo: [NSLocalizedDescriptionKey: "macOS 版本过低，不支持生成 PDF".localized()])
+                let error = NSError(domain: "QuickCookies", code: -1, userInfo: [NSLocalizedDescriptionKey: "macOS version too low, PDF generation is not supported".localized()])
                 self.completion?(.failure(error))
                 self.cleanup()
             }

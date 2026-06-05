@@ -74,7 +74,7 @@ struct UnsupportedFileView: View {
             
             // 提示信息
             VStack(spacing: 4) {
-                Text(errorMessage?.localized() ?? "不支持此文件类型".localized())
+                Text(errorMessage?.localized() ?? "Unsupported file type (detail)".localized())
                     .font(.system(size: 13, weight: .medium, design: .default))
                     .foregroundColor(Color.appText.opacity(0.8))
                 

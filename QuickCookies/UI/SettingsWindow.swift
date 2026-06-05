@@ -24,7 +24,7 @@ class SettingsWindowController: NSObject, NSWindowDelegate {
             defer: false
         )
 
-        panel.title = "设置".localized()
+        panel.title = "Settings".localized()
         panel.level = .normal
         panel.delegate = self
         panel.isReleasedWhenClosed = false
@@ -50,7 +50,7 @@ class SettingsWindowController: NSObject, NSWindowDelegate {
     }
 
     func updateTitle() {
-        window?.title = "设置".localized()
+        window?.title = "Settings".localized()
     }
 
     func updateAppearance() {
@@ -192,7 +192,7 @@ struct SettingsView: View {
                     SectionHeader(title: "APPEARANCE".localized())
                     SettingsCard {
                         VStack(spacing: 0) {
-                            SettingsRow(title: "外观主题".localized(), subtitle: "选择您偏好的界面显示模式".localized()) {
+                            SettingsRow(title: "Theme Mode".localized(), subtitle: "Choose your preferred display mode".localized()) {
                                 Picker("", selection: $settings.themeMode) {
                                     ForEach(ThemeMode.allCases) { mode in
                                         Text(mode.displayName).tag(mode)
@@ -207,7 +207,7 @@ struct SettingsView: View {
                                 .background(Color.appBorder)
                                 .padding(.horizontal, 16)
                             
-                            SettingsRow(title: "语言".localized(), subtitle: "选择界面的显示语言".localized()) {
+                            SettingsRow(title: "Language".localized(), subtitle: "Choose display language".localized()) {
                                 Picker("", selection: $settings.language) {
                                     ForEach(Language.allCases) { lang in
                                         Text(lang.displayName).tag(lang)
@@ -226,7 +226,7 @@ struct SettingsView: View {
                     SectionHeader(title: "TYPOGRAPHY".localized())
                     SettingsCard {
                         VStack(spacing: 0) {
-                            SettingsRow(title: "编辑器字体".localized(), subtitle: "预览和编辑 Markdown 与代码时采用的等宽字体".localized()) {
+                            SettingsRow(title: "Editor Font".localized(), subtitle: "Monospace font for previewing and editing".localized()) {
                                 Picker("", selection: $settings.editorFont) {
                                     Text("System Default (Inter)".localized()).tag("System Default (Inter)")
                                     Text("SF Pro Display").tag("SF Pro Display")
@@ -240,7 +240,7 @@ struct SettingsView: View {
                                 .background(Color.appBorder)
                                 .padding(.horizontal, 16)
                             
-                            SettingsRow(title: "字体大小".localized()) {
+                            SettingsRow(title: "Font Size".localized()) {
                                 HStack(spacing: 8) {
                                     Button(action: {
                                         if settings.fontSize > 10 {
@@ -293,9 +293,9 @@ struct SettingsView: View {
                     SectionHeader(title: "KEYBINDINGS".localized())
                     SettingsCard {
                         VStack(spacing: 0) {
-                            SettingsRow(title: "全局快捷预览".localized(), subtitle: "点击右侧键帽录制自定义组合快捷键".localized()) {
+                            SettingsRow(title: "全局快捷预览".localized(), subtitle: "Click keys on the right to record custom hotkey".localized()) {
                                 if isRecordingHotkey {
-                                    Text("请在键盘上按下新快捷键...".localized())
+                                    Text("Press new shortcut keys...".localized())
                                         .font(.system(size: 11, design: .monospaced))
                                         .foregroundColor(.orange)
                                         .padding(.horizontal, 8)
@@ -318,7 +318,7 @@ struct SettingsView: View {
                                 .background(Color.appBorder)
                                 .padding(.horizontal, 16)
                             
-                            SettingsRow(title: "进入编辑模式".localized()) {
+                            SettingsRow(title: "Enter Edit Mode".localized()) {
                                 HStack(spacing: 4) {
                                     KbdKeyView(key: "⌘")
                                     KbdKeyView(key: "E")
@@ -329,7 +329,7 @@ struct SettingsView: View {
                                 .background(Color.appBorder)
                                 .padding(.horizontal, 16)
                             
-                            SettingsRow(title: "保存文件修改".localized()) {
+                            SettingsRow(title: "Save File Changes".localized()) {
                                 HStack(spacing: 4) {
                                     KbdKeyView(key: "⌘")
                                     KbdKeyView(key: "S")
@@ -344,7 +344,7 @@ struct SettingsView: View {
                     SectionHeader(title: "SYSTEM".localized())
                     SettingsCard {
                         VStack(spacing: 0) {
-                            SettingsRow(title: "开机自启动".localized(), subtitle: "在您登录 macOS 系统时自动静默启动 Quick Cookies".localized()) {
+                            SettingsRow(title: "Launch at Login".localized(), subtitle: "Automatically start QuickCookies in the background when you log in".localized()) {
                                 Toggle("", isOn: $settings.launchAtLogin)
                                     .toggleStyle(.switch)
                                     .labelsHidden()
@@ -355,12 +355,12 @@ struct SettingsView: View {
                                 .padding(.horizontal, 16)
                             
                             // 辅助功能权限
-                            SettingsRow(title: "辅助功能权限".localized(), subtitle: "用于全局快捷键与高级动画定位".localized()) {
+                            SettingsRow(title: "Accessibility Permission".localized(), subtitle: "Used for global hotkeys & advanced animations".localized()) {
                                 if isAccessibilityAuthorized {
                                     HStack(spacing: 4) {
                                         Image(systemName: "checkmark.circle.fill")
                                             .foregroundColor(.green)
-                                        Text("已授权".localized())
+                                        Text("Authorized".localized())
                                             .foregroundColor(.green)
                                             .font(.system(size: 12, weight: .semibold))
                                     }
@@ -368,7 +368,7 @@ struct SettingsView: View {
                                     Button(action: {
                                         HotkeyManager.shared.requestAccessibilityPermission()
                                     }) {
-                                        Text("去授权".localized())
+                                        Text("Grant Access".localized())
                                     }
                                     .buttonStyle(.bordered)
                                     .controlSize(.small)
@@ -380,12 +380,12 @@ struct SettingsView: View {
                                 .padding(.horizontal, 16)
                             
                             // 所有文件夹访问权限 (FDA)
-                            SettingsRow(title: "所有文件夹访问".localized(), subtitle: "授权完全磁盘访问，消除系统安全弹窗".localized()) {
+                            SettingsRow(title: "Full Disk Access".localized(), subtitle: "Grant Full Disk Access to eliminate sandbox popups".localized()) {
                                 if isFullDiskAccessAuthorized {
                                     HStack(spacing: 4) {
                                         Image(systemName: "checkmark.circle.fill")
                                             .foregroundColor(.green)
-                                        Text("已授权".localized())
+                                        Text("Authorized".localized())
                                             .foregroundColor(.green)
                                             .font(.system(size: 12, weight: .semibold))
                                     }
@@ -395,7 +395,7 @@ struct SettingsView: View {
                                             NSWorkspace.shared.open(url)
                                         }
                                     }) {
-                                        Text("去授权".localized())
+                                        Text("Grant Access".localized())
                                     }
                                     .buttonStyle(.bordered)
                                     .controlSize(.small)
@@ -408,7 +408,7 @@ struct SettingsView: View {
                 // 5. Restore Button
                 HStack {
                     Spacer()
-                    Button("恢复默认设置".localized()) {
+                    Button("Restore Default Settings".localized()) {
                         resetToDefaults()
                     }
                     .buttonStyle(.bordered)
