@@ -127,7 +127,9 @@ struct ContentView: View {
                 .zIndex(0)
         }
         .ignoresSafeArea(edges: .top)
-        .background(Color.appBackground)
+        .background(
+            VisualEffectView(material: .hudWindow, blendingMode: .behindWindow)
+        )
         .cornerRadius(20) // 卡片自身的圆角
         .overlay(
             RoundedRectangle(cornerRadius: 20)
