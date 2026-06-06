@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		04C42AD9B8657A3924158DE2 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 860647CBF168ADB4692AFB63 /* ContentView.swift */; };
+		0C0D0E0F1011121314151617 /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0C0D0E0F1011121314151607 /* XCTest.framework */; };
 		21D2DE1178C6759287E735C5 /* CodeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 55E3A065B775ACFE729BDE15 /* CodeView.swift */; };
 		2DD3FEAD2ABF97565DA77A2C /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 753F94AD7ABEFFC057AAA2DE /* AppDelegate.swift */; };
 		374B0AA0DBFB3768D498AD14 /* HotkeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 031B5AD657BAE17A14E65A87 /* HotkeyManager.swift */; };
@@ -38,6 +39,10 @@
 		FMI000000000000000000001 /* FinderMenuIntegration.swift in Sources */ = {isa = PBXBuildFile; fileRef = FMI000000000000000000002 /* FinderMenuIntegration.swift */; };
 		FSB000000000000000000001 /* QuickCookiesFinderSync.swift in Sources */ = {isa = PBXBuildFile; fileRef = FSS000000000000000000001 /* QuickCookiesFinderSync.swift */; };
 		FSB000000000000000000002 /* QuickCookiesFinderSync.appex in CopyFiles */ = {isa = PBXBuildFile; fileRef = FSE555555555555555555555 /* QuickCookiesFinderSync.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		TSTBLD000000000000000001 /* EncodingDetectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF000000000000000001 /* EncodingDetectorTests.swift */; };
+		TSTBLD000000000000000002 /* FileTypeClassifierTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF000000000000000002 /* FileTypeClassifierTests.swift */; };
+		TSTBLD000000000000000003 /* FileChunkReaderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF000000000000000003 /* FileChunkReaderTests.swift */; };
+		TSTBLD000000000000000004 /* FileUtilsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF000000000000000004 /* FileUtilsTests.swift */; };
 		MEDPREVBLD00000000000001 /* MediaPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = MEDPREVREF00000000000001 /* MediaPreviewView.swift */; };
 		ONBOARDBLD00000000000001 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ONBOARDREF00000000000001 /* OnboardingView.swift */; };
 		FNT141414141414141414141 /* Fonts in Resources */ = {isa = PBXBuildFile; fileRef = FNT141414141414141414142 /* Fonts */; };
@@ -53,6 +58,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = FST171717171717171717171;
 			remoteInfo = QuickCookiesFinderSync;
+		};
+		TSTPRX000000000000000001 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = TTT202020202020202020202 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = QQQ171717171717171717171;
+			remoteInfo = QuickCookies;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -70,6 +82,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		0C0D0E0F1011121314151607 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = System/Library/Frameworks/XCTest.framework; sourceTree = SDKROOT; };
 		031B5AD657BAE17A14E65A87 /* HotkeyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotkeyManager.swift; sourceTree = "<group>"; };
 		2724C2DCD3C66C24CC15D6E7 /* EncodingDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EncodingDetector.swift; sourceTree = "<group>"; };
 		391364AE6149F12AED4BFFFC /* EditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditorView.swift; sourceTree = "<group>"; };
@@ -102,6 +115,11 @@
 		FSE555555555555555555555 /* QuickCookiesFinderSync.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = QuickCookiesFinderSync.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		FSP000000000000000000001 /* QuickCookiesFinderSync-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "QuickCookiesFinderSync-Info.plist"; sourceTree = "<group>"; };
 		FSS000000000000000000001 /* QuickCookiesFinderSync.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickCookiesFinderSync.swift; sourceTree = "<group>"; };
+		TSTPROD00000000000000001 /* QuickCookiesTests.xctest */ = {isa = PBXFileReference; explicitFileType = "wrapper.cfbundle"; includeInIndex = 0; path = QuickCookiesTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		TSTREF000000000000000001 /* EncodingDetectorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EncodingDetectorTests.swift; sourceTree = "<group>"; };
+		TSTREF000000000000000002 /* FileTypeClassifierTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileTypeClassifierTests.swift; sourceTree = "<group>"; };
+		TSTREF000000000000000003 /* FileChunkReaderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileChunkReaderTests.swift; sourceTree = "<group>"; };
+		TSTREF000000000000000004 /* FileUtilsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileUtilsTests.swift; sourceTree = "<group>"; };
 		MEDPREVREF00000000000001 /* MediaPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaPreviewView.swift; sourceTree = "<group>"; };
 		ONBOARDREF00000000000001 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		835FB7012FCA950400D23AAA /* UnsupportedFileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnsupportedFileView.swift; sourceTree = "<group>"; };
@@ -112,6 +130,14 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		TSTFRM000000000000000001 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0C0D0E0F1011121314151617 /* XCTest.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		FFF666666666666666666666 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -235,6 +261,7 @@
 			isa = PBXGroup;
 			children = (
 				GGG777777777777777777777 /* QuickCookies */,
+				TSTGRP000000000000000001 /* QuickCookiesTests */,
 				PPP161616161616161616161 /* Products */,
 				FSG777777777777777777777 /* QuickCookiesFinderSync */,
 			);
@@ -245,8 +272,20 @@
 			children = (
 				EEE555555555555555555555 /* QuickCookies.app */,
 				FSE555555555555555555555 /* QuickCookiesFinderSync.appex */,
+				TSTPROD00000000000000001 /* QuickCookiesTests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		TSTGRP000000000000000001 /* QuickCookiesTests */ = {
+			isa = PBXGroup;
+			children = (
+				TSTREF000000000000000001 /* EncodingDetectorTests.swift */,
+				TSTREF000000000000000002 /* FileTypeClassifierTests.swift */,
+				TSTREF000000000000000003 /* FileChunkReaderTests.swift */,
+				TSTREF000000000000000004 /* FileUtilsTests.swift */,
+			);
+			path = QuickCookiesTests;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -286,6 +325,23 @@
 			productReference = EEE555555555555555555555 /* QuickCookies.app */;
 			productType = "com.apple.product-type.application";
 		};
+		TSTTGT000000000000000001 /* QuickCookiesTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = TSTCFG000000000000000001 /* Build configuration list for PBXNativeTarget "QuickCookiesTests" */;
+			buildPhases = (
+				TSTSRC000000000000000001 /* Sources */,
+				TSTFRM000000000000000001 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				TSTDEP000000000000000001 /* PBXTargetDependency */,
+			);
+			name = QuickCookiesTests;
+			productName = QuickCookiesTests;
+			productReference = TSTPROD00000000000000001 /* QuickCookiesTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -298,6 +354,10 @@
 				TargetAttributes = {
 					QQQ171717171717171717171 = {
 						CreatedOnToolsVersion = 15.0;
+					};
+					TSTTGT000000000000000001 = {
+						CreatedOnToolsVersion = 16.4;
+						TestTargetID = QQQ171717171717171717171;
 					};
 				};
 			};
@@ -321,6 +381,7 @@
 			targets = (
 				QQQ171717171717171717171 /* QuickCookies */,
 				FST171717171717171717171 /* QuickCookiesFinderSync */,
+				TSTTGT000000000000000001 /* QuickCookiesTests */,
 			);
 		};
 /* End PBXProject section */
@@ -384,6 +445,17 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		TSTSRC000000000000000001 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				TSTBLD000000000000000001 /* EncodingDetectorTests.swift in Sources */,
+				TSTBLD000000000000000002 /* FileTypeClassifierTests.swift in Sources */,
+				TSTBLD000000000000000003 /* FileChunkReaderTests.swift in Sources */,
+				TSTBLD000000000000000004 /* FileUtilsTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -392,9 +464,63 @@
 			target = FST171717171717171717171 /* QuickCookiesFinderSync */;
 			targetProxy = 83C89CCA2FCC5097006FBCE5 /* PBXContainerItemProxy */;
 		};
+		TSTDEP000000000000000001 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = QQQ171717171717171717171 /* QuickCookies */;
+			targetProxy = TSTPRX000000000000000001 /* PBXContainerItemProxy */;
+		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		TSTDBG000000000000000001 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.quickcookies.app.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/QuickCookies.app/Contents/MacOS/QuickCookies";
+				TEST_TARGET_NAME = QuickCookies;
+			};
+			name = Debug;
+		};
+		TSTREL000000000000000001 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 13.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.quickcookies.app.tests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/QuickCookies.app/Contents/MacOS/QuickCookies";
+				TEST_TARGET_NAME = QuickCookies;
+			};
+			name = Release;
+		};
 		FSV222222222222222222222 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -760,6 +886,15 @@
 			buildConfigurations = (
 				VVV222222222222222222222 /* Debug */,
 				WWW333333333333333333333 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		TSTCFG000000000000000001 /* Build configuration list for PBXNativeTarget "QuickCookiesTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				TSTDBG000000000000000001 /* Debug */,
+				TSTREL000000000000000001 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
