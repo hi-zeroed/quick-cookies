@@ -33,7 +33,29 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // 注册 Services 菜单项
         NSApp.servicesProvider = QuickCookiesServiceProvider()
 
-        print("Quick Cookies started. Double-press Option key to preview files.")
+        // 在正常工作流稳定后以低优先级预热共享 WebKit 运行时，
+        // 直接装入 Markdown 可复用 shell，让首次 Markdown 打开也尽量命中
+        // shell reuse，而不是只命中空白 runtime 后仍走一次 full navigation。
+        //
+        // 当前演进结论：
+        // - 对于菜单栏常驻应用，优先保证“常驻后再打开”的热路径稳定秒开
+        // - 启动后立刻第一次打开仍可能落到 cold path，这是当前刻意接受的
+        //   边界场景 tradeoff
+        //
+        // 后续如果要继续打首轮冷启动，不要先回头抠 Markdown 分块或热路径；
+        // 应优先沿着下面几条方向演进：
+        // 1. 更早触发 shared WebKit prewarm
+        // 2. 让 shell prewarm 与用户即将触发预览的信号更贴近
+        // 3. 继续压缩 shell=nav / first navigation 的平台成本
+        Task { @MainActor in
+            let isDarkAppearance = NSApp.effectiveAppearance.bestMatch(from: [.darkAqua, .aqua]) == .darkAqua
+            PreviewRuntimeRegistry.shared.scheduleMarkdownPreviewShellWarmIfNeeded(
+                isDarkAppearance: isDarkAppearance,
+                bodyFontName: Settings.shared.editorFont,
+                bodyFontSize: Settings.shared.fontSize
+            )
+        }
+
     }
     
     private func showOnboarding() {

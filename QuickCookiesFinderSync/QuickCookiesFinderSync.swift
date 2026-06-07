@@ -5,9 +5,7 @@ class QuickCookiesFinderSync: FIFinderSync {
 
     override init() {
         super.init()
-        NSLog("QuickCookiesFinderSync initialized.")
-        // Monitor all paths so that context menu items appear in Finder
-        FIFinderSyncController.default().directoryURLs = [URL(fileURLWithPath: "/")]
+        FIFinderSyncController.default().directoryURLs = FinderSyncMonitoringPolicy.monitoredDirectoryURLs()
     }
     
     // MARK: - Menu and Action

@@ -215,7 +215,7 @@ struct CodeView: NSViewRepresentable {
         // 1. 安全降级防护网：如果无指定语言（纯文本），或者高亮引擎初始化失败（Release 包环境差异）
         //    则以用户配置的默认字体与高对比度前景颜色渲染并覆写 textStorage，消除默认的“黑底黑字”空白现象
         guard let language = language,
-              let highlighter = SyntaxHighlighter.shared else {
+              SyntaxHighlighter.shared != nil else {
             let attributes: [NSAttributedString.Key: Any] = [
                 .font: NSFont.editorFont(name: fontName, size: fontSize),
                 .foregroundColor: isDark ? NSColor(white: 0.85, alpha: 1.0) : NSColor(white: 0.15, alpha: 1.0)
