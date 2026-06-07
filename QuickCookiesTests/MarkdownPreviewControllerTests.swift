@@ -4,6 +4,12 @@ import WebKit
 
 @MainActor
 final class MarkdownPreviewControllerTests: XCTestCase {
+    private func repositoryRootURL(filePath: String = #filePath) -> URL {
+        URL(fileURLWithPath: filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+    }
+
     func test_displayPolicy_defersMarkdownPreviewUntilInitialChunkArrives() {
         XCTAssertFalse(
             MarkdownPreviewDisplayPolicy.shouldMountPreview(
@@ -42,7 +48,7 @@ final class MarkdownPreviewControllerTests: XCTestCase {
         """
 
         let parser = MarkdownBlockStreamParser(
-            baseDirectoryURL: URL(fileURLWithPath: "/Users/jiangwei/Git/QuickCookies", isDirectory: true)
+            baseDirectoryURL: repositoryRootURL()
         )
 
         let blocks = parser.parse(markdown)

@@ -2,6 +2,12 @@ import XCTest
 @testable import QuickCookies
 
 final class MarkdownBlockStreamParserTests: XCTestCase {
+    private func repositoryRootURL(filePath: String = #filePath) -> URL {
+        URL(fileURLWithPath: filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+    }
+
     func test_parse_keepsMultilineHTMLImageContainerInSingleBlock() {
         let markdown = """
         <p align="center">
@@ -10,7 +16,7 @@ final class MarkdownBlockStreamParserTests: XCTestCase {
         """
 
         let parser = MarkdownBlockStreamParser(
-            baseDirectoryURL: URL(fileURLWithPath: "/Users/jiangwei/Git/QuickCookies", isDirectory: true)
+            baseDirectoryURL: repositoryRootURL()
         )
 
         let blocks = parser.parse(markdown)

@@ -4,6 +4,12 @@ import XCTest
 final class MarkdownRenderSnapshotTests: XCTestCase {
     private var tempDirectoryURL: URL!
 
+    private func repositoryRootURL(filePath: String = #filePath) -> URL {
+        URL(fileURLWithPath: filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+    }
+
     override func setUpWithError() throws {
         try super.setUpWithError()
         tempDirectoryURL = URL(fileURLWithPath: NSTemporaryDirectory())
@@ -225,7 +231,7 @@ final class MarkdownRenderSnapshotTests: XCTestCase {
         """
 
         let parser = MarkdownBlockStreamParser(
-            baseDirectoryURL: URL(fileURLWithPath: "/Users/jiangwei/Git/QuickCookies", isDirectory: true)
+            baseDirectoryURL: repositoryRootURL()
         )
         let blocks = parser.parse(markdown)
 
