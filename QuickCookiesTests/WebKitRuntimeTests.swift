@@ -214,7 +214,21 @@ final class WebKitRuntimeTests: XCTestCase {
 
         webView.loadHTMLString(html, baseURL: tempDirectoryURL)
         try await delegate.waitForFinish()
-        try await Task.sleep(nanoseconds: 300_000_000)
+        try await waitUntil(timeoutNanoseconds: 2_000_000_000) {
+            let payload = try await self.evaluateJavaScript(
+                """
+                JSON.stringify({
+                  complete: document.getElementById('target')?.complete ?? false,
+                  naturalWidth: document.getElementById('target')?.naturalWidth ?? 0,
+                  currentSrc: document.getElementById('target')?.currentSrc ?? ''
+                })
+                """,
+                in: webView
+            )
+            let data = try XCTUnwrap(payload.data(using: .utf8))
+            let result = try JSONDecoder().decode(LocalImageProbe.self, from: data)
+            return result.complete && result.naturalWidth > 0 && result.currentSrc == imageURL.absoluteString
+        }
 
         let payload = try await evaluateJavaScript(
             """
@@ -235,8 +249,13 @@ final class WebKitRuntimeTests: XCTestCase {
         XCTAssertGreaterThan(result.naturalWidth, 0)
     }
 
-    func test_markdownShell_rendersREADMEWithRelativeLocalImage() async throws {
-        let fileURL = URL(fileURLWithPath: "/Users/jiangwei/Git/QuickCookies/README-cn.md")
+    func test_markdownShell_rendersREADMEWithRelativeLocalImage(
+        filePath: String = #filePath
+    ) async throws {
+        let repositoryRootURL = URL(fileURLWithPath: filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+        let fileURL = repositoryRootURL.appendingPathComponent("README-cn.md", isDirectory: false)
         let baseDirectoryURL = fileURL.deletingLastPathComponent()
         let markdown = try String(contentsOf: fileURL, encoding: .utf8)
         let prepared = MarkdownPreviewBridge.prepareContent(
@@ -277,7 +296,27 @@ final class WebKitRuntimeTests: XCTestCase {
 
         webView.loadHTMLString(html, baseURL: baseDirectoryURL)
         try await delegate.waitForFinish()
-        try await Task.sleep(nanoseconds: 500_000_000)
+        try await waitUntil(timeoutNanoseconds: 3_000_000_000) {
+            let payload = try await self.evaluateJavaScript(
+                """
+                JSON.stringify({
+                  imageCount: document.querySelectorAll('img').length,
+                  currentSrc: document.querySelector('img')?.currentSrc ?? '',
+                  complete: document.querySelector('img')?.complete ?? false,
+                  naturalWidth: document.querySelector('img')?.naturalWidth ?? 0,
+                  contentTextLength: document.getElementById('content')?.innerText?.length ?? 0
+                })
+                """,
+                in: webView
+            )
+            let data = try XCTUnwrap(payload.data(using: .utf8))
+            let result = try JSONDecoder().decode(MarkdownImageReadinessProbe.self, from: data)
+            return result.imageCount > 0
+                && result.complete
+                && result.naturalWidth > 0
+                && result.contentTextLength > 0
+                && !result.currentSrc.isEmpty
+        }
 
         let payload = try await evaluateJavaScript(
             """
@@ -346,6 +385,21 @@ final class WebKitRuntimeTests: XCTestCase {
         XCTFail("Condition not met before timeout")
     }
 
+    private func waitUntil(
+        timeoutNanoseconds: UInt64,
+        condition: @escaping @MainActor () async throws -> Bool
+    ) async throws {
+        let deadline = DispatchTime.now().uptimeNanoseconds + timeoutNanoseconds
+        while DispatchTime.now().uptimeNanoseconds < deadline {
+            if try await condition() {
+                return
+            }
+            try await Task.sleep(nanoseconds: 10_000_000)
+        }
+
+        XCTFail("Condition not met before timeout")
+    }
+
     private func evaluateJavaScript(_ script: String, in webView: WKWebView) async throws -> String {
         try await withCheckedThrowingContinuation { continuation in
             webView.evaluateJavaScript(script) { result, error in
@@ -384,6 +438,14 @@ private struct FirstImageProbe: Decodable {
     let hasMarked: Bool
     let hasBridge: Bool
     let hasBootstrapBatch: Bool
+}
+
+private struct MarkdownImageReadinessProbe: Decodable {
+    let imageCount: Int
+    let currentSrc: String
+    let complete: Bool
+    let naturalWidth: Int
+    let contentTextLength: Int
 }
 
 private enum TestError: Error {
