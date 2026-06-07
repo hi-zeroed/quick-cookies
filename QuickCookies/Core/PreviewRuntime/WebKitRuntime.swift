@@ -9,7 +9,6 @@ struct PreviewRuntimeLoadHints: Equatable {
 
 @MainActor
 final class WebKitRuntime {
-    private let processPool = WKProcessPool()
     private let blankHTML = "<html><head><meta charset='utf-8'></head><body></body></html>"
 
     // One shared WKWebView instance backs WebView-based in-window previews.
@@ -25,7 +24,6 @@ final class WebKitRuntime {
     //   to fork more long-lived WKWebView instances
     private lazy var webView: PreviewWebView = {
         let configuration = WKWebViewConfiguration()
-        configuration.processPool = processPool
         // Keep shared WebView policy in one place so every WebView-backed
         // preview shell borrows the same runtime contract.
         PreviewWebViewConfiguration.prepare(configuration)

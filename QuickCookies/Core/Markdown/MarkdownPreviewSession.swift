@@ -27,7 +27,9 @@ enum AppDiagnostics {
     }
 
     static func resetForTesting() {
-        sink = defaultSink
+        sink = { category, message in
+            defaultSink(category: category, message: message)
+        }
         fileURLProvider = {
             URL(fileURLWithPath: "/tmp", isDirectory: true)
                 .appendingPathComponent("quickcookies-diagnostics.log", isDirectory: false)
