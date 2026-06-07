@@ -2,7 +2,7 @@ import XCTest
 @testable import QuickCookies
 
 final class MarkdownViewportPlannerTests: XCTestCase {
-    func test_initialViewportSlice_stopsAtViewportBudget_notBlockCount() {
+    func test_initialViewportSlice_keepsAppendingUntilViewportIsFilled() {
         let planner = MarkdownViewportPlanner()
         let blocks = [
             MarkdownRenderBlock(id: "p0", kind: .paragraph, markdown: "Intro", preferredHeight: 44, imageMetas: [], codeLanguage: nil),
@@ -19,7 +19,7 @@ final class MarkdownViewportPlannerTests: XCTestCase {
             maximumBlockCount: 10
         )
 
-        XCTAssertEqual(slice.map(\.id), ["p0", "c0", "p1"])
+        XCTAssertEqual(slice.map(\.id), ["p0", "c0", "p1", "c1"])
     }
 
     func test_initialViewportSlice_keepsWholeCodeBlock_whenBudgetBoundaryFallsInsideIt() {

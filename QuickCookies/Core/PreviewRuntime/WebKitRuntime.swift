@@ -197,4 +197,16 @@ final class PreviewWebView: WKWebView {
         }
         return super.menu(for: event)
     }
+
+    @discardableResult
+    override func loadHTMLString(_ string: String, baseURL: URL?) -> WKNavigation? {
+        super.loadHTMLString(string, baseURL: baseURL)
+    }
+
+    override func evaluateJavaScript(
+        _ javaScriptString: String,
+        completionHandler: ((Any?, Error?) -> Void)?
+    ) {
+        super.evaluateJavaScript(javaScriptString, completionHandler: completionHandler)
+    }
 }
