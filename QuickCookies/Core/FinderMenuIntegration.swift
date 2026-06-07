@@ -52,8 +52,6 @@ class FinderMenuIntegration {
     func registerServices() {
         // macOS Services 菜单通过 Info.plist 的 NSServices 配置
         // AppDelegate.swift 中已注册 NSApp.servicesProvider = QuickCookiesServiceProvider()
-        // 这里提供额外的配置检查和日志
-        print("Services menu configured via Info.plist")
-        print("QuickCookiesServiceProvider registered in AppDelegate")
+        // 这里保留为空实现，避免在正常运行路径上输出无关控制台日志。
     }
 }

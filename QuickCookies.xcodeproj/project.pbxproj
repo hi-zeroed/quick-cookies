@@ -22,6 +22,23 @@
 		835FB6182FCA950400D2395E /* HighlightrCodeSyntaxHighlighter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835FB6172FCA950400D2395E /* HighlightrCodeSyntaxHighlighter.swift */; };
 		835FB61A2FCA950400D2395F /* QuickLookOverlayModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835FB6192FCA950400D2395F /* QuickLookOverlayModifier.swift */; };
 		835FB69A2FCA950400D23999 /* FileChunkReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835FB6992FCA950400D23999 /* FileChunkReader.swift */; };
+		A1B2C3010000000000000001 /* MarkdownBlockStreamParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3010000000000000011 /* MarkdownBlockStreamParser.swift */; };
+		A1B2C3010000000000000002 /* MarkdownFileStreamReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3010000000000000012 /* MarkdownFileStreamReader.swift */; };
+		A1B2C3010000000000000003 /* MarkdownHTMLShell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3010000000000000013 /* MarkdownHTMLShell.swift */; };
+		A1B2C3010000000000000004 /* MarkdownImageProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3010000000000000014 /* MarkdownImageProbe.swift */; };
+		A1B2C3010000000000000005 /* MarkdownPreprocessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3010000000000000015 /* MarkdownPreprocessor.swift */; };
+		A1B2C3010000000000000006 /* MarkdownPreviewBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3010000000000000016 /* MarkdownPreviewBridge.swift */; };
+		A1B2C3010000000000000007 /* MarkdownPreviewPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3010000000000000017 /* MarkdownPreviewPolicy.swift */; };
+		A1B2C3010000000000000008 /* MarkdownRenderBlock.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3010000000000000018 /* MarkdownRenderBlock.swift */; };
+		A1B2C3010000000000000009 /* MarkdownRenderSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3010000000000000019 /* MarkdownRenderSnapshot.swift */; };
+		A1B2C301000000000000000A /* MarkdownViewportPlanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C301000000000000001A /* MarkdownViewportPlanner.swift */; };
+		A1B2C301000000000000000B /* MarkdownRendererRuntime.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C301000000000000001B /* MarkdownRendererRuntime.swift */; };
+		A1B2C301000000000000000D /* MarkdownPreviewSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C301000000000000001D /* MarkdownPreviewSession.swift */; };
+		A1B2C301000000000000000E /* MarkdownPreviewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C301000000000000001E /* MarkdownPreviewController.swift */; };
+		A1B2C301000000000000000F /* PreviewRuntimeRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C301000000000000001F /* PreviewRuntimeRegistry.swift */; };
+		A1B2C3010000000000000010 /* WebKitRuntime.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3010000000000000020 /* WebKitRuntime.swift */; };
+		A1B2C3010000000000000023 /* FinderSyncMonitoringPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3010000000000000024 /* FinderSyncMonitoringPolicy.swift */; };
+		A1B2C3010000000000000025 /* FinderSyncMonitoringPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3010000000000000024 /* FinderSyncMonitoringPolicy.swift */; };
 		8EA7E2FA49A52C6CB2AE5A5E /* EditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 391364AE6149F12AED4BFFFC /* EditorView.swift */; };
 		835FB7022FCA950400D23AAB /* UnsupportedFileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835FB7012FCA950400D23AAA /* UnsupportedFileView.swift */; };
 		962C8A503D0B4CA6963E2B94 /* QuickLookOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = B76F46CEB24C42779E84EBBE /* QuickLookOverlay.swift */; };
@@ -43,6 +60,12 @@
 		TSTBLD000000000000000002 /* FileTypeClassifierTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF000000000000000002 /* FileTypeClassifierTests.swift */; };
 		TSTBLD000000000000000003 /* FileChunkReaderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF000000000000000003 /* FileChunkReaderTests.swift */; };
 		TSTBLD000000000000000004 /* FileUtilsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF000000000000000004 /* FileUtilsTests.swift */; };
+		TSTBLD000000000000000005 /* MarkdownViewportPlannerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF000000000000000005 /* MarkdownViewportPlannerTests.swift */; };
+		TSTBLD000000000000000006 /* MarkdownRenderSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF000000000000000006 /* MarkdownRenderSnapshotTests.swift */; };
+		TSTBLD000000000000000007 /* MarkdownPreviewSessionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF000000000000000007 /* MarkdownPreviewSessionTests.swift */; };
+		TSTBLD000000000000000008 /* WebKitRuntimeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF000000000000000008 /* WebKitRuntimeTests.swift */; };
+		TSTBLD000000000000000009 /* MarkdownPreviewControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF000000000000000009 /* MarkdownPreviewControllerTests.swift */; };
+		TSTBLD000000000000000010 /* QuickLookOverlayStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF000000000000000010 /* QuickLookOverlayStateTests.swift */; };
 		MEDPREVBLD00000000000001 /* MediaPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = MEDPREVREF00000000000001 /* MediaPreviewView.swift */; };
 		ONBOARDBLD00000000000001 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ONBOARDREF00000000000001 /* OnboardingView.swift */; };
 		FNT141414141414141414141 /* Fonts in Resources */ = {isa = PBXBuildFile; fileRef = FNT141414141414141414142 /* Fonts */; };
@@ -95,6 +118,22 @@
 		835FB6172FCA950400D2395E /* HighlightrCodeSyntaxHighlighter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HighlightrCodeSyntaxHighlighter.swift; sourceTree = "<group>"; };
 		835FB6192FCA950400D2395F /* QuickLookOverlayModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickLookOverlayModifier.swift; sourceTree = "<group>"; };
 		835FB6992FCA950400D23999 /* FileChunkReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileChunkReader.swift; sourceTree = "<group>"; };
+		A1B2C3010000000000000011 /* MarkdownBlockStreamParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownBlockStreamParser.swift; sourceTree = "<group>"; };
+		A1B2C3010000000000000012 /* MarkdownFileStreamReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownFileStreamReader.swift; sourceTree = "<group>"; };
+		A1B2C3010000000000000013 /* MarkdownHTMLShell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownHTMLShell.swift; sourceTree = "<group>"; };
+		A1B2C3010000000000000014 /* MarkdownImageProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownImageProbe.swift; sourceTree = "<group>"; };
+		A1B2C3010000000000000015 /* MarkdownPreprocessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownPreprocessor.swift; sourceTree = "<group>"; };
+		A1B2C3010000000000000016 /* MarkdownPreviewBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownPreviewBridge.swift; sourceTree = "<group>"; };
+		A1B2C3010000000000000017 /* MarkdownPreviewPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownPreviewPolicy.swift; sourceTree = "<group>"; };
+		A1B2C3010000000000000018 /* MarkdownRenderBlock.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownRenderBlock.swift; sourceTree = "<group>"; };
+		A1B2C3010000000000000019 /* MarkdownRenderSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownRenderSnapshot.swift; sourceTree = "<group>"; };
+		A1B2C301000000000000001A /* MarkdownViewportPlanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownViewportPlanner.swift; sourceTree = "<group>"; };
+		A1B2C301000000000000001B /* MarkdownRendererRuntime.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownRendererRuntime.swift; sourceTree = "<group>"; };
+		A1B2C301000000000000001D /* MarkdownPreviewSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownPreviewSession.swift; sourceTree = "<group>"; };
+		A1B2C301000000000000001E /* MarkdownPreviewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownPreviewController.swift; sourceTree = "<group>"; };
+		A1B2C301000000000000001F /* PreviewRuntimeRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewRuntimeRegistry.swift; sourceTree = "<group>"; };
+		A1B2C3010000000000000020 /* WebKitRuntime.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebKitRuntime.swift; sourceTree = "<group>"; };
+		A1B2C3010000000000000024 /* FinderSyncMonitoringPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinderSyncMonitoringPolicy.swift; sourceTree = "<group>"; };
 		860647CBF168ADB4692AFB63 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		8CB74C8B4C3A792598259E87 /* FileUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileUtils.swift; sourceTree = "<group>"; };
 		94269EDF755E0DD605801286 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
@@ -120,6 +159,12 @@
 		TSTREF000000000000000002 /* FileTypeClassifierTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileTypeClassifierTests.swift; sourceTree = "<group>"; };
 		TSTREF000000000000000003 /* FileChunkReaderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileChunkReaderTests.swift; sourceTree = "<group>"; };
 		TSTREF000000000000000004 /* FileUtilsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileUtilsTests.swift; sourceTree = "<group>"; };
+		TSTREF000000000000000005 /* MarkdownViewportPlannerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownViewportPlannerTests.swift; sourceTree = "<group>"; };
+		TSTREF000000000000000006 /* MarkdownRenderSnapshotTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownRenderSnapshotTests.swift; sourceTree = "<group>"; };
+		TSTREF000000000000000007 /* MarkdownPreviewSessionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownPreviewSessionTests.swift; sourceTree = "<group>"; };
+		TSTREF000000000000000008 /* WebKitRuntimeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebKitRuntimeTests.swift; sourceTree = "<group>"; };
+		TSTREF000000000000000009 /* MarkdownPreviewControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownPreviewControllerTests.swift; sourceTree = "<group>"; };
+		TSTREF000000000000000010 /* QuickLookOverlayStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickLookOverlayStateTests.swift; sourceTree = "<group>"; };
 		MEDPREVREF00000000000001 /* MediaPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaPreviewView.swift; sourceTree = "<group>"; };
 		ONBOARDREF00000000000001 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		835FB7012FCA950400D23AAA /* UnsupportedFileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnsupportedFileView.swift; sourceTree = "<group>"; };
@@ -193,9 +238,41 @@
 				031B5AD657BAE17A14E65A87 /* HotkeyManager.swift */,
 				FMI000000000000000000002 /* FinderMenuIntegration.swift */,
 				835FBA032FCA950400D23A03 /* MarkedJS.swift */,
+				A1B2C3010000000000000021 /* Markdown */,
+				A1B2C3010000000000000022 /* PreviewRuntime */,
+				A1B2C3010000000000000024 /* FinderSyncMonitoringPolicy.swift */,
 				835FBA052FCA950400D23A05 /* MarkdownPDFExporter.swift */,
 			);
 			path = Core;
+			sourceTree = "<group>";
+		};
+		A1B2C3010000000000000021 /* Markdown */ = {
+			isa = PBXGroup;
+			children = (
+				A1B2C3010000000000000011 /* MarkdownBlockStreamParser.swift */,
+				A1B2C3010000000000000012 /* MarkdownFileStreamReader.swift */,
+				A1B2C3010000000000000013 /* MarkdownHTMLShell.swift */,
+				A1B2C3010000000000000014 /* MarkdownImageProbe.swift */,
+				A1B2C3010000000000000015 /* MarkdownPreprocessor.swift */,
+				A1B2C3010000000000000016 /* MarkdownPreviewBridge.swift */,
+				A1B2C3010000000000000017 /* MarkdownPreviewPolicy.swift */,
+				A1B2C3010000000000000018 /* MarkdownRenderBlock.swift */,
+				A1B2C3010000000000000019 /* MarkdownRenderSnapshot.swift */,
+				A1B2C301000000000000001A /* MarkdownViewportPlanner.swift */,
+				A1B2C301000000000000001B /* MarkdownRendererRuntime.swift */,
+				A1B2C301000000000000001D /* MarkdownPreviewSession.swift */,
+				A1B2C301000000000000001E /* MarkdownPreviewController.swift */,
+			);
+			path = Markdown;
+			sourceTree = "<group>";
+		};
+		A1B2C3010000000000000022 /* PreviewRuntime */ = {
+			isa = PBXGroup;
+			children = (
+				A1B2C301000000000000001F /* PreviewRuntimeRegistry.swift */,
+				A1B2C3010000000000000020 /* WebKitRuntime.swift */,
+			);
+			path = PreviewRuntime;
 			sourceTree = "<group>";
 		};
 		JJJ10101010101010101010 /* UI */ = {
@@ -284,6 +361,12 @@
 				TSTREF000000000000000002 /* FileTypeClassifierTests.swift */,
 				TSTREF000000000000000003 /* FileChunkReaderTests.swift */,
 				TSTREF000000000000000004 /* FileUtilsTests.swift */,
+				TSTREF000000000000000005 /* MarkdownViewportPlannerTests.swift */,
+				TSTREF000000000000000006 /* MarkdownRenderSnapshotTests.swift */,
+				TSTREF000000000000000007 /* MarkdownPreviewSessionTests.swift */,
+				TSTREF000000000000000008 /* WebKitRuntimeTests.swift */,
+				TSTREF000000000000000009 /* MarkdownPreviewControllerTests.swift */,
+				TSTREF000000000000000010 /* QuickLookOverlayStateTests.swift */,
 			);
 			path = QuickCookiesTests;
 			sourceTree = "<group>";
@@ -404,6 +487,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				FSB000000000000000000001 /* QuickCookiesFinderSync.swift in Sources */,
+				A1B2C3010000000000000025 /* FinderSyncMonitoringPolicy.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -423,6 +507,22 @@
 				835FB6182FCA950400D2395E /* HighlightrCodeSyntaxHighlighter.swift in Sources */,
 				835FB61A2FCA950400D2395F /* QuickLookOverlayModifier.swift in Sources */,
 				835FB69A2FCA950400D23999 /* FileChunkReader.swift in Sources */,
+				A1B2C3010000000000000001 /* MarkdownBlockStreamParser.swift in Sources */,
+				A1B2C3010000000000000002 /* MarkdownFileStreamReader.swift in Sources */,
+				A1B2C3010000000000000003 /* MarkdownHTMLShell.swift in Sources */,
+				A1B2C3010000000000000004 /* MarkdownImageProbe.swift in Sources */,
+				A1B2C3010000000000000005 /* MarkdownPreprocessor.swift in Sources */,
+				A1B2C3010000000000000006 /* MarkdownPreviewBridge.swift in Sources */,
+				A1B2C3010000000000000007 /* MarkdownPreviewPolicy.swift in Sources */,
+				A1B2C3010000000000000008 /* MarkdownRenderBlock.swift in Sources */,
+				A1B2C3010000000000000009 /* MarkdownRenderSnapshot.swift in Sources */,
+				A1B2C301000000000000000A /* MarkdownViewportPlanner.swift in Sources */,
+				A1B2C301000000000000000B /* MarkdownRendererRuntime.swift in Sources */,
+				A1B2C301000000000000000D /* MarkdownPreviewSession.swift in Sources */,
+				A1B2C301000000000000000E /* MarkdownPreviewController.swift in Sources */,
+				A1B2C301000000000000000F /* PreviewRuntimeRegistry.swift in Sources */,
+				A1B2C3010000000000000010 /* WebKitRuntime.swift in Sources */,
+				A1B2C3010000000000000023 /* FinderSyncMonitoringPolicy.swift in Sources */,
 				FC17D463B0B7C2B8817DCA5B /* SyntaxHighlighter.swift in Sources */,
 				D02C04567F8A13B8EE46D917 /* ToastView.swift in Sources */,
 				D02C04567F8A13B8EE46D927 /* CustomAlert.swift in Sources */,
@@ -453,6 +553,12 @@
 				TSTBLD000000000000000002 /* FileTypeClassifierTests.swift in Sources */,
 				TSTBLD000000000000000003 /* FileChunkReaderTests.swift in Sources */,
 				TSTBLD000000000000000004 /* FileUtilsTests.swift in Sources */,
+				TSTBLD000000000000000005 /* MarkdownViewportPlannerTests.swift in Sources */,
+				TSTBLD000000000000000006 /* MarkdownRenderSnapshotTests.swift in Sources */,
+				TSTBLD000000000000000007 /* MarkdownPreviewSessionTests.swift in Sources */,
+				TSTBLD000000000000000008 /* WebKitRuntimeTests.swift in Sources */,
+				TSTBLD000000000000000009 /* MarkdownPreviewControllerTests.swift in Sources */,
+				TSTBLD000000000000000010 /* QuickLookOverlayStateTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

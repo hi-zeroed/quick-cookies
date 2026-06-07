@@ -6,6 +6,38 @@ enum ContentMode {
     case edit       // 编辑模式
 }
 
+struct PreviewReadinessState: Equatable {
+    let token: UUID
+    let isReady: Bool
+}
+
+enum PreviewReadinessGate {
+    static func resetState(
+        for renderType: FileRenderType?,
+        tokenFactory: () -> UUID = UUID.init
+    ) -> PreviewReadinessState {
+        PreviewReadinessState(
+            token: tokenFactory(),
+            isReady: !isHeavyRenderType(renderType)
+        )
+    }
+
+    static func acceptingReady(
+        from token: UUID,
+        current: PreviewReadinessState
+    ) -> PreviewReadinessState? {
+        guard token == current.token, !current.isReady else {
+            return nil
+        }
+
+        return PreviewReadinessState(token: current.token, isReady: true)
+    }
+
+    static func isHeavyRenderType(_ renderType: FileRenderType?) -> Bool {
+        renderType == .image || renderType == .pdf || renderType == .office
+    }
+}
+
 class PreviewState: ObservableObject {
     private var isResetting = false
 
@@ -104,12 +136,13 @@ struct ContentView: View {
     
     // 状态化分段文件读取器
     @State private var chunkReader: FileChunkReader? = nil
+    @State private var markdownPreviewTimeline: MarkdownPreviewTimelineTracker? = nil
+    @State private var markdownHasLoadedInitialContent: Bool = false
     
     // 头部顶栏 Hover 状态
     @State private var isHeaderHovered: Bool = false
-
-    // 起跳缩放动画期间的状态锁定，用于延迟重型组件挂载，防范闪变
-    @State private var isAnimationActive: Bool = true
+    @State private var previewReadinessState = PreviewReadinessGate.resetState(for: nil)
+    @State private var markdownBootstrapReady: Bool = false
 
     // NOTE: 不在 ContentView 根节点订阅 Settings.shared，
     //       避免任意设置变化触发整个视图树 invalidate + CodeView.updateNSView 冒餐调用。
@@ -167,25 +200,24 @@ struct ContentView: View {
             fileWatcher = nil
             chunkReader?.close()
             chunkReader = nil
+            markdownPreviewTimeline = nil
+            markdownHasLoadedInitialContent = false
+            previewReadinessState = PreviewReadinessGate.resetState(for: nil)
+            markdownBootstrapReady = false
         }
         .task {
-            // 在起跳缩放动画播放期间（380ms），将 isAnimationActive 设为 true 屏蔽重载渲染，
-            // 播放完毕后解除占位，从而消除因大视图排版在缩放期间重排产生的闪烁
-            isAnimationActive = true
-            
             if let path = state.filePath {
+                resetHeavyPreviewState(for: state.renderType)
+                markdownBootstrapReady = false
                 await loadFileAsync(path: path)
                 startWatchingFile(path: path)
             }
-            
-            do {
-                try await Task.sleep(nanoseconds: 380_000_000)
-            } catch {}
-            isAnimationActive = false
         }
         .onChange(of: state.filePath) { newPath in
             if let path = newPath {
                 isLoading = true
+                resetHeavyPreviewState(for: state.renderType)
+                markdownBootstrapReady = false
                 Task {
                     await loadFileAsync(path: path)
                     startWatchingFile(path: path)
@@ -195,6 +227,18 @@ struct ContentView: View {
                 fileWatcher = nil
                 chunkReader?.close()
                 chunkReader = nil
+                markdownPreviewTimeline = nil
+                markdownHasLoadedInitialContent = false
+                previewReadinessState = PreviewReadinessGate.resetState(for: nil)
+                markdownBootstrapReady = false
+            }
+        }
+        .onChange(of: state.renderType) { newRenderType in
+            resetHeavyPreviewState(for: newRenderType)
+            markdownBootstrapReady = false
+            if newRenderType != .markdown {
+                markdownPreviewTimeline = nil
+                markdownHasLoadedInitialContent = false
             }
         }
     }
@@ -341,6 +385,23 @@ struct ContentView: View {
                     }
                 )
                 .padding([.horizontal, .bottom], 5) // 调整内边距至 5pt
+
+            if shouldShowLoadingOverlay {
+                VStack(spacing: 16) {
+                    Spacer()
+                    ProgressView()
+                        .progressViewStyle(CircularProgressViewStyle(tint: .white.opacity(0.4)))
+                    Text("Loading content...".localized())
+                        .font(.system(size: 11, design: .monospaced))
+                        .foregroundColor(.white.opacity(0.3))
+                    Spacer()
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .background(Color.appBackground.opacity(0.98))
+                .cornerRadius(15)
+                .padding([.horizontal, .bottom], 5)
+                .transition(.opacity)
+            }
             
             // 增量加载悬浮条
             if state.isIncrementalLoading {
@@ -365,14 +426,6 @@ struct ContentView: View {
         }
     }
 
-    private var isHeavyViewLoading: Bool {
-        // 对于图片、PDF 和 Office 等重型排版组件，在初次起跑缩放动画期间，强制视为加载中（渲染占位屏）
-        if isAnimationActive {
-            return state.renderType == .image || state.renderType == .pdf || state.renderType == .office
-        }
-        return false
-    }
-
     @ViewBuilder
     private var mainContent: some View {
         if let err = state.errorMessage {
@@ -391,7 +444,7 @@ struct ContentView: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .transition(.opacity)
-        } else if isLoading || isHeavyViewLoading {
+        } else if isLoading && state.renderType != .markdown {
             VStack(spacing: 16) {
                 Spacer()
                 ProgressView()
@@ -407,7 +460,9 @@ struct ContentView: View {
             Group {
                 switch state.mode {
                 case .preview:
-                    previewView
+                    if shouldRenderPreviewView {
+                        previewView
+                    }
                 case .edit:
                     editView
                 }
@@ -422,7 +477,18 @@ struct ContentView: View {
             let isDark = colorScheme == .dark
             switch renderType {
             case .markdown:
-                MarkdownView(filePath: path, markdownText: content)
+                MarkdownView(
+                    filePath: path,
+                    markdownText: content,
+                    previewTimeline: markdownPreviewTimeline,
+                    onBootstrapReady: {
+                        guard isLoading else { return }
+                        withAnimation(.easeOut(duration: 0.16)) {
+                            markdownBootstrapReady = true
+                            isLoading = false
+                        }
+                    }
+                )
             case .code:
                 // NOTE: 将 settings 订阅下沉到 PreviewCodeView 内部，
                 //       防止 Settings 变化导致 ContentView 根节点重绘触发 CodeView.updateNSView
@@ -448,19 +514,56 @@ struct ContentView: View {
                     }
                 )
             case .pdf, .image:
-                MediaPreviewView(filePath: path, renderType: renderType)
+                heavyPreviewContainer(
+                    title: URL(fileURLWithPath: path).lastPathComponent,
+                    renderType: renderType
+                ) {
+                    MediaPreviewView(
+                        filePath: path,
+                        renderType: renderType,
+                        readyToken: previewReadinessState.token,
+                        onReady: markHeavyPreviewReady
+                    )
+                }
             case .office:
-                OfficePreviewView(fileURL: URL(fileURLWithPath: path))
-                    .frame(maxWidth: .infinity, maxHeight: .infinity) // 强制铺满所有可用横向与纵向区域
+                heavyPreviewContainer(
+                    title: URL(fileURLWithPath: path).lastPathComponent,
+                    renderType: renderType
+                ) {
+                    OfficePreviewView(
+                        fileURL: URL(fileURLWithPath: path),
+                        readyToken: previewReadinessState.token,
+                        onReady: markHeavyPreviewReady
+                    )
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .cornerRadius(15)
                     .overlay(
                         RoundedRectangle(cornerRadius: 15)
                             .stroke(Color.appBorder.opacity(0.3), lineWidth: 1)
                     )
+                }
             case .unsupported:
                 UnsupportedFileView(filePath: path, errorMessage: state.errorMessage)
             }
         }
+    }
+
+    @ViewBuilder
+    private func heavyPreviewContainer<Content: View>(
+        title: String,
+        renderType: FileRenderType,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
+        ZStack {
+            content()
+                .opacity(previewReadinessState.isReady ? 1.0 : 0.001)
+            
+            if !previewReadinessState.isReady {
+                PreviewPlaceholderView(title: title, renderType: renderType)
+                    .transition(.opacity)
+            }
+        }
+        .animation(.easeOut(duration: 0.16), value: previewReadinessState.isReady)
     }
 
     @ViewBuilder
@@ -535,6 +638,18 @@ struct ContentView: View {
 
     /// 后台并发异步读取首段，保证窗口 0ms 秒开起跳弹出
     private func loadFileAsync(path: String) async {
+        if state.renderType == .markdown {
+            await MainActor.run {
+                markdownPreviewTimeline = MarkdownPreviewTimelineTracker(filePath: path)
+                markdownHasLoadedInitialContent = false
+            }
+        } else {
+            await MainActor.run {
+                markdownPreviewTimeline = nil
+                markdownHasLoadedInitialContent = false
+            }
+        }
+
         if state.renderType == .pdf || state.renderType == .image || state.renderType == .unsupported || state.renderType == .office {
             await MainActor.run {
                 self.isLoading = false
@@ -567,7 +682,13 @@ struct ContentView: View {
                     self.chunkReader = payload.0
                     self.content = payload.1
                     self.state.hasMoreChunks = payload.2
-                    self.isLoading = false
+                    if self.state.renderType == .markdown {
+                        self.markdownHasLoadedInitialContent = true
+                        self.markdownPreviewTimeline?.mark(.firstChunkReady)
+                        self.markdownBootstrapReady = false
+                    } else {
+                        self.isLoading = false
+                    }
                 case .failure(let error):
                     self.errorMessage = (error.errorDescription ?? "读取文件失败").localized()
                     self.isLoading = false
@@ -627,6 +748,42 @@ struct ContentView: View {
         }
         watcher.start()
         fileWatcher = watcher
+    }
+
+    private func resetHeavyPreviewState(for renderType: FileRenderType?) {
+        previewReadinessState = PreviewReadinessGate.resetState(for: renderType)
+    }
+
+    private func markHeavyPreviewReady(_ token: UUID) {
+        guard let nextState = PreviewReadinessGate.acceptingReady(
+            from: token,
+            current: previewReadinessState
+        ) else {
+            return
+        }
+
+        withAnimation(.easeOut(duration: 0.16)) {
+            previewReadinessState = nextState
+        }
+    }
+
+    private func isHeavyRenderType(_ renderType: FileRenderType?) -> Bool {
+        PreviewReadinessGate.isHeavyRenderType(renderType)
+    }
+
+    private var shouldShowLoadingOverlay: Bool {
+        guard isLoading else { return false }
+        guard state.renderType == .markdown, state.mode == .preview, state.filePath != nil else { return false }
+        return !markdownBootstrapReady
+    }
+
+    private var shouldRenderPreviewView: Bool {
+        guard let renderType = state.renderType else { return false }
+        return MarkdownPreviewDisplayPolicy.shouldMountPreview(
+            renderType: renderType,
+            isLoading: isLoading,
+            hasLoadedInitialContent: markdownHasLoadedInitialContent
+        )
     }
 
     private func exportMarkdownToPDF() {
@@ -757,6 +914,62 @@ private struct EditContentView: View {
             showLineNumbers: settings.showLineNumbers,
             onSave: onSave
         )
+    }
+}
+
+private struct PreviewPlaceholderView: View {
+    let title: String
+    let renderType: FileRenderType
+
+    private var iconName: String {
+        switch renderType {
+        case .image:
+            return "photo"
+        case .pdf:
+            return "doc.richtext"
+        case .office:
+            return "briefcase"
+        case .markdown:
+            return "doc.text"
+        case .code:
+            return "curlybraces"
+        case .plainText:
+            return "doc.plaintext"
+        case .unsupported:
+            return "doc"
+        }
+    }
+
+    private var subtitle: String {
+        switch renderType {
+        case .image:
+            return "Preparing image preview...".localized()
+        case .pdf:
+            return "Preparing PDF preview...".localized()
+        case .office:
+            return "Preparing Office preview...".localized()
+        default:
+            return "Loading content...".localized()
+        }
+    }
+
+    var body: some View {
+        VStack(spacing: 14) {
+            Spacer()
+            Image(systemName: iconName)
+                .font(.system(size: 34, weight: .medium))
+                .foregroundColor(Color.appText.opacity(0.72))
+            Text(title)
+                .font(.system(size: 13, weight: .semibold, design: .monospaced))
+                .foregroundColor(Color.appText)
+                .lineLimit(1)
+            Text(subtitle)
+                .font(.system(size: 11, design: .monospaced))
+                .foregroundColor(Color.appText.opacity(0.5))
+            Spacer()
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color.appBackground.opacity(0.92))
     }
 }
 

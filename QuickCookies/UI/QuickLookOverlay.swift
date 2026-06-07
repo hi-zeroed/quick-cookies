@@ -31,13 +31,26 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
     var currentWindow: NSWindow? { previewWindow }
     private var sourceRectBackup: CGRect?
     private var activeToastPanel: NSPanel?
-    private var lastDiagnosticMessage: String = ""
     private var localEventMonitor: Any?
     private var globalEventMonitor: Any?
     private var pollingTimer: Timer?
     
     // 用于通知 ContentView 状态的共享模型
     private let previewState = PreviewState()
+
+    static func applyDetectedFileState(
+        resolvedPath: String,
+        renderType: FileRenderType,
+        language: String?,
+        previewState: PreviewState
+    ) {
+        previewState.updateState(
+            filePath: resolvedPath,
+            renderType: renderType,
+            language: language,
+            isLoadingPath: false
+        )
+    }
 
     var canBecomeKeyDynamic: Bool {
         return previewState.mode == .edit
@@ -92,7 +105,7 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
             }
         }
     }
-    
+
     private func resizeWindowForErrorOrUnsupported() {
         guard let window = previewWindow else {
             return
@@ -133,9 +146,7 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         }
         let screenVisibleFrame = NSScreen.main?.visibleFrame ?? NSRect(x: 0, y: 0, width: 1920, height: 1080)
         
-        // 依据 isExpanded（true 为 68%，false 为 38%）平滑变换宽度
-        let widthRatio = previewState.isExpanded ? 0.68 : 0.38
-        let contentWidth = screenVisibleFrame.width * widthRatio
+        let contentWidth = targetContentWidth(for: screenVisibleFrame)
         let contentHeight = screenVisibleFrame.height * 0.88
         
         // 计算加上 padding 缓冲对应的窗口物理 Frame 大小
@@ -158,6 +169,37 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         )
         
         window.setFrame(newFrame, display: true, animate: true)
+    }
+
+    private func targetContentWidth(for screenVisibleFrame: NSRect) -> CGFloat {
+        if previewState.renderType == .office {
+            return officeContentWidth(for: screenVisibleFrame)
+        }
+
+        let widthRatio = previewState.isExpanded ? 0.68 : 0.38
+        return screenVisibleFrame.width * widthRatio
+    }
+
+    private func officeContentWidth(for screenVisibleFrame: NSRect) -> CGFloat {
+        guard let filePath = previewState.filePath else {
+            let fallbackRatio = previewState.isExpanded ? 0.56 : 0.36
+            return screenVisibleFrame.width * fallbackRatio
+        }
+
+        let ext = URL(fileURLWithPath: filePath).pathExtension.lowercased()
+        let widthRatio: CGFloat
+        switch ext {
+        case "doc", "docx", "rtf", "rtfd", "pages":
+            widthRatio = previewState.isExpanded ? 0.56 : 0.34
+        case "xls", "xlsx", "numbers", "csv":
+            widthRatio = previewState.isExpanded ? 0.82 : 0.72
+        case "ppt", "pptx", "key":
+            widthRatio = previewState.isExpanded ? 0.78 : 0.66
+        default:
+            widthRatio = previewState.isExpanded ? 0.56 : 0.36
+        }
+
+        return screenVisibleFrame.width * widthRatio
     }
 
     /// 显示 Toast 提示（合并自 PreviewWindowController）
@@ -290,12 +332,30 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         // 1. 瞬间确定窗口比例（若已知为不支持类型，则使用较矮的原生 Quick Look 风格卡片尺寸，加上 padding 缓冲）
         let screenVisibleFrame = NSScreen.main?.visibleFrame ?? NSRect(x: 0, y: 0, width: 1920, height: 1080)
         let isUnsupported = renderType == .unsupported
+        let isOffice = renderType == .office
         
         let windowWidth: CGFloat
         let windowHeight: CGFloat
         if isUnsupported {
             windowWidth = 450 + windowPadding * 2
             windowHeight = 320 + windowPadding * 2
+        } else if isOffice {
+            let resolvedPath = filePath ?? ""
+            let ext = URL(fileURLWithPath: resolvedPath).pathExtension.lowercased()
+            let baseRatio: CGFloat
+            switch ext {
+            case "doc", "docx", "rtf", "rtfd", "pages":
+                baseRatio = 0.34
+            case "xls", "xlsx", "numbers", "csv":
+                baseRatio = 0.72
+            case "ppt", "pptx", "key":
+                baseRatio = 0.66
+            default:
+                baseRatio = 0.36
+            }
+            let baseWidth = screenVisibleFrame.width * baseRatio
+            windowWidth = baseWidth + windowPadding * 2
+            windowHeight = screenVisibleFrame.height * 0.88 + windowPadding * 2
         } else {
             windowWidth = screenVisibleFrame.width * 0.38 + windowPadding * 2
             windowHeight = screenVisibleFrame.height * 0.88 + windowPadding * 2
@@ -368,8 +428,8 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
             layer.masksToBounds = false
         }
 
-        // 先让预览窗口以极透明状态挂载，置顶显示但不抢占焦点（保持 Finder 在前台）
-        previewPanel.alphaValue = 0.01
+        // 先让预览窗口以完全透明状态挂载，置顶显示但不抢占焦点（保持 Finder 在前台）
+        previewPanel.alphaValue = 0.0
         previewPanel.orderFrontRegardless()
         self.previewWindow = previewPanel
         self.updateAppearance()
@@ -454,11 +514,14 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
                             // 更新窗口标题
                             previewPanel.title = "Quick Cookies - \(URL(fileURLWithPath: resolvedPath).lastPathComponent)"
                             
-                            // 更新状态触发 ContentView 异步加载文件内容
-                            self.previewState.filePath = resolvedPath
-                            self.previewState.renderType = rType
-                            self.previewState.language = lang
-                            self.previewState.isLoadingPath = false
+                            // 通过原子状态更新避免 `filePath` 先触发加载、而
+                            // `renderType` 仍未写入时丢失 Markdown 预览时间线。
+                            Self.applyDetectedFileState(
+                                resolvedPath: resolvedPath,
+                                renderType: rType,
+                                language: lang,
+                                previewState: self.previewState
+                            )
                         }
                     case .failure(let error):
                         self.previewState.errorMessage = (error.errorDescription ?? "未检测到选中文件").localized()
@@ -510,17 +573,15 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
             CATransform3DMakeTranslation(translationX, translationY, 0)
         )
         
-        // 1. 先用 disableActions 强制在第 0 帧将图层 transform 和 opacity 设为起跑状态，
-        //    防止窗口在 orderFront 瞬间大尺寸在屏幕中央闪现
+        // ==========================================
+        // 【核心修复】：利用原子化 CATransaction 事务保护
+        //    先 add(group) 动画使呈现图层首帧即刻被动画（透明+极小）接管，
+        //    并在同一个事务中将窗口透明度恢复为 1.0 呈现，由于 commit 前系统绝不重绘，
+        //    因此彻底屏蔽了起跑瞬间的大卡车闪烁；同时 Model 真实值始终保持最终态，
+        //    在动画播完自动移除时能够完美无缝贴合在最终态上，杜绝消失并闪现
+        // ==========================================
         CATransaction.begin()
-        CATransaction.setDisableActions(true)
-        layer.transform = initialTransform
-        layer.opacity = 0.0
-        CATransaction.commit()
-
-        // 2. 此时可以安全将窗口透明度恢复为 1.0，因为图层已经被隐形并收缩在起跑点上
-        previewPanel.alphaValue = 1.0
-
+        
         // 使用物理公式驱动的 CASpringAnimation 弹簧动画 (开启过冲回弹，释放极致的原生“空气/膨胀果冻感”)
         let springTransform = CASpringAnimation(keyPath: "transform")
         springTransform.damping = 15
@@ -540,16 +601,16 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         group.animations = [springTransform, fadeAnim]
         group.duration = 0.38
         group.isRemovedOnCompletion = true // 动画播完自动从层级移除
-        group.fillMode = .removed           // 移除后自动采用模型图层的真实属性值（即最终态）
+        group.fillMode = .removed           // 移除后直接采用 Model 图层的最终态（即 1.0 和 identity），实现无缝对齐
         
-        CATransaction.begin()
-        CATransaction.setCompletionBlock {
-            // 动画播完后，显式将 layer 的真实属性恢复为 1.0 和 identity，防止隐式回退
-            layer.transform = CATransform3DIdentity
-            layer.opacity = 1.0
-        }
+        // A. 先添加动画，使其呈现图层首帧直接开始渐入与物理膨胀
         layer.add(group, forKey: "quickLookShow")
+        
+        // B. 此时将窗口透明度置为 1.0 呈现，由于处在同一 CA 事务中，在此 commit 前屏幕绝不重绘，因此绝不瞬闪大卡片
+        previewPanel.alphaValue = 1.0
+        
         CATransaction.commit()
+        // ==========================================
         
         // 动画中后期渐显系统红绿灯按钮，达成呼吸感
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.16) {
@@ -564,11 +625,8 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
 
     /// 高精度获取 Finder 中当前选中项的视觉物理坐标 (AXUIElement API)
     private func getSourceRect() -> CGRect {
-        lastDiagnosticMessage = ""
-        
         // 1. 获取 Finder 的 PID
         guard let finderApp = NSWorkspace.shared.runningApplications.first(where: { $0.bundleIdentifier == "com.apple.finder" }) else {
-            lastDiagnosticMessage = "Finder PID failed".localized()
             return getDefaultSourceRect()
         }
         let pid = finderApp.processIdentifier
@@ -578,7 +636,6 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         
         // 3. 寻找选中的 UI 元素：优先从键盘聚焦 focusedElement 获取，其次通过主窗口选中项列表 AXSelectedChildren 深度兜底遍历
         var selectedElement: AXUIElement?
-        var diagnosticSource = "Default Center".localized()
         
         var focusedElementRef: CFTypeRef?
         if AXUIElementCopyAttributeValue(appElement, kAXFocusedUIElementAttribute as CFString, &focusedElementRef) == .success,
@@ -589,7 +646,6 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
                let role = roleRef as? String {
                 if role == "AXCell" || role == "AXRow" || role == "AXStaticText" || role == "AXImage" || role == "AXTextField" {
                     selectedElement = element
-                    diagnosticSource = "\("Focused".localized()) (\(role))"
                 }
             }
         }
@@ -597,12 +653,10 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         if selectedElement == nil {
             if let found = getSelectedElementFromWindows(appElement: appElement) {
                 selectedElement = found
-                diagnosticSource = "Window traversal succeeded".localized()
             }
         }
         
         guard let element = selectedElement else {
-            lastDiagnosticMessage = "No selected item found".localized()
             return getDefaultSourceRect()
         }
         
@@ -615,7 +669,6 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         
         guard posResult == .success, sizeResult == .success,
               let positionVal = positionRef, let sizeVal = sizeRef else {
-            lastDiagnosticMessage = "Failed to read coordinate/size attributes".localized()
             return getDefaultSourceRect()
         }
         
@@ -624,8 +677,6 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         
         AXValueGetValue(positionVal as! AXValue, .cgPoint, &point)
         AXValueGetValue(sizeVal as! AXValue, .cgSize, &size)
-        
-        lastDiagnosticMessage = "\("Source".localized()): \(diagnosticSource)"
         
         // 5. 坐标系转换 (Accessibility 使用左上角为原点，NSScreen/AppKit 窗口使用左下角为原点)
         if let screenHeight = NSScreen.main?.frame.height {
@@ -868,8 +919,8 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
                         }
                     }
                 case .failure(let error):
-                    // 静默处理，不频繁写入错误日志以防爆磁盘
-                    print("updatePreviewFromFinder 获取失败: \(error.localizedDescription)")
+                    // 静默处理轮询失败，避免 Finder 选中文件波动时刷屏污染控制台。
+                    _ = error
                 }
             }
         }
@@ -877,12 +928,17 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
 
     /// 关闭窗口并附带平滑缩小到图标位置的 GPU 变换动画
     func closeWithAnimation() {
-        // 1. 同步瞬间重置预览状态，促使 ContentView 立即卸载 QLPreviewView 等重型组件，
-        //    防止重型视图在缩小动画期间（特别是缩小到极小时）产生布局冲突和刺眼的闪白/灰块
-        self.previewState.reset()
-
-        guard let window = previewWindow, let contentView = window.contentView, let layer = contentView.layer else {
+        guard let window = previewWindow, let contentView = window.contentView else {
             close()
+            return
+        }
+
+        guard let layer = contentView.layer else {
+            previewWindow = nil
+            window.delegate = nil
+            window.contentView = nil
+            window.close()
+            previewState.reset()
             return
         }
 
@@ -953,16 +1009,24 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         let group = CAAnimationGroup()
         group.animations = [shrinkAnim, fadeAnim]
         group.duration = 0.20
-        group.isRemovedOnCompletion = false
-        group.fillMode = .forwards
+        group.isRemovedOnCompletion = true
+        group.fillMode = .removed
         
         CATransaction.begin()
         CATransaction.setCompletionBlock {
+            window.orderOut(nil)
             window.contentView = nil
             window.close()
+            self.previewState.reset()
         }
+
+        // 先把 model layer 原子化地推进到最终关闭态，再由显式动画接管过渡，
+        // 避免动画结束瞬间回跳到未缩放的大窗口状态而产生最后一闪。
+        CATransaction.setDisableActions(true)
+        layer.transform = finalTransform
+        layer.opacity = 0.0
+
         layer.add(group, forKey: "quickLookClose")
-        window.animator().alphaValue = 0.0
         CATransaction.commit()
     }
 

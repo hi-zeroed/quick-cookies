@@ -44,8 +44,6 @@ class HotkeyManager {
             }
             return event
         }
-
-        print("Hotkey registered: modifiers=\(modifiers), keyCode=\(keyCode)")
     }
 
     private func matchEvent(_ event: NSEvent, modifiers: NSEvent.ModifierFlags, keyCode: UInt16) -> Bool {
@@ -70,8 +68,6 @@ class HotkeyManager {
             self?.handleFlagsChanged(event, modifier: modifier, handler: handler)
             return event
         }
-
-        print("Double-\(modifier) hotkey registered (Global & Local)")
     }
 
     private func handleFlagsChanged(_ event: NSEvent, modifier: NSEvent.ModifierFlags, handler: @escaping () -> Void) {

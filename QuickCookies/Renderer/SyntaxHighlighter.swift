@@ -4,7 +4,6 @@ import Highlightr
 class SyntaxHighlighter {
     static let shared: SyntaxHighlighter? = {
         guard let highlightr = Highlightr() else {
-            print("Failed to initialize Highlightr")
             return nil
         }
         // 默认采用经典 Atom One Dark 暗黑主题，完美融入深色背景

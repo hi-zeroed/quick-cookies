@@ -5,18 +5,20 @@ import AppKit
 struct MediaPreviewView: View {
     let filePath: String
     let renderType: FileRenderType
+    let readyToken: UUID
+    let onReady: (UUID) -> Void
     
     var body: some View {
         Group {
             if renderType == .pdf {
-                PDFKitView(url: URL(fileURLWithPath: filePath))
+                PDFKitView(url: URL(fileURLWithPath: filePath), readyToken: readyToken, onReady: onReady)
                     .cornerRadius(12)
                     .overlay(
                         RoundedRectangle(cornerRadius: 12)
                             .stroke(Color.appBorder.opacity(0.3), lineWidth: 1)
                     )
             } else if renderType == .image {
-                ImageFileView(filePath: filePath)
+                ImageFileView(filePath: filePath, readyToken: readyToken, onReady: onReady)
             } else {
                 Text("Unsupported file format".localized())
                     .foregroundColor(.secondary)
@@ -29,6 +31,12 @@ struct MediaPreviewView: View {
 /// A wrapper for PDFView from PDFKit to SwiftUI
 struct PDFKitView: NSViewRepresentable {
     let url: URL
+    let readyToken: UUID
+    let onReady: (UUID) -> Void
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator()
+    }
     
     func makeNSView(context: Context) -> PDFView {
         let pdfView = PDFView()
@@ -53,12 +61,49 @@ struct PDFKitView: NSViewRepresentable {
             layer.cornerRadius = 12
             layer.masksToBounds = true
         }
+        context.coordinator.scheduleReady(
+            for: readyToken,
+            view: pdfView,
+            notify: onReady
+        )
         return pdfView
     }
     
     func updateNSView(_ nsView: PDFView, context: Context) {
         if nsView.document?.documentURL != url {
             nsView.document = PDFDocument(url: url)
+            context.coordinator.scheduleReady(
+                for: readyToken,
+                view: nsView,
+                notify: onReady
+            )
+        } else {
+            context.coordinator.scheduleReady(
+                for: readyToken,
+                view: nsView,
+                notify: onReady
+            )
+        }
+    }
+
+    final class Coordinator {
+        private var deliveredToken: UUID?
+
+        func scheduleReady(
+            for token: UUID,
+            view: PDFView,
+            notify: @escaping (UUID) -> Void
+        ) {
+            guard deliveredToken != token else { return }
+            deliveredToken = token
+
+            DispatchQueue.main.async {
+                view.layoutDocumentView()
+                view.layoutSubtreeIfNeeded()
+                DispatchQueue.main.async {
+                    notify(token)
+                }
+            }
         }
     }
 }
@@ -66,7 +111,10 @@ struct PDFKitView: NSViewRepresentable {
 /// A view displaying details and preview of image files
 struct ImageFileView: View {
     let filePath: String
+    let readyToken: UUID
+    let onReady: (UUID) -> Void
     
+    @State private var displayImage: NSImage?
     @State private var imageSize: CGSize = .zero
     @State private var fileSizeString: String = ""
     
@@ -78,8 +126,8 @@ struct ImageFileView: View {
         VStack(spacing: 12) {
             Spacer()
             
-            if let nsImage = NSImage(contentsOfFile: filePath) {
-                Image(nsImage: nsImage)
+            if let displayImage {
+                Image(nsImage: displayImage)
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .cornerRadius(8)
@@ -126,6 +174,9 @@ struct ImageFileView: View {
         .onChange(of: filePath) { newPath in
             loadContent(for: newPath)
         }
+        .onChange(of: readyToken) { _ in
+            notifyReady()
+        }
     }
     
     private func loadContent(for path: String) {
@@ -141,7 +192,10 @@ struct ImageFileView: View {
         }
         
         self.imageSize = .zero
+        self.displayImage = nil
+
         if let nsImage = NSImage(contentsOfFile: path) {
+            self.displayImage = nsImage
             if isSVG {
                 // 对于 SVG 矢量图，使用 nsImage.size 获取其 viewBox 逻辑尺寸
                 self.imageSize = nsImage.size
@@ -150,6 +204,14 @@ struct ImageFileView: View {
             } else {
                 self.imageSize = nsImage.size
             }
+        }
+
+        notifyReady()
+    }
+
+    private func notifyReady() {
+        DispatchQueue.main.async {
+            onReady(readyToken)
         }
     }
 }

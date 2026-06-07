@@ -179,16 +179,15 @@ class Settings: ObservableObject {
             if launchAtLogin {
                 if service.status != .enabled {
                     try service.register()
-                    print("Quick Cookies registered to launch at login successfully.")
                 }
             } else {
                 if service.status == .enabled {
                     try service.unregister()
-                    print("Quick Cookies unregistered from launch at login successfully.")
                 }
             }
         } catch {
-            print("Failed to sync launch at login status: \(error)")
+            // Keep launch-at-login failures silent here; UI can decide if user-facing feedback is needed.
+            _ = error
         }
     }
 
