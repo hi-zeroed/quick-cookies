@@ -40,6 +40,7 @@ struct OfficePreviewView: NSViewRepresentable {
             to: containerView,
             previewView: previewView,
             token: readyToken,
+            fileURL: fileURL,
             notify: onReady
         )
         
@@ -49,33 +50,31 @@ struct OfficePreviewView: NSViewRepresentable {
     func updateNSView(_ nsView: NSView, context: Context) {
         let containerView = nsView as! PreviewLayoutAwareContainerView
         guard let previewView = containerView.subviews.first as? QLPreviewView else { return }
-        if let currentURL = previewView.previewItem as? URL, currentURL == fileURL {
-            context.coordinator.attach(
-                to: containerView,
-                previewView: previewView,
-                token: readyToken,
-                notify: onReady
-            )
-            return
-        }
-        previewView.previewItem = fileURL as QLPreviewItem
         context.coordinator.attach(
             to: containerView,
             previewView: previewView,
             token: readyToken,
+            fileURL: fileURL,
             notify: onReady
         )
     }
 
     final class Coordinator {
         private var deliveredToken: UUID?
+        private var lastFileURL: URL?
 
         fileprivate func attach(
             to containerView: PreviewLayoutAwareContainerView,
             previewView: QLPreviewView,
             token: UUID,
+            fileURL: URL,
             notify: @escaping (UUID) -> Void
         ) {
+            if lastFileURL != fileURL {
+                previewView.previewItem = fileURL as QLPreviewItem
+                lastFileURL = fileURL
+            }
+
             guard deliveredToken != token else { return }
             deliveredToken = token
 

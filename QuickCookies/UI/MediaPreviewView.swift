@@ -70,20 +70,12 @@ struct PDFKitView: NSViewRepresentable {
     }
     
     func updateNSView(_ nsView: PDFView, context: Context) {
-        if nsView.document?.documentURL != url {
-            nsView.document = PDFDocument(url: url)
-            context.coordinator.scheduleReady(
-                for: readyToken,
-                view: nsView,
-                notify: onReady
-            )
-        } else {
-            context.coordinator.scheduleReady(
-                for: readyToken,
-                view: nsView,
-                notify: onReady
-            )
-        }
+        nsView.document = PDFDocument(url: url)
+        context.coordinator.scheduleReady(
+            for: readyToken,
+            view: nsView,
+            notify: onReady
+        )
     }
 
     final class Coordinator {
@@ -135,9 +127,6 @@ struct ImageFileView: View {
                     .padding()
             } else {
                 VStack(spacing: 8) {
-                    Image(systemName: "photo.circle")
-                        .font(.system(size: 48))
-                        .foregroundColor(.secondary)
                     Text("无法加载图片".localized())
                         .foregroundColor(.secondary)
                 }
@@ -149,11 +138,11 @@ struct ImageFileView: View {
             if isSVG || imageSize != .zero {
                 HStack(spacing: 16) {
                     if isSVG {
-                        Label("Vector Graphics (SVG)".localized() + (imageSize != .zero ? " \(Int(imageSize.width)) × \(Int(imageSize.height))" : ""), systemImage: "pencil.and.outline")
+                        Text("Vector Graphics (SVG)".localized() + (imageSize != .zero ? " \(Int(imageSize.width)) × \(Int(imageSize.height))" : ""))
                     } else {
-                        Label("\(Int(imageSize.width)) × \(Int(imageSize.height)) Px", systemImage: "arrow.up.and.down.and.arrow.left.and.right")
+                        Text("\(Int(imageSize.width)) × \(Int(imageSize.height)) Px")
                     }
-                    Label(fileSizeString, systemImage: "doc.circle")
+                    Text(fileSizeString)
                 }
                 .font(.caption)
                 .foregroundColor(.secondary)

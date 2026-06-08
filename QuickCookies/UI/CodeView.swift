@@ -15,7 +15,7 @@ struct CodeView: NSViewRepresentable {
     let fontSize: CGFloat
     let fontName: String
     let isDark: Bool
-    let state: PreviewState
+    let loadState: PreviewLoadState
     let onLoadMore: () -> Void
 
     func makeCoordinator() -> Coordinator {
@@ -28,7 +28,8 @@ struct CodeView: NSViewRepresentable {
         var lastFontSize: CGFloat?       // NOTE: 缓存字号以防高亮富文本首字字形覆盖导致误判 fontChanged
         var lastFilePath: String?
         var lastContentLength: Int = 0   // NOTE: 用长度缓存替代 O(n) 字符串前缀比较
-        var state: PreviewState?
+        var lastRenderedContent: String = ""
+        var loadState: PreviewLoadState?
         var onLoadMore: (() -> Void)?
         var fontCache: FontVariantCache?
         
@@ -58,9 +59,9 @@ struct CodeView: NSViewRepresentable {
                   let documentView = scrollView.documentView else { return }
             
             // PERF: 同步进行前置拦截过滤，如果不需要加载更多，直接返回，避免高频向主线程队列提交垃圾 block
-            guard let state = self.state,
-                  state.hasMoreChunks,
-                  !state.isIncrementalLoading else { return }
+            guard let loadState = self.loadState,
+                  loadState.hasMoreChunks,
+                  !loadState.isIncrementalLoading else { return }
                   
             let visibleRect = clipView.documentVisibleRect
             let documentHeight = documentView.frame.height
@@ -68,9 +69,9 @@ struct CodeView: NSViewRepresentable {
             if visibleRect.maxY >= documentHeight - 150 {
                 DispatchQueue.main.async { [weak self] in
                     guard let self = self,
-                          let state = self.state,
-                          state.hasMoreChunks,
-                          !state.isIncrementalLoading else { return }
+                          let loadState = self.loadState,
+                          loadState.hasMoreChunks,
+                          !loadState.isIncrementalLoading else { return }
                     self.onLoadMore?()
                 }
             }
@@ -150,10 +151,11 @@ struct CodeView: NSViewRepresentable {
         guard let textView = scrollView.documentView as? NSTextView else { return }
 
         // 传递最新的回调与状态引用给 Coordinator
-        context.coordinator.state = state
+        context.coordinator.loadState = loadState
         context.coordinator.onLoadMore = onLoadMore
 
         let isSameFile = context.coordinator.lastFilePath == filePath
+        let contentChanged = context.coordinator.lastRenderedContent != content
         // NOTE: 用长度对比替代 O(n) 的 content.hasPrefix(textView.string)，避免大文件在 updateNSView 每次都做全量字符串扫描
         let cachedLength = context.coordinator.lastContentLength
         let currentLength = textView.textStorage?.length ?? 0
@@ -168,7 +170,6 @@ struct CodeView: NSViewRepresentable {
         context.coordinator.lastFontName = fontName
         context.coordinator.lastFontSize = fontSize
         context.coordinator.lastFilePath = filePath
-        context.coordinator.lastContentLength = textView.textStorage?.length ?? 0
 
         // 动态更新字体变体缓存
         if fontChanged || context.coordinator.fontCache == nil {
@@ -197,12 +198,17 @@ struct CodeView: NSViewRepresentable {
             // 增量追加段落
             let newText = String(content[content.index(content.startIndex, offsetBy: currentLength)...])
             appendChunk(newText: newText, for: textView, isDark: isDark, fontCache: cache)
+            context.coordinator.lastRenderedContent = content
             context.coordinator.lastContentLength = textView.textStorage?.length ?? 0
-        } else if !isSameFile || isDarkChanged || fontChanged {
+        } else if !isSameFile || contentChanged || isDarkChanged || fontChanged {
             // 首次加载、修改主题或字体
             textView.string = content
             textView.scrollRangeToVisible(NSRange(location: 0, length: 0))
             loadSyntaxHighlightFirstTime(for: textView, isDark: isDark, fontCache: cache)
+            context.coordinator.lastRenderedContent = content
+            context.coordinator.lastContentLength = textView.textStorage?.length ?? 0
+        } else {
+            context.coordinator.lastContentLength = textView.textStorage?.length ?? 0
         }
     }
 

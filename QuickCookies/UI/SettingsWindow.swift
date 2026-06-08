@@ -514,11 +514,7 @@ struct SettingsView: View {
                             
                             settings.saveHotkey(modifiers: recordedModifiers, keyCode: recordedKeyCode)
                             isRecordingHotkey = false
-                            
-                            HotkeyManager.shared.registerWithSettings {
-                                QuickLookOverlay.shared.showFromFinder()
-                            }
-                            
+
                             lastRecordModifier = nil
                             lastRecordModifierTime = nil
                             return nil
@@ -548,11 +544,6 @@ struct SettingsView: View {
                 settings.saveHotkey(modifiers: recordedModifiers, keyCode: recordedKeyCode)
                 isRecordingHotkey = false
 
-                // 重新注册热键
-                HotkeyManager.shared.registerWithSettings {
-                    QuickLookOverlay.shared.showFromFinder()
-                }
-
                 return nil
             }
             return event
@@ -572,10 +563,5 @@ struct SettingsView: View {
         
         settings.editorFont = "JetBrains Mono"
         settings.launchAtLogin = false
-
-        // 重新注册热键
-        HotkeyManager.shared.registerWithSettings {
-            QuickLookOverlay.shared.showFromFinder()
-        }
     }
 }

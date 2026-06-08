@@ -7,15 +7,6 @@ struct UnsupportedFileView: View {
     let filePath: String?
     let errorMessage: String?
     
-    // 获取文件的图标
-    private var fileIcon: NSImage {
-        if let path = filePath, FileManager.default.fileExists(atPath: path) {
-            return NSWorkspace.shared.icon(forFile: path)
-        }
-        // 如果文件不存在或路径为空，返回默认的未知文件图标
-        return NSWorkspace.shared.icon(for: .item)
-    }
-    
     // 获取文件大小
     private var fileSizeString: String? {
         guard let path = filePath else { return nil }
@@ -46,14 +37,7 @@ struct UnsupportedFileView: View {
     var body: some View {
         VStack(spacing: 20) {
             Spacer()
-            
-            // 居中的大图标（类似原生 Quick Look）
-            Image(nsImage: fileIcon)
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(width: 80, height: 80)
-                .shadow(color: Color.black.opacity(colorScheme == .dark ? 0.35 : 0.15), radius: 8, y: 4)
-            
+
             VStack(spacing: 6) {
                 // 文件名
                 if let path = filePath {

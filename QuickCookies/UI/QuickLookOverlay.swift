@@ -1,14 +1,17 @@
 import SwiftUI
 import AppKit
+import Combine
 
 /// 自定义 NSPanel 子类，允许 borderless 无标题栏窗口接收键盘焦点和快捷键事件
 class QuickLookPanel: NSPanel {
+    var canBecomeKeyProvider: () -> Bool = { true }
+
     override var canBecomeKey: Bool {
-        return QuickLookOverlay.shared.canBecomeKeyDynamic
+        return canBecomeKeyProvider()
     }
     
     override var canBecomeMain: Bool {
-        return QuickLookOverlay.shared.canBecomeKeyDynamic
+        return canBecomeKeyProvider()
     }
 }
 
@@ -23,41 +26,296 @@ class ToastPanel: NSPanel {
     }
 }
 
+private final class PollingBridgeTimer: NSObject, FinderSelectionPollingTimer {
+    private var timer: Timer?
+
+    init(interval: TimeInterval, tick: @escaping () -> Void) {
+        super.init()
+        timer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { _ in
+            tick()
+        }
+    }
+
+    func invalidate() {
+        timer?.invalidate()
+        timer = nil
+    }
+}
+
+private enum PreviewOverlayPhase: Equatable {
+    case idle
+    case opening
+    case open
+    case closing
+}
+
+struct PreviewOverlayTransitionGate {
+    fileprivate private(set) var phase: PreviewOverlayPhase = .idle
+
+    mutating func beginOpen() -> Bool {
+        guard phase == .idle else { return false }
+        phase = .opening
+        return true
+    }
+
+    mutating func markOpen() {
+        if phase == .opening {
+            phase = .open
+        }
+    }
+
+    mutating func beginClose() -> Bool {
+        switch phase {
+        case .opening, .open:
+            phase = .closing
+            return true
+        case .idle, .closing:
+            return false
+        }
+    }
+
+    mutating func finishClose() {
+        phase = .idle
+    }
+
+    var isVisibleForToggle: Bool {
+        phase != .idle
+    }
+}
+
+enum PreviewOverlayContentPolicy {
+    static func shouldReplaceRootView(
+        existingSession: PreviewSession?,
+        incomingSession: PreviewSession
+    ) -> Bool {
+        existingSession !== incomingSession
+    }
+}
+
+struct PreviewOverlayPresentationPlan: Equatable {
+    let shouldCreateWindow: Bool
+    let shouldReplaceRootView: Bool
+}
+
+enum PreviewOverlayPresentationPlanner {
+    static func plan(
+        hasExistingWindow: Bool,
+        existingSession: PreviewSession?,
+        incomingSession: PreviewSession
+    ) -> PreviewOverlayPresentationPlan {
+        PreviewOverlayPresentationPlan(
+            shouldCreateWindow: !hasExistingWindow,
+            shouldReplaceRootView: hasExistingWindow && PreviewOverlayContentPolicy.shouldReplaceRootView(
+                existingSession: existingSession,
+                incomingSession: incomingSession
+            )
+        )
+    }
+}
+
+enum PreviewOverlayFinderFollowPolicy {
+    static func shouldFollowFinderSelection(for source: PreviewLaunchSource?) -> Bool {
+        switch source {
+        case .hotkey, .finderSync, .menuBar:
+            return true
+        case .service, .urlScheme, .none:
+            return false
+        }
+    }
+}
+
+enum PreviewOverlayPresentationPolicy {
+    static func shouldIgnoreResolutionFailure(
+        currentlyVisible: Bool,
+        request: PreviewLaunchRequest,
+        error: PreviewTargetError
+    ) -> Bool {
+        guard currentlyVisible else {
+            return false
+        }
+
+        guard request == .refreshFinderSelection() else {
+            return false
+        }
+
+        return error == .noFinderSelection
+    }
+}
+
+enum PreviewOverlayKeyWindowPolicy {
+    static func canBecomeKey(
+        mode: PreviewSessionMode?,
+        renderType: FileRenderType?
+    ) -> Bool {
+        if mode == .edit {
+            return true
+        }
+
+        return renderType == .office
+    }
+}
+
+enum PreviewOverlayFocusActivationPolicy {
+    static func shouldFocusOnPresentation(
+        mode: PreviewSessionMode?,
+        renderType: FileRenderType?
+    ) -> Bool {
+        mode == .preview && renderType == .office
+    }
+}
+
+enum PreviewOverlayKeyboardRoutingPolicy {
+    static func shouldForwardFinderNavigation(
+        isVisible: Bool,
+        isEditing: Bool,
+        followsFinderSelection: Bool,
+        frontmostBundleIdentifier: String?,
+        keyCode: UInt16?
+    ) -> Bool {
+        isVisible &&
+        !isEditing &&
+        followsFinderSelection &&
+        frontmostBundleIdentifier == "com.apple.finder" &&
+        keyCode != nil
+    }
+}
+
+enum PreviewOverlaySizingPolicy {
+    static func usesCompactPresentation(
+        renderType: FileRenderType?,
+        errorMessage: String?
+    ) -> Bool {
+        renderType == .unsupported || errorMessage != nil
+    }
+
+    static func contentWidth(
+        renderType: FileRenderType?,
+        filePath: String?,
+        isExpanded: Bool,
+        screenVisibleFrame: NSRect
+    ) -> CGFloat {
+        let fileExtension = filePath.map { URL(fileURLWithPath: $0).pathExtension.lowercased() }
+        let widthRatio = widthRatio(
+            for: renderType,
+            fileExtension: fileExtension,
+            isExpanded: isExpanded
+        )
+        return screenVisibleFrame.width * widthRatio
+    }
+
+    static func widthRatio(
+        for renderType: FileRenderType?,
+        fileExtension: String?,
+        isExpanded: Bool
+    ) -> CGFloat {
+        guard renderType == .office else {
+            return isExpanded ? 0.68 : 0.38
+        }
+
+        switch fileExtension {
+        case "doc", "docx", "rtf", "rtfd", "pages":
+            return isExpanded ? 0.56 : 0.34
+        case "xls", "xlsx", "numbers", "csv":
+            return isExpanded ? 0.82 : 0.72
+        case "ppt", "pptx", "key":
+            return isExpanded ? 0.78 : 0.66
+        default:
+            return isExpanded ? 0.56 : 0.36
+        }
+    }
+}
+
 class QuickLookOverlay: NSObject, NSWindowDelegate {
     static let shared = QuickLookOverlay()
 
     private let windowPadding: CGFloat = 40
+    var onFinderSelectionRequest: ((PreviewLaunchRequest) -> Void)?
     private var previewWindow: NSWindow?
     var currentWindow: NSWindow? { previewWindow }
     private var sourceRectBackup: CGRect?
     private var activeToastPanel: NSPanel?
     private var localEventMonitor: Any?
     private var globalEventMonitor: Any?
-    private var pollingTimer: Timer?
-    
-    // 用于通知 ContentView 状态的共享模型
-    private let previewState = PreviewState()
+    private var activeSession: PreviewSession?
+    private var activeSessionState: PreviewSessionState?
+    private var activeSessionCancellable: AnyCancellable?
+    private var transitionGate = PreviewOverlayTransitionGate()
+    private let loadState = PreviewLoadState()
+    private lazy var windowActions = PreviewWindowActions(
+        closeOverlay: { [weak self] in
+            self?.closeWithAnimation()
+        },
+        focusWindowForEdit: { [weak self] in
+            self?.focusWindowForEdit()
+        },
+        unfocusWindowToFinder: { [weak self] in
+            self?.unfocusWindowToFinder()
+        },
+        showToast: { [weak self] message, icon in
+            self?.showToast(message: message, icon: icon)
+        },
+        currentWindow: { [weak self] in
+            self?.currentWindow
+        }
+    )
+    private lazy var finderSelectionPollingController = FinderSelectionPollingController(
+        timerFactory: { interval, tick in
+            PollingBridgeTimer(interval: interval, tick: tick)
+        },
+        frontmostBundleIdentifier: {
+            NSWorkspace.shared.frontmostApplication?.bundleIdentifier
+        },
+        detectSelectionPath: {
+            FileDetector.getSelectedFilePath().mapError { $0 as any Error }
+        },
+        detectSourceRect: {
+            Self.getSourceRect()
+        },
+        onRequest: { [weak self] request in
+            self?.dispatchFinderSelectionRequest(request)
+        },
+        onSourceRectUpdate: { [weak self] rect in
+            self?.sourceRectBackup = rect
+        },
+        runAsync: { work in
+            DispatchQueue.global(qos: .userInteractive).async(execute: work)
+        },
+        deliverOnMain: { work in
+            DispatchQueue.main.async(execute: work)
+        }
+    )
 
-    static func applyDetectedFileState(
-        resolvedPath: String,
-        renderType: FileRenderType,
-        language: String?,
-        previewState: PreviewState
-    ) {
-        previewState.updateState(
-            filePath: resolvedPath,
-            renderType: renderType,
-            language: language,
-            isLoadingPath: false
-        )
+    @MainActor
+    private func handleEscapeFromEditMode() {
+        activeSession?.returnToPreviewMode()
+        unfocusWindowToFinder()
     }
 
     var canBecomeKeyDynamic: Bool {
-        return previewState.mode == .edit
+        PreviewOverlayKeyWindowPolicy.canBecomeKey(
+            mode: activeSessionState?.mode,
+            renderType: activeSessionState?.displayRenderType
+        )
+    }
+
+    private var isEditingDynamic: Bool {
+        activeSessionState?.mode == .edit
     }
     
     func focusWindowForEdit() {
         guard let window = previewWindow else { return }
+        window.makeKeyAndOrderFront(nil)
+    }
+
+    @MainActor
+    private func focusWindowForInteractivePreviewIfNeeded() {
+        guard PreviewOverlayFocusActivationPolicy.shouldFocusOnPresentation(
+            mode: activeSessionState?.mode,
+            renderType: activeSessionState?.displayRenderType
+        ), let window = previewWindow else {
+            return
+        }
+
         window.makeKeyAndOrderFront(nil)
     }
     
@@ -87,122 +345,155 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
 
     private override init() {
         super.init()
-        previewState.onStateChanged = { [weak self] in
-            self?.handleStateChange()
+    }
+
+    private func dispatchFinderSelectionRequest(_ request: PreviewLaunchRequest) {
+        guard PreviewOverlayFinderFollowPolicy.shouldFollowFinderSelection(
+            for: activeSessionState?.source
+        ) else {
+            return
         }
+
+        Task { @MainActor in
+            onFinderSelectionRequest?(request)
+        }
+    }
+
+    private func forwardFinderNavigationIfNeeded(for event: NSEvent) -> Bool {
+        let keyCode = Self.forwardedFinderNavigationKeyCode(for: event)
+        let followsFinderSelection = PreviewOverlayFinderFollowPolicy.shouldFollowFinderSelection(
+                for: activeSessionState?.source
+        )
+        let frontmostBundleIdentifier = NSWorkspace.shared.frontmostApplication?.bundleIdentifier
+
+        guard PreviewOverlayKeyboardRoutingPolicy.shouldForwardFinderNavigation(
+            isVisible: isVisible,
+            isEditing: isEditingDynamic,
+            followsFinderSelection: followsFinderSelection,
+            frontmostBundleIdentifier: frontmostBundleIdentifier,
+            keyCode: keyCode
+        ), let keyCode else {
+            return false
+        }
+
+        sendKeyToFinder(keyCode: keyCode)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) { [weak self] in
+            self?.dispatchFinderSelectionRequest(.refreshFinderSelection())
+        }
+        return true
     }
     
+    @MainActor
     private func handleStateChange() {
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else { return }
-            let isUnsupported = self.previewState.renderType == .unsupported
-            let isError = self.previewState.errorMessage != nil
-            
-            if isUnsupported || isError {
-                self.resizeWindowForErrorOrUnsupported()
-            } else {
-                self.resizeWindowForSupported()
-            }
-        }
+        resizeWindowIfNeeded(animated: false)
     }
 
-    private func resizeWindowForErrorOrUnsupported() {
+    @MainActor
+    private func resizeWindowIfNeeded(animated: Bool) {
         guard let window = previewWindow else {
             return
         }
-        
-        // 强制重置 isExpanded，防范未缩回状态
-        if previewState.isExpanded {
-            previewState.isExpanded = false
-        }
-        
-        // 计算目标内容区 450x320（加上 padding 缓冲）对应的窗口物理 Frame 大小
-        let contentRect = NSRect(x: 0, y: 0, width: 450 + windowPadding * 2, height: 320 + windowPadding * 2)
-        let frameRect = window.frameRect(forContentRect: contentRect)
-        let targetWidth = frameRect.width
-        let targetHeight = frameRect.height
-        
+
+        let newFrame = targetWindowFrame(for: window)
         let currentFrame = window.frame
-        
-        // 如果物理尺寸已完全匹配，直接返回，绝不执行二次 setFrame 动画
-        if abs(currentFrame.width - targetWidth) < 1.0 && abs(currentFrame.height - targetHeight) < 1.0 {
+
+        if abs(currentFrame.width - newFrame.width) < 1.0 && abs(currentFrame.height - newFrame.height) < 1.0 {
             return
         }
-        
-        let screenVisibleFrame = NSScreen.main?.visibleFrame ?? NSRect(x: 0, y: 0, width: 1920, height: 1080)
-        let newFrame = NSRect(
-            x: screenVisibleFrame.midX - targetWidth / 2,
-            y: screenVisibleFrame.midY - targetHeight / 2,
-            width: targetWidth,
-            height: targetHeight
-        )
-        
-        window.setFrame(newFrame, display: true, animate: true)
+
+        window.setFrame(newFrame, display: true, animate: animated)
     }
 
-    private func resizeWindowForSupported() {
-        guard let window = previewWindow else {
-            return
-        }
+    private func targetWindowFrame(for window: NSWindow) -> NSRect {
         let screenVisibleFrame = NSScreen.main?.visibleFrame ?? NSRect(x: 0, y: 0, width: 1920, height: 1080)
-        
-        let contentWidth = targetContentWidth(for: screenVisibleFrame)
-        let contentHeight = screenVisibleFrame.height * 0.88
-        
-        // 计算加上 padding 缓冲对应的窗口物理 Frame 大小
-        let contentRect = NSRect(x: 0, y: 0, width: contentWidth + windowPadding * 2, height: contentHeight + windowPadding * 2)
+        let contentRect = targetContentRect(for: screenVisibleFrame)
         let frameRect = window.frameRect(forContentRect: contentRect)
-        let targetWidth = frameRect.width
-        let targetHeight = frameRect.height
-        
-        let currentFrame = window.frame
-        
-        if abs(currentFrame.width - targetWidth) < 1.0 && abs(currentFrame.height - targetHeight) < 1.0 {
-            return
-        }
-        
-        let newFrame = NSRect(
-            x: screenVisibleFrame.midX - targetWidth / 2,
-            y: screenVisibleFrame.midY - targetHeight / 2,
-            width: targetWidth,
-            height: targetHeight
+
+        return NSRect(
+            x: screenVisibleFrame.midX - frameRect.width / 2,
+            y: screenVisibleFrame.midY - frameRect.height / 2,
+            width: frameRect.width,
+            height: frameRect.height
         )
-        
-        window.setFrame(newFrame, display: true, animate: true)
+    }
+
+    private func targetContentRect(for screenVisibleFrame: NSRect) -> NSRect {
+        let isCompactPresentation = PreviewOverlaySizingPolicy.usesCompactPresentation(
+            renderType: currentRenderType,
+            errorMessage: currentErrorMessage
+        )
+
+        if isCompactPresentation {
+            return NSRect(
+                x: 0,
+                y: 0,
+                width: 450 + windowPadding * 2,
+                height: 320 + windowPadding * 2
+            )
+        }
+
+        return NSRect(
+            x: 0,
+            y: 0,
+            width: targetContentWidth(for: screenVisibleFrame) + windowPadding * 2,
+            height: screenVisibleFrame.height * 0.88 + windowPadding * 2
+        )
     }
 
     private func targetContentWidth(for screenVisibleFrame: NSRect) -> CGFloat {
-        if previewState.renderType == .office {
-            return officeContentWidth(for: screenVisibleFrame)
-        }
-
-        let widthRatio = previewState.isExpanded ? 0.68 : 0.38
-        return screenVisibleFrame.width * widthRatio
+        PreviewOverlaySizingPolicy.contentWidth(
+            renderType: currentRenderType,
+            filePath: currentFilePath,
+            isExpanded: isExpanded,
+            screenVisibleFrame: screenVisibleFrame
+        )
     }
 
-    private func officeContentWidth(for screenVisibleFrame: NSRect) -> CGFloat {
-        guard let filePath = previewState.filePath else {
-            let fallbackRatio = previewState.isExpanded ? 0.56 : 0.36
-            return screenVisibleFrame.width * fallbackRatio
-        }
-
-        let ext = URL(fileURLWithPath: filePath).pathExtension.lowercased()
-        let widthRatio: CGFloat
-        switch ext {
-        case "doc", "docx", "rtf", "rtfd", "pages":
-            widthRatio = previewState.isExpanded ? 0.56 : 0.34
-        case "xls", "xlsx", "numbers", "csv":
-            widthRatio = previewState.isExpanded ? 0.82 : 0.72
-        case "ppt", "pptx", "key":
-            widthRatio = previewState.isExpanded ? 0.78 : 0.66
-        default:
-            widthRatio = previewState.isExpanded ? 0.56 : 0.36
-        }
-
-        return screenVisibleFrame.width * widthRatio
+    private var currentRenderType: FileRenderType? {
+        activeSessionState?.displayRenderType
     }
 
-    /// 显示 Toast 提示（合并自 PreviewWindowController）
+    private var currentFilePath: String? {
+        activeSessionState?.target?.resolvedPath
+    }
+
+    private var currentErrorMessage: String? {
+        activeSessionState?.errorMessage
+    }
+
+    private var isExpanded: Bool {
+        activeSessionState?.isExpanded == true
+    }
+
+    @MainActor
+    private func bindActiveSession(_ session: PreviewSession) {
+        activeSession = session
+        activeSessionState = session.state
+        activeSessionCancellable = nil
+
+        activeSessionCancellable = session.$state
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] newState in
+                guard let self else { return }
+                self.activeSessionState = newState
+                self.handleStateChange()
+                self.updateWindowTitle()
+            }
+    }
+
+    private func updateWindowTitle() {
+        guard let window = previewWindow else { return }
+
+        if let displayName = activeSessionState?.target?.displayName {
+            window.title = "Quick Cookies - \(displayName)"
+        } else if let path = currentFilePath {
+            window.title = "Quick Cookies - \(URL(fileURLWithPath: path).lastPathComponent)"
+        } else {
+            window.title = "QuickCookies"
+        }
+    }
+
+    /// 显示窗口级 Toast 提示。
     func showToast(message: String, icon: String? = nil) {
         let block = { [weak self] in
             guard let self = self else { return }
@@ -268,116 +559,71 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         }
     }
 
-    /// 从 Finder 触发预览（双击 Option 或 Services 菜单）
-    func showFromFinder() {
-        // 1. 如果预览窗口已经打开且可见，按快捷键应快速关闭 (Toggle 关闭豁免前台 Finder 限制)
-        if let window = previewWindow, window.isVisible {
-            closeWithAnimation()
-            return
-        }
-
-        // 2. 增加前台应用校验：仅当前台活跃应用为 Finder (com.apple.finder) 时才响应快捷键拉起新预览
-        guard let frontApp = NSWorkspace.shared.frontmostApplication,
-              frontApp.bundleIdentifier == "com.apple.finder" else {
-            return
-        }
-
-        // 在打开前同步极速获取当前 Finder 选中文件图标的物理坐标，作为飞出起跳点
-        self.sourceRectBackup = self.getSourceRect()
-
-        // 3. 尝试同步获取当前 Finder 选中文件路径（一般耗时很低，~5-15ms），以防不支持文件先大后小
-        var detectedPath: String? = nil
-        let result = FileDetector.getSelectedFilePath()
-        switch result {
-        case .success(let path):
-            detectedPath = FileUtils.resolveSymlink(at: path)
-        case .failure:
-            break
-        }
-
-        // 瞬间弹框
-        show(filePath: detectedPath)
+    func captureFinderSourceRect() {
+        sourceRectBackup = Self.getSourceRect()
     }
 
-    /// 显示预览窗口（Quick Look 动画） - 秒开重构版
-    func show(filePath: String?) {
-        if let path = filePath {
-            // 同步极速获取当前 Finder 选中文件图标的物理坐标，作为飞出起跳点
-            self.sourceRectBackup = self.getSourceRect()
+    @MainActor
+    func present(session: PreviewSession) {
+        guard transitionGate.phase != .closing else {
+            return
+        }
 
-            let resolvedPath = FileUtils.resolveSymlink(at: path)
-            let renderType = FileTypeClassifier.classify(path: resolvedPath)
-            let language = FileTypeClassifier.getLanguageName(path: resolvedPath)
+        let previousSession = activeSession
+        let plan = PreviewOverlayPresentationPlanner.plan(
+            hasExistingWindow: previewWindow != nil,
+            existingSession: previousSession,
+            incomingSession: session
+        )
 
-            showOverlay(
-                filePath: resolvedPath,
-                renderType: renderType,
-                language: language
-            )
-        } else {
-            // 没有已知路径，说明是从 Finder 触发，我们需要异步探测
-            showOverlay(
-                filePath: nil,
-                renderType: nil,
-                language: nil
+        if plan.shouldCreateWindow {
+            close()
+        }
+
+        bindActiveSession(session)
+        finderSelectionPollingController.syncCurrentResolvedPath(session.state.target?.resolvedPath)
+        sourceRectBackup = Self.getSourceRect()
+
+        if plan.shouldCreateWindow {
+            showOverlay(session: session)
+        } else if plan.shouldReplaceRootView,
+                  let hostingView = previewWindow?.contentView as? NSHostingView<ContentView> {
+            hostingView.rootView = ContentView(
+                session: session,
+                loadState: loadState,
+                windowActions: windowActions
             )
         }
+
+        resizeWindowIfNeeded(animated: false)
+        updateWindowTitle()
+        focusWindowForInteractivePreviewIfNeeded()
     }
 
     /// 创建预览面板并执行动画，不带任何黑色背景遮罩 - 极速响应版
-    private func showOverlay(filePath: String?, renderType: FileRenderType?, language: String?) {
-        // 关闭旧窗口
-        close()
-
-        // 1. 瞬间确定窗口比例（若已知为不支持类型，则使用较矮的原生 Quick Look 风格卡片尺寸，加上 padding 缓冲）
-        let screenVisibleFrame = NSScreen.main?.visibleFrame ?? NSRect(x: 0, y: 0, width: 1920, height: 1080)
-        let isUnsupported = renderType == .unsupported
-        let isOffice = renderType == .office
-        
-        let windowWidth: CGFloat
-        let windowHeight: CGFloat
-        if isUnsupported {
-            windowWidth = 450 + windowPadding * 2
-            windowHeight = 320 + windowPadding * 2
-        } else if isOffice {
-            let resolvedPath = filePath ?? ""
-            let ext = URL(fileURLWithPath: resolvedPath).pathExtension.lowercased()
-            let baseRatio: CGFloat
-            switch ext {
-            case "doc", "docx", "rtf", "rtfd", "pages":
-                baseRatio = 0.34
-            case "xls", "xlsx", "numbers", "csv":
-                baseRatio = 0.72
-            case "ppt", "pptx", "key":
-                baseRatio = 0.66
-            default:
-                baseRatio = 0.36
-            }
-            let baseWidth = screenVisibleFrame.width * baseRatio
-            windowWidth = baseWidth + windowPadding * 2
-            windowHeight = screenVisibleFrame.height * 0.88 + windowPadding * 2
-        } else {
-            windowWidth = screenVisibleFrame.width * 0.38 + windowPadding * 2
-            windowHeight = screenVisibleFrame.height * 0.88 + windowPadding * 2
+    @MainActor
+    private func showOverlay(session: PreviewSession) {
+        guard transitionGate.beginOpen() else {
+            return
         }
-        
-        let targetRect = NSRect(
-            x: screenVisibleFrame.midX - windowWidth / 2,
-            y: screenVisibleFrame.midY - windowHeight / 2,
-            width: windowWidth,
-            height: windowHeight
-        )
+
+        let target = session.state.target
+        let filePath = target?.resolvedPath
 
         // 2. 瞬间在主线程实例化窗口并展现 (borderless 极简自研控制按钮模式)
         let previewPanel = QuickLookPanel(
-            contentRect: targetRect,
+            contentRect: .zero,
             styleMask: [.borderless, .resizable],
             backing: .buffered,
             defer: false
         )
+        let targetRect = targetWindowFrame(for: previewPanel)
+        previewPanel.setFrame(targetRect, display: false)
         
         previewPanel.isMovableByWindowBackground = true
-        if let path = filePath {
+        if let displayName = target?.displayName {
+            previewPanel.title = "Quick Cookies - \(displayName)"
+        } else if let path = filePath {
             previewPanel.title = "Quick Cookies - \(URL(fileURLWithPath: path).lastPathComponent)"
         } else {
             previewPanel.title = "QuickCookies"
@@ -393,27 +639,16 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         previewPanel.hasShadow = false
         previewPanel.isReleasedWhenClosed = false
         previewPanel.delegate = self
-
-        // 重置状态并在已知路径时原子化更新，防范多余重绘
-        previewState.reset()
-        if let path = filePath {
-            previewState.updateState(
-                filePath: path,
-                renderType: renderType,
-                language: language,
-                isLoadingPath: false
-            )
-        } else {
-            previewState.updateState(
-                filePath: nil,
-                renderType: nil,
-                language: nil,
-                isLoadingPath: true
-            )
+        previewPanel.canBecomeKeyProvider = { [weak self] in
+            self?.canBecomeKeyDynamic ?? false
         }
 
-        // SwiftUI 内容视图，传入共享 state
-        let contentView = ContentView(state: previewState)
+        // SwiftUI 内容视图，传入会话与文本加载状态
+        let contentView = ContentView(
+            session: session,
+            loadState: loadState,
+            windowActions: windowActions
+        )
         let hostingView = NSHostingView(rootView: contentView)
         hostingView.frame = targetRect
         previewPanel.contentView = hostingView
@@ -441,14 +676,19 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
             
             // Esc 键处理
             if keyCode == 53 {
-                if self.previewState.mode == .edit {
+                if self.isEditingDynamic {
                     // 编辑模式下按 Esc 则是返回预览模式，并交还焦点给 Finder
-                    self.previewState.mode = .preview
-                    self.unfocusWindowToFinder()
+                    MainActor.assumeIsolated {
+                        self.handleEscapeFromEditMode()
+                    }
                 } else {
                     // 预览模式下按 Esc 为优雅关闭窗口
                     self.closeWithAnimation()
                 }
+                return nil
+            }
+
+            if self.forwardFinderNavigationIfNeeded(for: event) {
                 return nil
             }
             return event
@@ -458,20 +698,20 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         self.globalEventMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
             guard let self = self else { return }
             if self.isVisible,
-               self.previewState.mode == .preview,
+               !self.isEditingDynamic,
                let frontApp = NSWorkspace.shared.frontmostApplication,
                frontApp.bundleIdentifier == "com.apple.finder",
                event.keyCode == 53 {
                 DispatchQueue.main.async {
                     self.closeWithAnimation()
                 }
+            } else if self.forwardFinderNavigationIfNeeded(for: event) {
+                return
             }
         }
 
         // 3. 启动 150ms 周期定时监测，利用高性能 NSAppleScript 内存级实时拉取选中项变化
-        self.pollingTimer = Timer.scheduledTimer(withTimeInterval: 0.15, repeats: true) { [weak self] _ in
-            self?.updatePreviewFromFinder()
-        }
+        finderSelectionPollingController.start()
 
         // 3. 0ms 瞬间起跳：优先使用轮询预取的文件图标物理位置，若无缓存再降级到鼠标位置，保证零局限与零阻塞
         let initialSourceRect = self.sourceRectBackup ?? self.getMouseOrCenterSourceRect(targetRect: targetRect)
@@ -480,54 +720,13 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
             sourceRect: initialSourceRect,
             targetRect: targetRect
         )
+        self.transitionGate.markOpen()
 
-        // 4. 后台执行文件路径和图标实际坐标的获取
-        DispatchQueue.global(qos: .userInteractive).async { [weak self] in
-            guard let self = self else { return }
-            
-            // a. 异步获取真实物理坐标（用于关闭时收缩飞回）
-            let realSourceRect = self.getSourceRect()
-            
-            // b. 如果 filePath 为 nil，异步从 Finder 中获取文件路径
-            var pathResult: Result<String, FileDetector.DetectError>? = nil
-            if filePath == nil {
-                pathResult = FileDetector.getSelectedFilePath()
-            }
-            
-            // c. 回到主线程更新状态
-            DispatchQueue.main.async {
-                // 保存真实物理坐标
-                self.sourceRectBackup = realSourceRect
-                
-                if let result = pathResult {
-                    switch result {
-                    case .success(let detectedPath):
-                        let resolvedPath = FileUtils.resolveSymlink(at: detectedPath)
-                        if !FileTypeClassifier.isSupported(path: resolvedPath) {
-                            self.previewState.errorMessage = "\("Unsupported file type".localized()): \(URL(fileURLWithPath: resolvedPath).lastPathComponent)"
-                            self.previewState.renderType = .unsupported
-                            self.previewState.isLoadingPath = false
-                        } else {
-                            let rType = FileTypeClassifier.classify(path: resolvedPath)
-                            let lang = FileTypeClassifier.getLanguageName(path: resolvedPath)
-                            
-                            // 更新窗口标题
-                            previewPanel.title = "Quick Cookies - \(URL(fileURLWithPath: resolvedPath).lastPathComponent)"
-                            
-                            // 通过原子状态更新避免 `filePath` 先触发加载、而
-                            // `renderType` 仍未写入时丢失 Markdown 预览时间线。
-                            Self.applyDetectedFileState(
-                                resolvedPath: resolvedPath,
-                                renderType: rType,
-                                language: lang,
-                                previewState: self.previewState
-                            )
-                        }
-                    case .failure(let error):
-                        self.previewState.errorMessage = (error.errorDescription ?? "未检测到选中文件").localized()
-                        self.previewState.isLoadingPath = false
-                    }
-                }
+        // 4. 后台执行图标实际坐标的获取，用于关闭时精准飞回
+        DispatchQueue.global(qos: .userInteractive).async {
+            let realSourceRect = Self.getSourceRect()
+            Task { @MainActor in
+                QuickLookOverlay.shared.sourceRectBackup = realSourceRect
             }
         }
     }
@@ -624,7 +823,7 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
     }
 
     /// 高精度获取 Finder 中当前选中项的视觉物理坐标 (AXUIElement API)
-    private func getSourceRect() -> CGRect {
+    private static func getSourceRect() -> CGRect {
         // 1. 获取 Finder 的 PID
         guard let finderApp = NSWorkspace.shared.runningApplications.first(where: { $0.bundleIdentifier == "com.apple.finder" }) else {
             return getDefaultSourceRect()
@@ -692,7 +891,7 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
     }
 
     /// 安全读取 AXUIElement 的 Bool 属性，解决 Swift 中 CFBoolean 桥接为 Bool 时的不稳定问题
-    private func getBoolAttribute(_ element: AXUIElement, attribute: String) -> Bool {
+    private static func getBoolAttribute(_ element: AXUIElement, attribute: String) -> Bool {
         var valueRef: CFTypeRef?
         guard AXUIElementCopyAttributeValue(element, attribute as CFString, &valueRef) == .success else {
             return false
@@ -707,7 +906,7 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
     }
 
     /// 从 Finder 的活动窗口检索当前被选中的 Cell 或 Row 元素
-    private func getSelectedElementFromWindows(appElement: AXUIElement) -> AXUIElement? {
+    private static func getSelectedElementFromWindows(appElement: AXUIElement) -> AXUIElement? {
         // 1. 优先使用 Finder 应用级别的 AXMainWindow 属性获取当前活跃的主窗口，避免无脑遍历所有窗口
         var mainWindowRef: CFTypeRef?
         if AXUIElementCopyAttributeValue(appElement, kAXMainWindowAttribute as CFString, &mainWindowRef) == .success,
@@ -765,7 +964,7 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
     }
     
     /// 限制 10 层深度递归检索指定节点下的 AXSelectedChildren 或 AXSelectedRows 属性
-    private func deepFindSelected(in element: AXUIElement, depth: Int = 0) -> AXUIElement? {
+    private static func deepFindSelected(in element: AXUIElement, depth: Int = 0) -> AXUIElement? {
         if depth > 10 { return nil }
         
         // 1. 剪枝过滤：若是绝对不包含子文件项的叶子节点，立刻返回 nil 终止向下检索，剪掉 95%+ 无用 IPC，杜绝系统熔断
@@ -810,7 +1009,7 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
     }
 
     /// 默认源位置（屏幕中心）
-    private func getDefaultSourceRect() -> CGRect {
+    private static func getDefaultSourceRect() -> CGRect {
         let screenFrame = NSScreen.main?.visibleFrame ?? CGRect(x: 0, y: 0, width: 1920, height: 1080)
         return CGRect(
             x: screenFrame.midX - 50,
@@ -831,6 +1030,19 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         }
     }
 
+    static func forwardedFinderNavigationKeyCode(for event: NSEvent) -> UInt16? {
+        guard event.modifierFlags.intersection([.command, .option, .control]).isEmpty else {
+            return nil
+        }
+
+        switch event.keyCode {
+        case 125, 126:
+            return event.keyCode
+        default:
+            return nil
+        }
+    }
+
     private func performClose() {
         // 1. 注销本地/全局键盘监视器并销毁定时器
         if let monitor = localEventMonitor {
@@ -841,10 +1053,7 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
             NSEvent.removeMonitor(monitor)
             globalEventMonitor = nil
         }
-        if let timer = pollingTimer {
-            timer.invalidate()
-            pollingTimer = nil
-        }
+        finderSelectionPollingController.stop()
 
         // 2. 关闭并清理窗口引用
         if let window = previewWindow {
@@ -853,6 +1062,11 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
             window.contentView = nil
             window.close()
         }
+        activeSession = nil
+        activeSessionState = nil
+        activeSessionCancellable = nil
+        finderSelectionPollingController.resetSelection()
+        transitionGate.finishClose()
         
         // 3. 激活并归还焦点给 Finder
         if let finderApp = NSWorkspace.shared.runningApplications.first(where: { $0.bundleIdentifier == "com.apple.finder" }) {
@@ -876,60 +1090,14 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         }
     }
 
-    private func updatePreviewFromFinder() {
-        // 仅当前台活动应用为 Finder 时才进行轮询检测，以节省 90% 以上挂机状态下的无用 CPU 消耗
-        if let frontmostApp = NSWorkspace.shared.frontmostApplication,
-           frontmostApp.bundleIdentifier != "com.apple.finder" {
-            return
-        }
-
-        // PERF: 将同步 IPC (AppleEvent) 发送检测移至后台高优先级队列中执行，彻底消除周期轮询对主线程滚动渲染的挂起和丢帧
-        DispatchQueue.global(qos: .userInteractive).async { [weak self] in
-            guard let self = self else { return }
-            let result = FileDetector.getSelectedFilePath()
-            
-            DispatchQueue.main.async {
-                switch result {
-                case .success(let path):
-                    let resolvedPath = FileUtils.resolveSymlink(at: path)
-                    if resolvedPath != self.previewState.filePath {
-                        let renderType = FileTypeClassifier.classify(path: resolvedPath)
-                        let language = FileTypeClassifier.getLanguageName(path: resolvedPath)
-                        
-                        // 更新窗口标题
-                        if let window = self.previewWindow {
-                            window.title = "Quick Cookies - \(URL(fileURLWithPath: resolvedPath).lastPathComponent)"
-                        }
-                        
-                        // 更新状态触发 ContentView 异步加载文件内容
-                        self.previewState.updateState(
-                            filePath: resolvedPath,
-                            renderType: renderType,
-                            language: language,
-                            isLoadingPath: false
-                        )
-                        
-                        // 异步更新物理坐标 (用于下一次关闭时飞回)
-                        DispatchQueue.global(qos: .userInteractive).async { [weak self] in
-                            guard let self = self else { return }
-                            let realSourceRect = self.getSourceRect()
-                            DispatchQueue.main.async {
-                                self.sourceRectBackup = realSourceRect
-                            }
-                        }
-                    }
-                case .failure(let error):
-                    // 静默处理轮询失败，避免 Finder 选中文件波动时刷屏污染控制台。
-                    _ = error
-                }
-            }
-        }
-    }
-
     /// 关闭窗口并附带平滑缩小到图标位置的 GPU 变换动画
     func closeWithAnimation() {
         guard let window = previewWindow, let contentView = window.contentView else {
             close()
+            return
+        }
+
+        guard transitionGate.beginClose() else {
             return
         }
 
@@ -938,7 +1106,8 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
             window.delegate = nil
             window.contentView = nil
             window.close()
-            previewState.reset()
+            loadState.reset()
+            transitionGate.finishClose()
             return
         }
 
@@ -956,22 +1125,22 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
             NSEvent.removeMonitor(monitor)
             globalEventMonitor = nil
         }
-        if let timer = pollingTimer {
-            timer.invalidate()
-            pollingTimer = nil
-        }
+        finderSelectionPollingController.stop()
 
         // 立即激活并归还焦点给 Finder，使视觉缩小动画播放的同时焦点已经回到 Finder
         if let finderApp = NSWorkspace.shared.runningApplications.first(where: { $0.bundleIdentifier == "com.apple.finder" }) {
             finderApp.activate(options: [.activateIgnoringOtherApps])
         }
 
-        // 立即解绑全局强引用和 delegate，避免动画中重复触发快捷键
-        previewWindow = nil
-        window.delegate = nil
+        // 立即解绑业务会话，避免动画期间继续消费旧 session；
+        // 但保留 previewWindow 到 completion，防止 toggle 在 closing 期间误判为已关闭而重开。
+        activeSession = nil
+        activeSessionState = nil
+        activeSessionCancellable = nil
+        finderSelectionPollingController.resetSelection()
 
         let targetRect = window.frame
-        let sourceRect = sourceRectBackup ?? getDefaultSourceRect()
+        let sourceRect = sourceRectBackup ?? Self.getDefaultSourceRect()
         
         // 同样在关闭时也要将 sourceRect 进行 padding 扩展以精准反向对齐
         let paddedSourceRect = sourceRect.insetBy(dx: -windowPadding, dy: -windowPadding)
@@ -1014,10 +1183,15 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         
         CATransaction.begin()
         CATransaction.setCompletionBlock {
+            self.previewWindow = nil
+            window.delegate = nil
             window.orderOut(nil)
             window.contentView = nil
             window.close()
-            self.previewState.reset()
+            self.activeSessionState = nil
+            self.activeSessionCancellable = nil
+            self.loadState.reset()
+            self.transitionGate.finishClose()
         }
 
         // 先把 model layer 原子化地推进到最终关闭态，再由显式动画接管过渡，
@@ -1040,7 +1214,7 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
 
     /// 窗口是否可见
     var isVisible: Bool {
-        return previewWindow?.isVisible == true
+        return transitionGate.isVisibleForToggle
     }
     
 }
