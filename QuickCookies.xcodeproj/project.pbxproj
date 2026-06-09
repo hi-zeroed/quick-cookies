@@ -86,6 +86,7 @@
 		TSTBLD000000000000000019 /* PreviewNavigationContextTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF000000000000000019 /* PreviewNavigationContextTests.swift */; };
 		TSTBLD00000000000000001A /* PreviewVisualBaselineCaptureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF00000000000000001A /* PreviewVisualBaselineCaptureTests.swift */; };
 		TSTBLD00000000000000001B /* FinderSelectionPathProviderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF00000000000000001B /* FinderSelectionPathProviderTests.swift */; };
+		TSTBLD00000000000000001C /* FinderMenuIntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF00000000000000001C /* FinderMenuIntegrationTests.swift */; };
 		MEDPREVBLD00000000000001 /* MediaPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = MEDPREVREF00000000000001 /* MediaPreviewView.swift */; };
 		ONBOARDBLD00000000000001 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ONBOARDREF00000000000001 /* OnboardingView.swift */; };
 		FNT141414141414141414141 /* Fonts in Resources */ = {isa = PBXBuildFile; fileRef = FNT141414141414141414142 /* Fonts */; };
@@ -205,6 +206,7 @@
 		TSTREF000000000000000019 /* PreviewNavigationContextTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewNavigationContextTests.swift; sourceTree = "<group>"; };
 		TSTREF00000000000000001A /* PreviewVisualBaselineCaptureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewVisualBaselineCaptureTests.swift; sourceTree = "<group>"; };
 		TSTREF00000000000000001B /* FinderSelectionPathProviderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinderSelectionPathProviderTests.swift; sourceTree = "<group>"; };
+		TSTREF00000000000000001C /* FinderMenuIntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinderMenuIntegrationTests.swift; sourceTree = "<group>"; };
 		MEDPREVREF00000000000001 /* MediaPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaPreviewView.swift; sourceTree = "<group>"; };
 		ONBOARDREF00000000000001 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		835FB7012FCA950400D23AAA /* UnsupportedFileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnsupportedFileView.swift; sourceTree = "<group>"; };
@@ -435,6 +437,7 @@
 				TSTREF000000000000000019 /* PreviewNavigationContextTests.swift */,
 				TSTREF00000000000000001A /* PreviewVisualBaselineCaptureTests.swift */,
 				TSTREF00000000000000001B /* FinderSelectionPathProviderTests.swift */,
+				TSTREF00000000000000001C /* FinderMenuIntegrationTests.swift */,
 			);
 			path = QuickCookiesTests;
 			sourceTree = "<group>";
@@ -647,6 +650,7 @@
 				TSTBLD000000000000000019 /* PreviewNavigationContextTests.swift in Sources */,
 				TSTBLD00000000000000001A /* PreviewVisualBaselineCaptureTests.swift in Sources */,
 				TSTBLD00000000000000001B /* FinderSelectionPathProviderTests.swift in Sources */,
+				TSTBLD00000000000000001C /* FinderMenuIntegrationTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

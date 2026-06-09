@@ -39,6 +39,7 @@ enum PreviewCommandRouter {
 
 @MainActor
 class AppDelegate: NSObject, NSApplicationDelegate {
+    private let finderSelectionPathProvider: any FinderSelectionPathProviding = AppleScriptFinderSelectionPathProvider()
     private var onboardingWindow: NSWindow?
     private var didSetupNormalFlow = false
     private var notificationObservers: [NSObjectProtocol] = []
@@ -48,7 +49,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     // 所有长期保留的预览入口都应汇聚到 coordinator，而不是在各入口直接拼 overlay 业务逻辑。
     private lazy var previewCoordinator = PreviewCoordinator(
         session: previewSession,
-        resolver: PreviewTargetResolver()
+        resolver: PreviewTargetResolver(
+            finderSelectionPathProvider: finderSelectionPathProvider
+        )
     )
     lazy var finderMenuIntegration = FinderMenuIntegration(
         openSelectedFile: { [weak self] in
@@ -58,7 +61,8 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             DispatchQueue.main.async {
                 SettingsWindowController.shared.show()
             }
-        }
+        },
+        finderSelectionPathProvider: finderSelectionPathProvider
     )
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -254,7 +258,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     @MainActor
     private func openSelectedFileFromMenuBar() {
-        switch FinderMenuIntegration.resolveOpenSelectedFileRequest() {
+        switch finderMenuIntegration.resolveOpenSelectedFileRequest() {
         case .request(let request):
             previewRequestController.submit(request)
         case .failure(let message, let icon):
