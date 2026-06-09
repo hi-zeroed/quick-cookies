@@ -475,8 +475,8 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
             NSWorkspace.shared.frontmostApplication?.bundleIdentifier
         },
         detectSelectionPath: { [weak self] in
-            let provider = self?.finderSelectionPathProvider ?? AppleScriptFinderSelectionPathProvider()
-            return provider.selectedPath().mapError { $0 as any Error }
+            self?.finderSelectionPollingSelectionPathResult()
+                ?? AppleScriptFinderSelectionPathProvider().selectedPath().mapError { $0 as any Error }
         },
         detectSourceRect: {
             Self.getSourceRect()
@@ -494,6 +494,10 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
             DispatchQueue.main.async(execute: work)
         }
     )
+
+    func finderSelectionPollingSelectionPathResult() -> Result<String, any Error> {
+        finderSelectionPathProvider.selectedPath().mapError { $0 as any Error }
+    }
 
     var canBecomeKeyDynamic: Bool {
         PreviewOverlayKeyWindowPolicy.canBecomeKey(

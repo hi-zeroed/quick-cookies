@@ -39,7 +39,7 @@ enum PreviewCommandRouter {
 
 @MainActor
 class AppDelegate: NSObject, NSApplicationDelegate {
-    private let finderSelectionPathProvider: any FinderSelectionPathProviding = AppleScriptFinderSelectionPathProvider()
+    private let finderSelectionPathProvider: any FinderSelectionPathProviding
     private var onboardingWindow: NSWindow?
     private var didSetupNormalFlow = false
     private var notificationObservers: [NSObjectProtocol] = []
@@ -65,6 +65,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         finderSelectionPathProvider: finderSelectionPathProvider
     )
 
+    override init() {
+        self.finderSelectionPathProvider = AppleScriptFinderSelectionPathProvider()
+        super.init()
+    }
+
+    init(finderSelectionPathProvider: any FinderSelectionPathProviding) {
+        self.finderSelectionPathProvider = finderSelectionPathProvider
+        super.init()
+    }
+
     func applicationDidFinishLaunching(_ notification: Notification) {
         // 强制初始化 Settings 单例以加载用户偏好语言或根据系统自适应首选语言
         _ = Settings.shared
@@ -86,7 +96,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         guard !didSetupNormalFlow else { return }
         didSetupNormalFlow = true
 
-        QuickLookOverlay.shared.finderSelectionPathProvider = finderSelectionPathProvider
+        installFinderSelectionPathProvider(on: QuickLookOverlay.shared)
         // 设置为后台 Agent，不显示 Dock 图标与顶部菜单栏，仅显示独立窗口
         NSApp.setActivationPolicy(.accessory)
         previewRequestController.onRequest = { [weak self] request in
@@ -131,6 +141,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             )
         }
 
+    }
+
+    func installFinderSelectionPathProvider(on overlay: QuickLookOverlay) {
+        overlay.finderSelectionPathProvider = finderSelectionPathProvider
     }
     
     private func showOnboarding() {

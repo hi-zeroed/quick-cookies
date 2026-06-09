@@ -1,8 +1,53 @@
 import XCTest
 @testable import QuickCookies
 
+private final class StubFinderSelectionPathProvider: FinderSelectionPathProviding {
+    var selectedPathCalls = 0
+    var result: Result<String, FileDetector.DetectError>
+
+    init(result: Result<String, FileDetector.DetectError>) {
+        self.result = result
+    }
+
+    func selectedPath() -> Result<String, FileDetector.DetectError> {
+        selectedPathCalls += 1
+        return result
+    }
+}
+
 @MainActor
 final class QuickLookOverlayStateTests: XCTestCase {
+    func test_quickLookOverlayPollingSelectionPathResult_usesInjectedFinderSelectionPathProvider() {
+        let overlay = QuickLookOverlay.shared
+        let originalProvider = overlay.finderSelectionPathProvider
+        let stubProvider = StubFinderSelectionPathProvider(result: .success("/tmp/injected-from-overlay.md"))
+        overlay.finderSelectionPathProvider = stubProvider
+        defer {
+            overlay.finderSelectionPathProvider = originalProvider
+        }
+
+        let result = overlay.finderSelectionPollingSelectionPathResult()
+
+        XCTAssertEqual(try? result.get(), "/tmp/injected-from-overlay.md")
+        XCTAssertEqual(stubProvider.selectedPathCalls, 1)
+    }
+
+    func test_appDelegateInstallFinderSelectionPathProviderOnOverlay_routesOverlayPollingThroughSharedProvider() {
+        let overlay = QuickLookOverlay.shared
+        let originalProvider = overlay.finderSelectionPathProvider
+        let stubProvider = StubFinderSelectionPathProvider(result: .success("/tmp/injected-from-app-delegate.md"))
+        let appDelegate = AppDelegate(finderSelectionPathProvider: stubProvider)
+        defer {
+            overlay.finderSelectionPathProvider = originalProvider
+        }
+
+        appDelegate.installFinderSelectionPathProvider(on: overlay)
+        let result = overlay.finderSelectionPollingSelectionPathResult()
+
+        XCTAssertEqual(try? result.get(), "/tmp/injected-from-app-delegate.md")
+        XCTAssertEqual(stubProvider.selectedPathCalls, 1)
+    }
+
     func test_previewUIPresenter_forwardsInjectedUIActions() {
         var didCaptureSourceRect = false
         var didCloseWithAnimation = false
