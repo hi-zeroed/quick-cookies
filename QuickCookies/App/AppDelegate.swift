@@ -86,6 +86,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         guard !didSetupNormalFlow else { return }
         didSetupNormalFlow = true
 
+        QuickLookOverlay.shared.finderSelectionPathProvider = finderSelectionPathProvider
         // 设置为后台 Agent，不显示 Dock 图标与顶部菜单栏，仅显示独立窗口
         NSApp.setActivationPolicy(.accessory)
         previewRequestController.onRequest = { [weak self] request in
