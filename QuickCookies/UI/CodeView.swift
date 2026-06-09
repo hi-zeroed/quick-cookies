@@ -3,7 +3,7 @@ import AppKit
 
 enum CodeViewTextColorPolicy {
     static func shouldApplyTextViewTextColor(language: String?) -> Bool {
-        language == nil
+        true
     }
 }
 

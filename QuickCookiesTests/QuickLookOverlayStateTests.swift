@@ -1172,9 +1172,9 @@ final class QuickLookOverlayStateTests: XCTestCase {
         )
     }
 
-    func test_codeViewTextColorPolicy_preservesSyntaxHighlightColorForCodeFilesDuringRefresh() {
-        XCTAssertFalse(CodeViewTextColorPolicy.shouldApplyTextViewTextColor(language: "swift"))
-        XCTAssertFalse(CodeViewTextColorPolicy.shouldApplyTextViewTextColor(language: "json"))
+    func test_codeViewTextColorPolicy_keepsInitialCodeTextVisibleBeforeHighlightingFinishes() {
+        XCTAssertTrue(CodeViewTextColorPolicy.shouldApplyTextViewTextColor(language: "swift"))
+        XCTAssertTrue(CodeViewTextColorPolicy.shouldApplyTextViewTextColor(language: "json"))
         XCTAssertTrue(CodeViewTextColorPolicy.shouldApplyTextViewTextColor(language: nil))
     }
 
