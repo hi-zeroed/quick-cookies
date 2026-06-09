@@ -211,12 +211,4 @@ final class PreviewWebView: WKWebView {
     override func loadHTMLString(_ string: String, baseURL: URL?) -> WKNavigation? {
         super.loadHTMLString(string, baseURL: baseURL)
     }
-
-    @MainActor
-    override func evaluateJavaScript(
-        _ javaScriptString: String,
-        completionHandler: (@MainActor @Sendable (Any?, (any Error)?) -> Void)?
-    ) {
-        super.evaluateJavaScript(javaScriptString, completionHandler: completionHandler)
-    }
 }

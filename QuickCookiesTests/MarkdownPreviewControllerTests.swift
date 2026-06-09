@@ -470,7 +470,7 @@ private final class SpyPreviewWebView: PreviewWebViewing {
 
     func evaluateJavaScript(
         _ javaScriptString: String,
-        completionHandler: (@MainActor @Sendable (Any?, (any Error)?) -> Void)?
+        completionHandler: ((Any?, (any Error)?) -> Void)?
     ) {
         evaluateJavaScriptCalls.append(javaScriptString)
         completionHandler?(nil, nil)

@@ -28,7 +28,7 @@ protocol PreviewWebViewing: AnyObject {
     func loadHTMLString(_ string: String, baseURL: URL?) -> WKNavigation?
     func evaluateJavaScript(
         _ javaScriptString: String,
-        completionHandler: (@MainActor @Sendable (Any?, (any Error)?) -> Void)?
+        completionHandler: ((Any?, (any Error)?) -> Void)?
     )
 }
 
