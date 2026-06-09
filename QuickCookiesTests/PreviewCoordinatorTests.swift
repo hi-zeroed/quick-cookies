@@ -71,6 +71,27 @@ final class PreviewCoordinatorTests: XCTestCase {
         XCTAssertNil(session.state.target)
     }
 
+    func test_coordinator_scriptFailureStillCollapsesToNoFinderSelection() {
+        let session = PreviewSession()
+        let coordinator = PreviewCoordinator(
+            session: session,
+            resolver: PreviewTargetResolver(
+                finderSelectionPathProvider: StubFinderSelectionPathProvider(
+                    result: .failure(.scriptingBridgeError("boom"))
+                )
+            )
+        )
+
+        XCTAssertThrowsError(
+            try coordinator.handle(.toggleFromFinderHotkey())
+        ) { error in
+            XCTAssertEqual(error as? PreviewTargetError, .noFinderSelection)
+        }
+
+        XCTAssertEqual(session.state.readiness, .failed(.noFinderSelection))
+        XCTAssertNil(session.state.target)
+    }
+
     func test_coordinator_failureAfterPreviousSuccess_clearsPreviousTarget() throws {
         let fileURL = temporaryDirectoryURL.appendingPathComponent("demo.md")
         try "# Demo".write(to: fileURL, atomically: true, encoding: .utf8)

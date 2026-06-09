@@ -71,6 +71,20 @@ final class PreviewTargetTests: XCTestCase {
         }
     }
 
+    func test_resolver_finderSelectionWhenFinderNotRunning_stillThrowsNoFinderSelection() {
+        let resolver = PreviewTargetResolver(
+            finderSelectionPathProvider: StubFinderSelectionPathProvider(
+                result: .failure(.finderNotRunning)
+            )
+        )
+
+        XCTAssertThrowsError(
+            try resolver.resolve(request: .toggleFromFinderHotkey())
+        ) { error in
+            XCTAssertEqual(error as? PreviewTargetError, .noFinderSelection)
+        }
+    }
+
     func test_resolver_directoryPath_returnsUnsupportedPresentationTarget() throws {
         let directoryURL = tempDirectoryURL.appendingPathComponent("Folder", isDirectory: true)
         try FileManager.default.createDirectory(
