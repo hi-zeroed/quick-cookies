@@ -1,8 +1,65 @@
 import AppKit
 import SwiftUI
 
+@MainActor
+enum PreviewCommandRouter {
+    static func triggerFinderToggle(
+        requestController: PreviewRequestController,
+        presenter: PreviewUIPresenter,
+        frontmostBundleIdentifierProvider: () -> String? = {
+            NSWorkspace.shared.frontmostApplication?.bundleIdentifier
+        }
+    ) {
+        requestController.toggleFromFinder(
+            isOverlayVisible: presenter.isPreviewVisible,
+            frontmostBundleIdentifier: frontmostBundleIdentifierProvider(),
+            prepareSourceRect: {
+                presenter.captureFinderSourceRect()
+            },
+            closeOverlay: {
+                presenter.closePreviewWithAnimation()
+            }
+        )
+    }
+
+    static func registerPreviewHotkey(
+        requestController: PreviewRequestController,
+        presenter: PreviewUIPresenter
+    ) {
+        HotkeyManager.shared.registerWithSettings {
+            Task { @MainActor in
+                triggerFinderToggle(
+                    requestController: requestController,
+                    presenter: presenter
+                )
+            }
+        }
+    }
+}
+
+@MainActor
 class AppDelegate: NSObject, NSApplicationDelegate {
     private var onboardingWindow: NSWindow?
+    private var didSetupNormalFlow = false
+    private var notificationObservers: [NSObjectProtocol] = []
+    private let previewSession = PreviewSession()
+    private let previewPresenter = PreviewUIPresenter.live
+    private let previewRequestController = PreviewRequestController()
+    // 所有长期保留的预览入口都应汇聚到 coordinator，而不是在各入口直接拼 overlay 业务逻辑。
+    private lazy var previewCoordinator = PreviewCoordinator(
+        session: previewSession,
+        resolver: PreviewTargetResolver()
+    )
+    lazy var finderMenuIntegration = FinderMenuIntegration(
+        openSelectedFile: { [weak self] in
+            self?.openSelectedFileFromMenuBar()
+        },
+        showSettings: {
+            DispatchQueue.main.async {
+                SettingsWindowController.shared.show()
+            }
+        }
+    )
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         // 强制初始化 Settings 单例以加载用户偏好语言或根据系统自适应首选语言
@@ -22,16 +79,29 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     }
     
     private func setupNormalFlow() {
+        guard !didSetupNormalFlow else { return }
+        didSetupNormalFlow = true
+
         // 设置为后台 Agent，不显示 Dock 图标与顶部菜单栏，仅显示独立窗口
         NSApp.setActivationPolicy(.accessory)
-
-        // 注册热键（双击 Option）- 使用 QuickLookOverlay 新动画系统
-        HotkeyManager.shared.registerWithSettings {
-            QuickLookOverlay.shared.showFromFinder()
+        previewRequestController.onRequest = { [weak self] request in
+            self?.handlePreviewRequest(request)
         }
+        previewPresenter.setFinderSelectionRequestHandler { [previewRequestController] request in
+            previewRequestController.submit(request)
+        }
+        installSettingsObservers()
+
+        // 注册当前设置下的全局预览热键；默认是双击 Command，也允许用户改成普通组合键。
+        PreviewCommandRouter.registerPreviewHotkey(
+            requestController: previewRequestController,
+            presenter: previewPresenter
+        )
 
         // 注册 Services 菜单项
-        NSApp.servicesProvider = QuickCookiesServiceProvider()
+        NSApp.servicesProvider = QuickCookiesServiceProvider(
+            requestController: previewRequestController
+        )
 
         // 在正常工作流稳定后以低优先级预热共享 WebKit 运行时，
         // 直接装入 Markdown 可复用 shell，让首次 Markdown 打开也尽量命中
@@ -125,7 +195,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         NSApp.activate(ignoringOtherApps: true)
     }
     
-    /// 处理 URL Scheme 唤起事件（来自 Finder Sync 扩展）
+    /// 处理 URL Scheme 唤起事件（来自 Finder Sync 扩展）。
+    ///
+    /// 当前约定：
+    /// - `quickcookies://preview?path=/absolute/path`
+    /// - URL Scheme 始终视为 direct-path open
+    /// - 不允许静默回退到 Finder-selection 语义
     func application(_ application: NSApplication, open urls: [URL]) {
         guard let url = urls.first, url.scheme == "quickcookies", url.host == "preview" else { return }
 
@@ -142,27 +217,106 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
         if let pathItem = components?.queryItems?.first(where: { $0.name == "path" }),
            let path = pathItem.value {
-            // 解析路径并执行预览
-            QuickLookOverlay.shared.show(filePath: path)
+            previewRequestController.openPath(path, source: .urlScheme)
         }
     }
 
     func applicationWillTerminate(_ notification: Notification) {
         HotkeyManager.shared.unregister()
-        QuickLookOverlay.shared.close()
+        notificationObservers.forEach(NotificationCenter.default.removeObserver)
+        notificationObservers.removeAll()
+        previewRequestController.onRequest = nil
+        previewPresenter.setFinderSelectionRequestHandler(nil)
+        previewPresenter.closePreview()
     }
 
+    @MainActor
+    private func handlePreviewRequest(_ request: PreviewLaunchRequest) {
+        // 统一入口：
+        // hotkey / Services / URL Scheme 都先进入 request -> coordinator -> session，
+        // overlay 只负责展示会话结果，不再承担入口分流或业务状态拼装。
+        do {
+            try previewCoordinator.handle(request)
+        } catch let previewError as PreviewTargetError {
+            if PreviewOverlayPresentationPolicy.shouldIgnoreResolutionFailure(
+                currentlyVisible: previewPresenter.isPreviewVisible,
+                request: request,
+                error: previewError
+            ) {
+                return
+            }
+        } catch {
+            // 错误态已经写回 session，这里继续展示 overlay 让用户看到结果
+        }
+
+        previewPresenter.present(session: previewSession)
+    }
+
+    @MainActor
+    private func openSelectedFileFromMenuBar() {
+        switch FinderMenuIntegration.resolveOpenSelectedFileRequest() {
+        case .request(let request):
+            previewRequestController.submit(request)
+        case .failure(let message, let icon):
+            previewPresenter.showToast(message: message, icon: icon)
+        }
+    }
+
+    private func installSettingsObservers() {
+        let hotkeyObserver = NotificationCenter.default.addObserver(
+            forName: .settingsHotkeyDidChange,
+            object: Settings.shared,
+            queue: .main
+        ) { [previewRequestController, previewPresenter] _ in
+            Task { @MainActor in
+                PreviewCommandRouter.registerPreviewHotkey(
+                    requestController: previewRequestController,
+                    presenter: previewPresenter
+                )
+            }
+        }
+
+        let themeObserver = NotificationCenter.default.addObserver(
+            forName: .settingsThemeModeDidChange,
+            object: Settings.shared,
+            queue: .main
+        ) { [previewPresenter] _ in
+            Task { @MainActor in
+                previewPresenter.refreshWindowAppearance()
+            }
+        }
+
+        let languageObserver = NotificationCenter.default.addObserver(
+            forName: .settingsLanguageDidChange,
+            object: Settings.shared,
+            queue: .main
+        ) { [previewPresenter] _ in
+            Task { @MainActor in
+                previewPresenter.refreshLocalizedTitles()
+            }
+        }
+
+        notificationObservers = [hotkeyObserver, themeObserver, languageObserver]
+    }
 
 }
 
 /// Services 菜单项提供者（右键菜单集成）
 class QuickCookiesServiceProvider: NSObject {
+    private let requestController: PreviewRequestController
+
+    init(requestController: PreviewRequestController) {
+        self.requestController = requestController
+    }
+
     /// Services 菜单项：打开 QuickCookies
     @objc func quickCookiesService(_ pasteboard: NSPasteboard, userData: String?, error: AutoreleasingUnsafeMutablePointer<NSString>) {
         // 1. 尝试作为 URL 读取
         if let urls = pasteboard.readObjects(forClasses: [NSURL.self], options: nil) as? [URL],
            let firstURL = urls.first {
-            QuickLookOverlay.shared.show(filePath: firstURL.path)
+            Task { @MainActor in
+                requestController.openPath(firstURL.path, source: .service)
+            }
             return
         }
 
@@ -170,7 +324,9 @@ class QuickCookiesServiceProvider: NSObject {
         let filenamesType = NSPasteboard.PasteboardType("NSFilenamesPboardType")
         if let filenames = pasteboard.propertyList(forType: filenamesType) as? [String],
            let firstPath = filenames.first {
-            QuickLookOverlay.shared.show(filePath: firstPath)
+            Task { @MainActor in
+                requestController.openPath(firstPath, source: .service)
+            }
             return
         }
     }

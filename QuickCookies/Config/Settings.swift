@@ -53,11 +53,7 @@ class Settings: ObservableObject {
     @Published var themeMode: ThemeMode {
         didSet {
             defaults.set(themeMode.rawValue, forKey: Keys.themeMode)
-            // 实时通知已打开窗口更新外观模式
-            DispatchQueue.main.async {
-                QuickLookOverlay.shared.updateAppearance()
-                SettingsWindowController.shared.updateAppearance()
-            }
+            NotificationCenter.default.post(name: .settingsThemeModeDidChange, object: self)
         }
     }
     
@@ -66,9 +62,7 @@ class Settings: ObservableObject {
         didSet {
             defaults.set(language.rawValue, forKey: Keys.language)
             Settings.currentLanguage = (language == Language.system) ? Settings.getSystemLanguage() : language
-            DispatchQueue.main.async {
-                SettingsWindowController.shared.updateTitle()
-            }
+            NotificationCenter.default.post(name: .settingsLanguageDidChange, object: self)
         }
     }
 
@@ -166,6 +160,7 @@ class Settings: ObservableObject {
         hotkeyKeyCode = keyCode
         defaults.set(modifiers.rawValue, forKey: Keys.hotkeyModifiers)
         defaults.set(Int(keyCode), forKey: Keys.hotkeyKeyCode)
+        NotificationCenter.default.post(name: .settingsHotkeyDidChange, object: self)
     }
 
     func saveFontSize(_ size: CGFloat) {
@@ -288,7 +283,7 @@ struct Localization {
             "Instant Code & Document Preview": [.en: "Instant Code & Document Preview", .zhHans: "秒级代码与文档预览"],
             "Three simple steps to start": [.en: "Three simple steps to start", .zhHans: "简单三步，开启效率之旅"],
             "1. Select any code or Markdown file in Finder": [.en: "1. Select any code or Markdown file in Finder", .zhHans: "1. 在 Finder 中选中任意代码或 Markdown 文件"],
-            "2. Double-press Option key (or right-click to preview)": [.en: "2. Double-press Option key (or right-click to preview)", .zhHans: "2. 在键盘上快速双击 Option 键（或右键选择预览）"],
+            "2. Double-press Option key (or right-click to preview)": [.en: "2. Double-press Command key (or right-click to preview)", .zhHans: "2. 在键盘上快速双击 Command 键（或右键选择预览）"],
             "3. The preview panel flies out with line numbers & live edit!": [.en: "3. The preview panel flies out with line numbers & live edit!", .zhHans: "3. 预览窗口瞬间飞出，支持行号与即时编辑！"],
             "Preferences": [.en: "Preferences", .zhHans: "偏好配置"],
             "You can customize basic settings before we start:": [.en: "You can customize basic settings before we start:", .zhHans: "在正式使用前，您可以进行一些基础的个性化定制："],
@@ -314,7 +309,7 @@ struct Localization {
             "Running Mode & Permissions": [.en: "Running Mode & Permissions", .zhHans: "运行模式与权限配置"],
             "QuickCookies supports running without high-level permissions. Choose as you need:": [.en: "QuickCookies supports running without high-level permissions. Choose as you need:", .zhHans: "Quick Cookies 支持免系统高级权限运行，您可按需选择："],
             "Zero-Permission Mode (Recommended)": [.en: "Zero-Permission Mode (Recommended)", .zhHans: "零权限模式 (推荐)"],
-            "Run with 0 privacy risk using Finder extension. Support right-click menu & default double-press Option.": [.en: "Run with 0 privacy risk using Finder extension. Support right-click menu & default double-press Option.", .zhHans: "借助系统 Finder 扩展，零隐私风险运行。支持右键菜单预览和默认双击起跳预览。"],
+            "Run with 0 privacy risk using Finder extension. Support right-click menu & default double-press Option.": [.en: "Run with 0 privacy risk using Finder extension. Support right-click menu and the default global preview hotkey.", .zhHans: "借助系统 Finder 扩展，零隐私风险运行。支持右键菜单预览和默认全局预览热键。"],
             "Advanced Animation Mode": [.en: "Advanced Animation Mode", .zhHans: "高级动画模式"],
             "With Accessibility enabled, the preview window will fly from the actual file icon position with spring physics.": [.en: "With Accessibility enabled, the preview window will fly from the actual file icon position with spring physics.", .zhHans: "开启辅助功能后，预览窗将直接从 Finder 文件图标的原位飞出/缩回，交互极具连贯物理弹簧质感。"],
             "Grant Accessibility": [.en: "Grant Accessibility", .zhHans: "授予辅助功能"],
@@ -372,7 +367,7 @@ struct Localization {
             "Open Selected File": [.en: "Open Selected File", .zhHans: "打开选中文件"],
             "Settings": [.en: "Settings", .zhHans: "设置"],
             "Quit": [.en: "Quit", .zhHans: "退出"],
-            "Double-press Option or click here to open the selected Finder file": [.en: "Double-press Option or click here to open the selected Finder file", .zhHans: "双击 Option 或点击此按钮打开 Finder 选中的文件"],
+            "Double-press Option or click here to open the selected Finder file": [.en: "Use the global preview hotkey or click here to open the selected Finder file", .zhHans: "使用全局预览热键，或点击此按钮打开 Finder 选中的文件"],
             
             // Content View & Overlay
             "Locating selected file in Finder...": [.en: "Locating selected file in Finder...", .zhHans: "正在定位 Finder 选中文件..."],
@@ -382,7 +377,7 @@ struct Localization {
             "Locating...": [.en: "Locating...", .zhHans: "定位中..."],
             "⚠️ Loaded first 1000 lines only": [.en: "⚠️ Loaded first 1000 lines only", .zhHans: "⚠️只加载了前1000行"],
             "Enter Edit (Cmd+E)": [.en: "Enter Edit (Cmd+E)", .zhHans: "进入编辑 (Cmd+E)"],
-            "Back to Preview (Esc)": [.en: "Back to Preview (Esc)", .zhHans: "回到预览 (Esc)"],
+            "Back to Preview": [.en: "Back to Preview", .zhHans: "回到预览"],
             "Save (Cmd+S)": [.en: "Save (Cmd+S)", .zhHans: "保存 (Cmd+S)"],
             "Failed to read file": [.en: "Failed to read file", .zhHans: "读取文件失败"],
             "Size": [.en: "Size", .zhHans: "大小"],

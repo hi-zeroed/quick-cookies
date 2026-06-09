@@ -20,7 +20,6 @@
 		835FB6132FCA950400D2395C /* Highlightr in Frameworks */ = {isa = PBXBuildFile; productRef = 835FB6122FCA950400D2395C /* Highlightr */; };
 		835FB6162FCA950400D2395D /* HighlightCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835FB6152FCA950400D2395D /* HighlightCache.swift */; };
 		835FB6182FCA950400D2395E /* HighlightrCodeSyntaxHighlighter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835FB6172FCA950400D2395E /* HighlightrCodeSyntaxHighlighter.swift */; };
-		835FB61A2FCA950400D2395F /* QuickLookOverlayModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835FB6192FCA950400D2395F /* QuickLookOverlayModifier.swift */; };
 		835FB69A2FCA950400D23999 /* FileChunkReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835FB6992FCA950400D23999 /* FileChunkReader.swift */; };
 		A1B2C3010000000000000001 /* MarkdownBlockStreamParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3010000000000000011 /* MarkdownBlockStreamParser.swift */; };
 		A1B2C3010000000000000002 /* MarkdownFileStreamReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3010000000000000012 /* MarkdownFileStreamReader.swift */; };
@@ -37,8 +36,18 @@
 		A1B2C301000000000000000E /* MarkdownPreviewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C301000000000000001E /* MarkdownPreviewController.swift */; };
 		A1B2C301000000000000000F /* PreviewRuntimeRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C301000000000000001F /* PreviewRuntimeRegistry.swift */; };
 		A1B2C3010000000000000010 /* WebKitRuntime.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3010000000000000020 /* WebKitRuntime.swift */; };
+		A1B2C3010000000000000039 /* PreviewRuntimeContract.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C301000000000000003A /* PreviewRuntimeContract.swift */; };
 		A1B2C3010000000000000023 /* FinderSyncMonitoringPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3010000000000000024 /* FinderSyncMonitoringPolicy.swift */; };
 		A1B2C3010000000000000025 /* FinderSyncMonitoringPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3010000000000000024 /* FinderSyncMonitoringPolicy.swift */; };
+		A1B2C3010000000000000030 /* PreviewLaunchRequest.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3010000000000000031 /* PreviewLaunchRequest.swift */; };
+		A1B2C3010000000000000033 /* PreviewTarget.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3010000000000000034 /* PreviewTarget.swift */; };
+		A1B2C3010000000000000035 /* PreviewTargetResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3010000000000000036 /* PreviewTargetResolver.swift */; };
+		A1B2C3010000000000000037 /* PreviewSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3010000000000000038 /* PreviewSession.swift */; };
+		A1B2C3010000000000000042 /* PreviewContentLoadCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3010000000000000043 /* PreviewContentLoadCoordinator.swift */; };
+		A1B2C3010000000000000044 /* PreviewContentIdentity.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3010000000000000045 /* PreviewContentIdentity.swift */; };
+		A1B2C301000000000000003D /* PreviewCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C301000000000000003E /* PreviewCoordinator.swift */; };
+		A1B2C3010000000000000040 /* FinderSelectionRefresh.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3010000000000000041 /* FinderSelectionRefresh.swift */; };
+		A1B2C3010000000000000046 /* PreviewNavigationContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3010000000000000047 /* PreviewNavigationContext.swift */; };
 		8EA7E2FA49A52C6CB2AE5A5E /* EditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 391364AE6149F12AED4BFFFC /* EditorView.swift */; };
 		835FB7022FCA950400D23AAB /* UnsupportedFileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835FB7012FCA950400D23AAA /* UnsupportedFileView.swift */; };
 		962C8A503D0B4CA6963E2B94 /* QuickLookOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = B76F46CEB24C42779E84EBBE /* QuickLookOverlay.swift */; };
@@ -66,6 +75,16 @@
 		TSTBLD000000000000000008 /* WebKitRuntimeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF000000000000000008 /* WebKitRuntimeTests.swift */; };
 		TSTBLD000000000000000009 /* MarkdownPreviewControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF000000000000000009 /* MarkdownPreviewControllerTests.swift */; };
 		TSTBLD000000000000000010 /* QuickLookOverlayStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF000000000000000010 /* QuickLookOverlayStateTests.swift */; };
+		TSTBLD000000000000000011 /* PreviewLaunchRequestTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF000000000000000011 /* PreviewLaunchRequestTests.swift */; };
+		TSTBLD000000000000000012 /* PreviewTargetTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF000000000000000012 /* PreviewTargetTests.swift */; };
+		TSTBLD000000000000000013 /* PreviewSessionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF000000000000000013 /* PreviewSessionTests.swift */; };
+		TSTBLD000000000000000014 /* PreviewCoordinatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF000000000000000014 /* PreviewCoordinatorTests.swift */; };
+		TSTBLD000000000000000015 /* PreviewContentLoadCoordinatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF000000000000000015 /* PreviewContentLoadCoordinatorTests.swift */; };
+		TSTBLD000000000000000016 /* PreviewContentIdentityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF000000000000000016 /* PreviewContentIdentityTests.swift */; };
+		TSTBLD000000000000000017 /* PreviewLoadStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF000000000000000017 /* PreviewLoadStateTests.swift */; };
+		TSTBLD000000000000000018 /* PreviewDisplayStateResolverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF000000000000000018 /* PreviewDisplayStateResolverTests.swift */; };
+		TSTBLD000000000000000019 /* PreviewNavigationContextTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF000000000000000019 /* PreviewNavigationContextTests.swift */; };
+		TSTBLD00000000000000001A /* PreviewVisualBaselineCaptureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF00000000000000001A /* PreviewVisualBaselineCaptureTests.swift */; };
 		MEDPREVBLD00000000000001 /* MediaPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = MEDPREVREF00000000000001 /* MediaPreviewView.swift */; };
 		ONBOARDBLD00000000000001 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ONBOARDREF00000000000001 /* OnboardingView.swift */; };
 		FNT141414141414141414141 /* Fonts in Resources */ = {isa = PBXBuildFile; fileRef = FNT141414141414141414142 /* Fonts */; };
@@ -116,7 +135,6 @@
 		753F94AD7ABEFFC057AAA2DE /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		835FB6152FCA950400D2395D /* HighlightCache.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HighlightCache.swift; sourceTree = "<group>"; };
 		835FB6172FCA950400D2395E /* HighlightrCodeSyntaxHighlighter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HighlightrCodeSyntaxHighlighter.swift; sourceTree = "<group>"; };
-		835FB6192FCA950400D2395F /* QuickLookOverlayModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickLookOverlayModifier.swift; sourceTree = "<group>"; };
 		835FB6992FCA950400D23999 /* FileChunkReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileChunkReader.swift; sourceTree = "<group>"; };
 		A1B2C3010000000000000011 /* MarkdownBlockStreamParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownBlockStreamParser.swift; sourceTree = "<group>"; };
 		A1B2C3010000000000000012 /* MarkdownFileStreamReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownFileStreamReader.swift; sourceTree = "<group>"; };
@@ -133,7 +151,17 @@
 		A1B2C301000000000000001E /* MarkdownPreviewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownPreviewController.swift; sourceTree = "<group>"; };
 		A1B2C301000000000000001F /* PreviewRuntimeRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewRuntimeRegistry.swift; sourceTree = "<group>"; };
 		A1B2C3010000000000000020 /* WebKitRuntime.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebKitRuntime.swift; sourceTree = "<group>"; };
+		A1B2C301000000000000003A /* PreviewRuntimeContract.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewRuntimeContract.swift; sourceTree = "<group>"; };
 		A1B2C3010000000000000024 /* FinderSyncMonitoringPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinderSyncMonitoringPolicy.swift; sourceTree = "<group>"; };
+		A1B2C3010000000000000031 /* PreviewLaunchRequest.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewLaunchRequest.swift; sourceTree = "<group>"; };
+		A1B2C3010000000000000034 /* PreviewTarget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewTarget.swift; sourceTree = "<group>"; };
+		A1B2C3010000000000000036 /* PreviewTargetResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewTargetResolver.swift; sourceTree = "<group>"; };
+		A1B2C3010000000000000038 /* PreviewSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewSession.swift; sourceTree = "<group>"; };
+		A1B2C3010000000000000043 /* PreviewContentLoadCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewContentLoadCoordinator.swift; sourceTree = "<group>"; };
+		A1B2C3010000000000000045 /* PreviewContentIdentity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewContentIdentity.swift; sourceTree = "<group>"; };
+		A1B2C301000000000000003E /* PreviewCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewCoordinator.swift; sourceTree = "<group>"; };
+		A1B2C3010000000000000041 /* FinderSelectionRefresh.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinderSelectionRefresh.swift; sourceTree = "<group>"; };
+		A1B2C3010000000000000047 /* PreviewNavigationContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewNavigationContext.swift; sourceTree = "<group>"; };
 		860647CBF168ADB4692AFB63 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		8CB74C8B4C3A792598259E87 /* FileUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileUtils.swift; sourceTree = "<group>"; };
 		94269EDF755E0DD605801286 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
@@ -165,6 +193,16 @@
 		TSTREF000000000000000008 /* WebKitRuntimeTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebKitRuntimeTests.swift; sourceTree = "<group>"; };
 		TSTREF000000000000000009 /* MarkdownPreviewControllerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownPreviewControllerTests.swift; sourceTree = "<group>"; };
 		TSTREF000000000000000010 /* QuickLookOverlayStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickLookOverlayStateTests.swift; sourceTree = "<group>"; };
+		TSTREF000000000000000011 /* PreviewLaunchRequestTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewLaunchRequestTests.swift; sourceTree = "<group>"; };
+		TSTREF000000000000000012 /* PreviewTargetTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewTargetTests.swift; sourceTree = "<group>"; };
+		TSTREF000000000000000013 /* PreviewSessionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewSessionTests.swift; sourceTree = "<group>"; };
+		TSTREF000000000000000014 /* PreviewCoordinatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewCoordinatorTests.swift; sourceTree = "<group>"; };
+		TSTREF000000000000000015 /* PreviewContentLoadCoordinatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewContentLoadCoordinatorTests.swift; sourceTree = "<group>"; };
+		TSTREF000000000000000016 /* PreviewContentIdentityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewContentIdentityTests.swift; sourceTree = "<group>"; };
+		TSTREF000000000000000017 /* PreviewLoadStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewLoadStateTests.swift; sourceTree = "<group>"; };
+		TSTREF000000000000000018 /* PreviewDisplayStateResolverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewDisplayStateResolverTests.swift; sourceTree = "<group>"; };
+		TSTREF000000000000000019 /* PreviewNavigationContextTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewNavigationContextTests.swift; sourceTree = "<group>"; };
+		TSTREF00000000000000001A /* PreviewVisualBaselineCaptureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewVisualBaselineCaptureTests.swift; sourceTree = "<group>"; };
 		MEDPREVREF00000000000001 /* MediaPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaPreviewView.swift; sourceTree = "<group>"; };
 		ONBOARDREF00000000000001 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		835FB7012FCA950400D23AAA /* UnsupportedFileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnsupportedFileView.swift; sourceTree = "<group>"; };
@@ -239,6 +277,7 @@
 				FMI000000000000000000002 /* FinderMenuIntegration.swift */,
 				835FBA032FCA950400D23A03 /* MarkedJS.swift */,
 				A1B2C3010000000000000021 /* Markdown */,
+				A1B2C3010000000000000032 /* Preview */,
 				A1B2C3010000000000000022 /* PreviewRuntime */,
 				A1B2C3010000000000000024 /* FinderSyncMonitoringPolicy.swift */,
 				835FBA052FCA950400D23A05 /* MarkdownPDFExporter.swift */,
@@ -266,9 +305,26 @@
 			path = Markdown;
 			sourceTree = "<group>";
 		};
+		A1B2C3010000000000000032 /* Preview */ = {
+			isa = PBXGroup;
+			children = (
+				A1B2C3010000000000000031 /* PreviewLaunchRequest.swift */,
+				A1B2C3010000000000000034 /* PreviewTarget.swift */,
+				A1B2C3010000000000000036 /* PreviewTargetResolver.swift */,
+				A1B2C3010000000000000038 /* PreviewSession.swift */,
+				A1B2C3010000000000000043 /* PreviewContentLoadCoordinator.swift */,
+				A1B2C3010000000000000045 /* PreviewContentIdentity.swift */,
+				A1B2C301000000000000003E /* PreviewCoordinator.swift */,
+				A1B2C3010000000000000041 /* FinderSelectionRefresh.swift */,
+				A1B2C3010000000000000047 /* PreviewNavigationContext.swift */,
+			);
+			path = Preview;
+			sourceTree = "<group>";
+		};
 		A1B2C3010000000000000022 /* PreviewRuntime */ = {
 			isa = PBXGroup;
 			children = (
+				A1B2C301000000000000003A /* PreviewRuntimeContract.swift */,
 				A1B2C301000000000000001F /* PreviewRuntimeRegistry.swift */,
 				A1B2C3010000000000000020 /* WebKitRuntime.swift */,
 			);
@@ -284,7 +340,6 @@
 				460FA400CC4F4F828DB39EFA /* MarkdownTextView.swift */,
 				391364AE6149F12AED4BFFFC /* EditorView.swift */,
 				B76F46CEB24C42779E84EBBE /* QuickLookOverlay.swift */,
-				835FB6192FCA950400D2395F /* QuickLookOverlayModifier.swift */,
 				B87D7CAF1B4B8FAFF363B543 /* SettingsWindow.swift */,
 				CC8B9C87C1019A1BEC529314 /* ToastView.swift */,
 				CC8B9C87C1019A1BEC529324 /* CustomAlert.swift */,
@@ -367,6 +422,16 @@
 				TSTREF000000000000000008 /* WebKitRuntimeTests.swift */,
 				TSTREF000000000000000009 /* MarkdownPreviewControllerTests.swift */,
 				TSTREF000000000000000010 /* QuickLookOverlayStateTests.swift */,
+				TSTREF000000000000000011 /* PreviewLaunchRequestTests.swift */,
+				TSTREF000000000000000012 /* PreviewTargetTests.swift */,
+				TSTREF000000000000000013 /* PreviewSessionTests.swift */,
+				TSTREF000000000000000014 /* PreviewCoordinatorTests.swift */,
+				TSTREF000000000000000015 /* PreviewContentLoadCoordinatorTests.swift */,
+				TSTREF000000000000000016 /* PreviewContentIdentityTests.swift */,
+				TSTREF000000000000000017 /* PreviewLoadStateTests.swift */,
+				TSTREF000000000000000018 /* PreviewDisplayStateResolverTests.swift */,
+				TSTREF000000000000000019 /* PreviewNavigationContextTests.swift */,
+				TSTREF00000000000000001A /* PreviewVisualBaselineCaptureTests.swift */,
 			);
 			path = QuickCookiesTests;
 			sourceTree = "<group>";
@@ -505,7 +570,6 @@
 				FMI000000000000000000001 /* FinderMenuIntegration.swift in Sources */,
 				835FB6162FCA950400D2395D /* HighlightCache.swift in Sources */,
 				835FB6182FCA950400D2395E /* HighlightrCodeSyntaxHighlighter.swift in Sources */,
-				835FB61A2FCA950400D2395F /* QuickLookOverlayModifier.swift in Sources */,
 				835FB69A2FCA950400D23999 /* FileChunkReader.swift in Sources */,
 				A1B2C3010000000000000001 /* MarkdownBlockStreamParser.swift in Sources */,
 				A1B2C3010000000000000002 /* MarkdownFileStreamReader.swift in Sources */,
@@ -522,6 +586,16 @@
 				A1B2C301000000000000000E /* MarkdownPreviewController.swift in Sources */,
 				A1B2C301000000000000000F /* PreviewRuntimeRegistry.swift in Sources */,
 				A1B2C3010000000000000010 /* WebKitRuntime.swift in Sources */,
+				A1B2C3010000000000000039 /* PreviewRuntimeContract.swift in Sources */,
+				A1B2C3010000000000000030 /* PreviewLaunchRequest.swift in Sources */,
+				A1B2C3010000000000000033 /* PreviewTarget.swift in Sources */,
+				A1B2C3010000000000000035 /* PreviewTargetResolver.swift in Sources */,
+				A1B2C3010000000000000037 /* PreviewSession.swift in Sources */,
+				A1B2C3010000000000000042 /* PreviewContentLoadCoordinator.swift in Sources */,
+				A1B2C3010000000000000044 /* PreviewContentIdentity.swift in Sources */,
+				A1B2C301000000000000003D /* PreviewCoordinator.swift in Sources */,
+				A1B2C3010000000000000040 /* FinderSelectionRefresh.swift in Sources */,
+				A1B2C3010000000000000046 /* PreviewNavigationContext.swift in Sources */,
 				A1B2C3010000000000000023 /* FinderSyncMonitoringPolicy.swift in Sources */,
 				FC17D463B0B7C2B8817DCA5B /* SyntaxHighlighter.swift in Sources */,
 				D02C04567F8A13B8EE46D917 /* ToastView.swift in Sources */,
@@ -559,6 +633,16 @@
 				TSTBLD000000000000000008 /* WebKitRuntimeTests.swift in Sources */,
 				TSTBLD000000000000000009 /* MarkdownPreviewControllerTests.swift in Sources */,
 				TSTBLD000000000000000010 /* QuickLookOverlayStateTests.swift in Sources */,
+				TSTBLD000000000000000011 /* PreviewLaunchRequestTests.swift in Sources */,
+				TSTBLD000000000000000012 /* PreviewTargetTests.swift in Sources */,
+				TSTBLD000000000000000013 /* PreviewSessionTests.swift in Sources */,
+				TSTBLD000000000000000014 /* PreviewCoordinatorTests.swift in Sources */,
+				TSTBLD000000000000000015 /* PreviewContentLoadCoordinatorTests.swift in Sources */,
+				TSTBLD000000000000000016 /* PreviewContentIdentityTests.swift in Sources */,
+				TSTBLD000000000000000017 /* PreviewLoadStateTests.swift in Sources */,
+				TSTBLD000000000000000018 /* PreviewDisplayStateResolverTests.swift in Sources */,
+				TSTBLD000000000000000019 /* PreviewNavigationContextTests.swift in Sources */,
+				TSTBLD00000000000000001A /* PreviewVisualBaselineCaptureTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

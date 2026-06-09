@@ -4,11 +4,17 @@ import WebKit
 
 @MainActor
 final class WebKitRuntimeTests: XCTestCase {
-    func test_previewRuntimeRegistry_returnsSharedWebKitRuntimeInstance() {
-        let runtimeA = PreviewRuntimeRegistry.shared.webKitRuntime()
-        let runtimeB = PreviewRuntimeRegistry.shared.webKitRuntime()
+    func test_previewRuntimeRegistry_returnsSharedWebKitRuntimeForWebKind() {
+        let runtimeA = PreviewRuntimeRegistry.shared.runtime(for: .web)
+        let runtimeB = PreviewRuntimeRegistry.shared.runtime(for: .web)
 
         XCTAssertTrue(runtimeA === runtimeB)
+    }
+
+    func test_webKitRuntime_exposesWebRuntimeKindThroughContract() {
+        let runtime = WebKitRuntime()
+
+        XCTAssertEqual(runtime.kind, .web)
     }
 
     func test_previewRuntimeRegistry_defaultScheduledPrewarmStartsPromptly() async throws {

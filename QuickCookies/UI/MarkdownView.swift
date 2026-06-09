@@ -6,11 +6,12 @@ struct MarkdownPreviewDisplayPolicy {
     static func shouldMountPreview(
         renderType: FileRenderType,
         isLoading: Bool,
-        hasLoadedInitialContent: Bool
+        hasLoadedInitialContent: Bool,
+        keepsPreviousPreviewMounted: Bool = false
     ) -> Bool {
         guard renderType == .markdown else { return true }
         guard isLoading else { return true }
-        return hasLoadedInitialContent
+        return hasLoadedInitialContent || keepsPreviousPreviewMounted
     }
 }
 

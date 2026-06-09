@@ -2,11 +2,11 @@ import Foundation
 import AppKit
 
 enum Constants {
-    // 默认快捷键：双击 Command 键（类似 PopClip）
+    // 默认热键语义：双击 Command；若用户录制了常规组合键，则走普通 keyDown 监听。
     static let defaultHotkeyModifiers: NSEvent.ModifierFlags = [.command]
-    static let defaultHotkeyKeyCode: UInt16 = 0 // Command 键没有 keycode，使用 modifier 检测
+    static let defaultHotkeyKeyCode: UInt16 = 0 // 0 表示“双击修饰键”模式，而不是普通 keyDown keyCode
 
-    // 双击 Option 触发的时间间隔（毫秒）
+    // 双击修饰键触发的时间间隔（秒）
     static let doublePressInterval: TimeInterval = 0.5 // 500ms
 
     // 支持的代码与配置文件扩展名（已知支持高亮）

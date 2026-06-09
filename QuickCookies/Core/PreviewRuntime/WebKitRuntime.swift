@@ -8,8 +8,9 @@ struct PreviewRuntimeLoadHints: Equatable {
 }
 
 @MainActor
-final class WebKitRuntime {
+final class WebKitRuntime: PreviewRuntime {
     private let blankHTML = "<html><head><meta charset='utf-8'></head><body></body></html>"
+    let kind: PreviewRuntimeKind = .web
 
     // One shared WKWebView instance backs WebView-based in-window previews.
     //
@@ -161,6 +162,14 @@ final class WebKitRuntime {
             prepareForFreshContent()
         }
     }
+
+    func detach() {
+        detachCurrentWebView()
+    }
+
+    func reset() {
+        prepareForFreshContent()
+    }
 }
 
 private final class PrewarmNavigationDelegate: NSObject, WKNavigationDelegate {
@@ -203,9 +212,10 @@ final class PreviewWebView: WKWebView {
         super.loadHTMLString(string, baseURL: baseURL)
     }
 
+    @MainActor
     override func evaluateJavaScript(
         _ javaScriptString: String,
-        completionHandler: ((Any?, Error?) -> Void)?
+        completionHandler: (@MainActor @Sendable (Any?, (any Error)?) -> Void)?
     ) {
         super.evaluateJavaScript(javaScriptString, completionHandler: completionHandler)
     }

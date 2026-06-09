@@ -30,6 +30,17 @@ final class MarkdownPreviewControllerTests: XCTestCase {
         )
     }
 
+    func test_displayPolicy_keepsExistingMarkdownPreviewMountedDuringSamePathReload() {
+        XCTAssertTrue(
+            MarkdownPreviewDisplayPolicy.shouldMountPreview(
+                renderType: .markdown,
+                isLoading: true,
+                hasLoadedInitialContent: false,
+                keepsPreviousPreviewMounted: true
+            )
+        )
+    }
+
     func test_displayPolicy_doesNotBlockNonMarkdownPreview() {
         XCTAssertTrue(
             MarkdownPreviewDisplayPolicy.shouldMountPreview(
@@ -459,7 +470,7 @@ private final class SpyPreviewWebView: PreviewWebViewing {
 
     func evaluateJavaScript(
         _ javaScriptString: String,
-        completionHandler: ((Any?, Error?) -> Void)?
+        completionHandler: (@MainActor @Sendable (Any?, (any Error)?) -> Void)?
     ) {
         evaluateJavaScriptCalls.append(javaScriptString)
         completionHandler?(nil, nil)
