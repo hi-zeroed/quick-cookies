@@ -118,10 +118,24 @@ enum PreviewOverlayFinderFollowPolicy {
         switch source {
         case .hotkey, .finderSync, .menuBar:
             return true
-        case .service, .urlScheme, .none:
+        case .service, .urlScheme, .internalNavigation, .none:
             return false
         }
     }
+
+    static func shouldStartSelectionPolling(for source: PreviewLaunchSource?) -> Bool {
+        shouldFollowFinderSelection(for: source)
+    }
+}
+
+enum PreviewOverlayFinderInteractionPolicy {
+    static func isFinderDriven(_ source: PreviewLaunchSource?) -> Bool {
+        PreviewOverlayFinderFollowPolicy.shouldFollowFinderSelection(for: source)
+    }
+}
+
+enum PreviewOverlayWindowChromePolicy {
+    static let usesSystemWindowShadow = false
 }
 
 enum PreviewOverlayPresentationPolicy {
@@ -145,27 +159,69 @@ enum PreviewOverlayPresentationPolicy {
 enum PreviewOverlayKeyWindowPolicy {
     static func canBecomeKey(
         mode: PreviewSessionMode?,
-        renderType: FileRenderType?
+        renderType: FileRenderType?,
+        source: PreviewLaunchSource?
     ) -> Bool {
+        guard renderType != nil else {
+            return false
+        }
+
         if mode == .edit {
             return true
         }
 
-        return renderType == .office
+        return !PreviewOverlayFinderInteractionPolicy.isFinderDriven(source)
     }
 }
 
 enum PreviewOverlayFocusActivationPolicy {
     static func shouldFocusOnPresentation(
         mode: PreviewSessionMode?,
-        renderType: FileRenderType?
+        renderType: FileRenderType?,
+        source: PreviewLaunchSource?
     ) -> Bool {
-        mode == .preview && renderType == .office
+        mode == .preview &&
+        renderType != nil &&
+        !PreviewOverlayFinderInteractionPolicy.isFinderDriven(source)
+    }
+
+    static func shouldActivateAppOnPresentation(
+        mode: PreviewSessionMode?,
+        renderType: FileRenderType?,
+        source: PreviewLaunchSource?
+    ) -> Bool {
+        shouldFocusOnPresentation(mode: mode, renderType: renderType, source: source)
     }
 }
 
 enum PreviewOverlayKeyboardRoutingPolicy {
+    private static func isFinderNavigationKey(_ keyCode: UInt16?) -> Bool {
+        keyCode == 125 || keyCode == 126
+    }
+
     static func shouldForwardFinderNavigation(
+        isVisible: Bool,
+        isEditing: Bool,
+        followsFinderSelection: Bool,
+        finderNavigationForwardingEnabled: Bool = false,
+        frontmostBundleIdentifier: String?,
+        keyCode: UInt16?
+    ) -> Bool {
+        isVisible &&
+        !isEditing &&
+        followsFinderSelection &&
+        finderNavigationForwardingEnabled &&
+        frontmostBundleIdentifier == "com.apple.finder" &&
+        isFinderNavigationKey(keyCode)
+    }
+}
+
+enum PreviewOverlayFinderNavigationRefreshPolicy {
+    private static func isFinderNavigationKey(_ keyCode: UInt16?) -> Bool {
+        keyCode == 125 || keyCode == 126
+    }
+
+    static func shouldRefreshAfterFinderNavigation(
         isVisible: Bool,
         isEditing: Bool,
         followsFinderSelection: Bool,
@@ -176,11 +232,127 @@ enum PreviewOverlayKeyboardRoutingPolicy {
         !isEditing &&
         followsFinderSelection &&
         frontmostBundleIdentifier == "com.apple.finder" &&
-        keyCode != nil
+        isFinderNavigationKey(keyCode)
+    }
+}
+
+enum PreviewOverlayFinderSelectionEventRefreshPolicy {
+    private static func isFinderNavigationKey(_ keyCode: UInt16?) -> Bool {
+        keyCode == 125 || keyCode == 126
+    }
+
+    static func shouldRefreshAfterFinderSelectionEvent(
+        isVisible: Bool,
+        isEditing: Bool,
+        followsFinderSelection: Bool,
+        frontmostBundleIdentifier: String?,
+        frontmostAppFallbackBundleIdentifier: String? = nil,
+        eventType: NSEvent.EventType,
+        keyCode: UInt16?
+    ) -> Bool {
+        guard isVisible,
+              !isEditing,
+              followsFinderSelection,
+              frontmostBundleIdentifier == nil ||
+              frontmostBundleIdentifier == "com.apple.finder" ||
+              frontmostBundleIdentifier == frontmostAppFallbackBundleIdentifier else {
+            return false
+        }
+
+        switch eventType {
+        case .keyDown:
+            return isFinderNavigationKey(keyCode)
+        case .leftMouseUp:
+            return true
+        default:
+            return false
+        }
+    }
+}
+
+enum PreviewOverlayInternalNavigationDirection: Equatable {
+    case previous
+    case next
+}
+
+enum PreviewOverlayInternalNavigationKeyPolicy {
+    static func direction(
+        isVisible: Bool,
+        isEditing: Bool,
+        followsFinderSelection: Bool,
+        keyCode: UInt16,
+        modifierFlags: NSEvent.ModifierFlags
+    ) -> PreviewOverlayInternalNavigationDirection? {
+        guard isVisible,
+              !isEditing,
+              !followsFinderSelection,
+              modifierFlags.intersection([.command, .option, .control]).isEmpty else {
+            return nil
+        }
+
+        switch keyCode {
+        case 126:
+            return .previous
+        case 125:
+            return .next
+        default:
+            return nil
+        }
+    }
+}
+
+enum PreviewOverlayResizeAnimationPolicy {
+    static func shouldAnimateResize(
+        previous: PreviewSessionState?,
+        current: PreviewSessionState
+    ) -> Bool {
+        guard let previous else {
+            return false
+        }
+        guard previous.target?.resolvedPath == current.target?.resolvedPath,
+              previous.displayRenderType == current.displayRenderType else {
+            return false
+        }
+
+        return previous.isExpanded != current.isExpanded
+    }
+}
+
+enum PreviewOverlayFrameAnimationPlan: Equatable {
+    case immediate
+    case explicit(duration: TimeInterval)
+}
+
+enum PreviewOverlayFrameAnimationPolicy {
+    static func plan(animated: Bool) -> PreviewOverlayFrameAnimationPlan {
+        animated ? .explicit(duration: 0.22) : .immediate
+    }
+}
+
+enum PreviewOverlayInternalNavigationRequestPolicy {
+    static func request(
+        direction: PreviewOverlayInternalNavigationDirection,
+        context: PreviewNavigationContext?
+    ) -> PreviewLaunchRequest? {
+        let path: String?
+        switch direction {
+        case .previous:
+            path = context?.previousPath
+        case .next:
+            path = context?.nextPath
+        }
+
+        guard let path else {
+            return nil
+        }
+
+        return .openPath(path, source: .internalNavigation)
     }
 }
 
 enum PreviewOverlaySizingPolicy {
+    static let compactContentSize = CGSize(width: 450, height: 320)
+
     static func usesCompactPresentation(
         renderType: FileRenderType?,
         errorMessage: String?
@@ -223,12 +395,43 @@ enum PreviewOverlaySizingPolicy {
             return isExpanded ? 0.56 : 0.36
         }
     }
+
+    static func stableContentSize(
+        renderType: FileRenderType?,
+        filePath: String?,
+        isExpanded: Bool,
+        errorMessage: String?,
+        screenVisibleFrame: NSRect
+    ) -> CGSize {
+        if usesCompactPresentation(renderType: renderType, errorMessage: errorMessage) {
+            return compactContentSize
+        }
+
+        return CGSize(
+            width: contentWidth(
+                renderType: renderType,
+                filePath: filePath,
+                isExpanded: isExpanded,
+                screenVisibleFrame: screenVisibleFrame
+            ),
+            height: screenVisibleFrame.height * 0.88
+        )
+    }
+
+    static func animationSourceRect(
+        _ sourceRect: CGRect,
+        outset: CGFloat
+    ) -> CGRect {
+        sourceRect.insetBy(dx: -outset, dy: -outset)
+    }
 }
 
 class QuickLookOverlay: NSObject, NSWindowDelegate {
     static let shared = QuickLookOverlay()
 
-    private let windowPadding: CGFloat = 40
+    private let stableCardOuterPadding: CGFloat = 0
+    private let animationOutset: CGFloat = 40
+    private let finderSelectionRefreshBurstDelays: [TimeInterval] = [0.05, 0.12, 0.24]
     var onFinderSelectionRequest: ((PreviewLaunchRequest) -> Void)?
     private var previewWindow: NSWindow?
     var currentWindow: NSWindow? { previewWindow }
@@ -239,6 +442,8 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
     private var activeSession: PreviewSession?
     private var activeSessionState: PreviewSessionState?
     private var activeSessionCancellable: AnyCancellable?
+    private var navigationContext: PreviewNavigationContext?
+    private var navigationContextPath: String?
     private var transitionGate = PreviewOverlayTransitionGate()
     private let loadState = PreviewLoadState()
     private lazy var windowActions = PreviewWindowActions(
@@ -247,6 +452,9 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         },
         focusWindowForEdit: { [weak self] in
             self?.focusWindowForEdit()
+        },
+        focusWindowForPreview: { [weak self] in
+            self?.focusWindowForPreview()
         },
         unfocusWindowToFinder: { [weak self] in
             self?.unfocusWindowToFinder()
@@ -285,16 +493,11 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         }
     )
 
-    @MainActor
-    private func handleEscapeFromEditMode() {
-        activeSession?.returnToPreviewMode()
-        unfocusWindowToFinder()
-    }
-
     var canBecomeKeyDynamic: Bool {
         PreviewOverlayKeyWindowPolicy.canBecomeKey(
             mode: activeSessionState?.mode,
-            renderType: activeSessionState?.displayRenderType
+            renderType: activeSessionState?.displayRenderType,
+            source: activeSessionState?.source
         )
     }
 
@@ -304,6 +507,19 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
     
     func focusWindowForEdit() {
         guard let window = previewWindow else { return }
+        NSApp.activate(ignoringOtherApps: true)
+        window.makeKeyAndOrderFront(nil)
+    }
+
+    func focusWindowForPreview() {
+        guard let window = previewWindow else { return }
+        guard !PreviewOverlayFinderInteractionPolicy.isFinderDriven(activeSessionState?.source) else {
+            window.orderFrontRegardless()
+            unfocusWindowToFinder()
+            return
+        }
+
+        NSApp.activate(ignoringOtherApps: true)
         window.makeKeyAndOrderFront(nil)
     }
 
@@ -311,11 +527,19 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
     private func focusWindowForInteractivePreviewIfNeeded() {
         guard PreviewOverlayFocusActivationPolicy.shouldFocusOnPresentation(
             mode: activeSessionState?.mode,
-            renderType: activeSessionState?.displayRenderType
+            renderType: activeSessionState?.displayRenderType,
+            source: activeSessionState?.source
         ), let window = previewWindow else {
             return
         }
 
+        if PreviewOverlayFocusActivationPolicy.shouldActivateAppOnPresentation(
+            mode: activeSessionState?.mode,
+            renderType: activeSessionState?.displayRenderType,
+            source: activeSessionState?.source
+        ) {
+            NSApp.activate(ignoringOtherApps: true)
+        }
         window.makeKeyAndOrderFront(nil)
     }
     
@@ -359,6 +583,90 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         }
     }
 
+    private func dispatchPreviewLaunchRequest(_ request: PreviewLaunchRequest) {
+        Task { @MainActor in
+            onFinderSelectionRequest?(request)
+        }
+    }
+
+    private func refreshNavigationContext(for path: String?) {
+        guard navigationContextPath != path else {
+            return
+        }
+
+        navigationContextPath = path
+        guard let path else {
+            navigationContext = nil
+            return
+        }
+
+        navigationContext = PreviewNavigationContextBuilder.build(currentPath: path)
+    }
+
+    private func handleInternalNavigationIfNeeded(for event: NSEvent) -> Bool {
+        let followsFinderSelection = PreviewOverlayFinderFollowPolicy.shouldFollowFinderSelection(
+            for: activeSessionState?.source
+        )
+        guard let direction = PreviewOverlayInternalNavigationKeyPolicy.direction(
+            isVisible: isVisible,
+            isEditing: isEditingDynamic,
+            followsFinderSelection: followsFinderSelection,
+            keyCode: event.keyCode,
+            modifierFlags: event.modifierFlags
+        ) else {
+            return false
+        }
+
+        guard let request = PreviewOverlayInternalNavigationRequestPolicy.request(
+            direction: direction,
+            context: navigationContext
+        ) else {
+            return false
+        }
+
+        dispatchPreviewLaunchRequest(request)
+        return true
+    }
+
+    private func refreshAfterFinderSelectionEventIfNeeded(
+        for event: NSEvent,
+        frontmostAppFallbackBundleIdentifier: String? = nil
+    ) -> Bool {
+        let keyCode = Self.forwardedFinderNavigationKeyCode(for: event)
+        let followsFinderSelection = PreviewOverlayFinderFollowPolicy.shouldFollowFinderSelection(
+            for: activeSessionState?.source
+        )
+        let frontmostBundleIdentifier = NSWorkspace.shared.frontmostApplication?.bundleIdentifier
+
+        guard PreviewOverlayFinderSelectionEventRefreshPolicy.shouldRefreshAfterFinderSelectionEvent(
+            isVisible: isVisible,
+            isEditing: isEditingDynamic,
+            followsFinderSelection: followsFinderSelection,
+            frontmostBundleIdentifier: frontmostBundleIdentifier,
+            frontmostAppFallbackBundleIdentifier: frontmostAppFallbackBundleIdentifier,
+            eventType: event.type,
+            keyCode: keyCode
+        ) else {
+            return false
+        }
+
+        finderSelectionPollingController.refreshBurst(
+            delays: finderSelectionRefreshBurstDelays,
+            allowsUnknownFrontmost: true,
+            additionalAllowedFrontmostBundleIdentifiers: Set(
+                [frontmostAppFallbackBundleIdentifier].compactMap { $0 }
+            ),
+            schedule: { delay, work in
+                DispatchQueue.main.asyncAfter(deadline: .now() + delay, execute: work)
+            }
+        )
+        return true
+    }
+
+    private func refreshAfterFinderNavigationIfNeeded(for event: NSEvent) -> Bool {
+        refreshAfterFinderSelectionEventIfNeeded(for: event)
+    }
+
     private func forwardFinderNavigationIfNeeded(for event: NSEvent) -> Bool {
         let keyCode = Self.forwardedFinderNavigationKeyCode(for: event)
         let followsFinderSelection = PreviewOverlayFinderFollowPolicy.shouldFollowFinderSelection(
@@ -385,7 +693,18 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
     
     @MainActor
     private func handleStateChange() {
+        refreshNavigationContext(for: currentFilePath)
         resizeWindowIfNeeded(animated: false)
+    }
+
+    @MainActor
+    private func handleStateChange(previousState: PreviewSessionState?) {
+        refreshNavigationContext(for: currentFilePath)
+        let shouldAnimateResize = PreviewOverlayResizeAnimationPolicy.shouldAnimateResize(
+            previous: previousState,
+            current: activeSessionState ?? .initial
+        )
+        resizeWindowIfNeeded(animated: shouldAnimateResize)
     }
 
     @MainActor
@@ -401,7 +720,16 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
             return
         }
 
-        window.setFrame(newFrame, display: true, animate: animated)
+        switch PreviewOverlayFrameAnimationPolicy.plan(animated: animated) {
+        case .immediate:
+            window.setFrame(newFrame, display: true, animate: false)
+        case .explicit(let duration):
+            NSAnimationContext.runAnimationGroup { context in
+                context.duration = duration
+                context.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
+                window.animator().setFrame(newFrame, display: true)
+            }
+        }
     }
 
     private func targetWindowFrame(for window: NSWindow) -> NSRect {
@@ -418,35 +746,15 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
     }
 
     private func targetContentRect(for screenVisibleFrame: NSRect) -> NSRect {
-        let isCompactPresentation = PreviewOverlaySizingPolicy.usesCompactPresentation(
-            renderType: currentRenderType,
-            errorMessage: currentErrorMessage
-        )
-
-        if isCompactPresentation {
-            return NSRect(
-                x: 0,
-                y: 0,
-                width: 450 + windowPadding * 2,
-                height: 320 + windowPadding * 2
-            )
-        }
-
-        return NSRect(
-            x: 0,
-            y: 0,
-            width: targetContentWidth(for: screenVisibleFrame) + windowPadding * 2,
-            height: screenVisibleFrame.height * 0.88 + windowPadding * 2
-        )
-    }
-
-    private func targetContentWidth(for screenVisibleFrame: NSRect) -> CGFloat {
-        PreviewOverlaySizingPolicy.contentWidth(
+        let size = PreviewOverlaySizingPolicy.stableContentSize(
             renderType: currentRenderType,
             filePath: currentFilePath,
             isExpanded: isExpanded,
+            errorMessage: currentErrorMessage,
             screenVisibleFrame: screenVisibleFrame
         )
+
+        return NSRect(origin: .zero, size: size)
     }
 
     private var currentRenderType: FileRenderType? {
@@ -470,13 +778,15 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         activeSession = session
         activeSessionState = session.state
         activeSessionCancellable = nil
+        refreshNavigationContext(for: session.state.target?.resolvedPath)
 
         activeSessionCancellable = session.$state
             .receive(on: DispatchQueue.main)
             .sink { [weak self] newState in
                 guard let self else { return }
+                let previousState = self.activeSessionState
                 self.activeSessionState = newState
-                self.handleStateChange()
+                self.handleStateChange(previousState: previousState)
                 self.updateWindowTitle()
             }
     }
@@ -591,7 +901,8 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
             hostingView.rootView = ContentView(
                 session: session,
                 loadState: loadState,
-                windowActions: windowActions
+                windowActions: windowActions,
+                cardOuterPadding: stableCardOuterPadding
             )
         }
 
@@ -636,7 +947,7 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         // 融于底色的一体化毛玻璃/纯色配置
         previewPanel.backgroundColor = .clear
         previewPanel.isOpaque = false
-        previewPanel.hasShadow = false
+        previewPanel.hasShadow = PreviewOverlayWindowChromePolicy.usesSystemWindowShadow
         previewPanel.isReleasedWhenClosed = false
         previewPanel.delegate = self
         previewPanel.canBecomeKeyProvider = { [weak self] in
@@ -647,23 +958,26 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         let contentView = ContentView(
             session: session,
             loadState: loadState,
-            windowActions: windowActions
+            windowActions: windowActions,
+            cardOuterPadding: stableCardOuterPadding
         )
         let hostingView = NSHostingView(rootView: contentView)
-        hostingView.frame = targetRect
+        hostingView.frame = NSRect(origin: .zero, size: targetRect.size)
         previewPanel.contentView = hostingView
+        previewPanel.contentView?.wantsLayer = true
+        previewPanel.contentView?.layer?.backgroundColor = NSColor.clear.cgColor
         
         hostingView.wantsLayer = true
         if let layer = hostingView.layer {
             layer.anchorPoint = CGPoint(x: 0.5, y: 0.5)
             layer.position = CGPoint(x: targetRect.width / 2, y: targetRect.height / 2)
-            // layer 自身保持透明且不剪切，由 SwiftUI 内部卡片渲染圆角和背景
+            // 外层只负责透明圆角裁切，具体玻璃/描边/阴影仍由 SwiftUI 卡片绘制。
             layer.backgroundColor = NSColor.clear.cgColor
-            layer.cornerRadius = 0
-            layer.masksToBounds = false
+            layer.cornerRadius = 20
+            layer.masksToBounds = true
         }
 
-        // 先让预览窗口以完全透明状态挂载，置顶显示但不抢占焦点（保持 Finder 在前台）
+        // 先以透明状态挂载，随后由 presentation focus policy 决定是否成为 key window。
         previewPanel.alphaValue = 0.0
         previewPanel.orderFrontRegardless()
         self.previewWindow = previewPanel
@@ -672,19 +986,12 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         // 1. 注册本地键盘事件监视器（当编辑模式下窗口成为 Key 窗口时，在此拦截按键）
         self.localEventMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event -> NSEvent? in
             guard let self = self else { return event }
-            let keyCode = event.keyCode
-            
-            // Esc 键处理
-            if keyCode == 53 {
-                if self.isEditingDynamic {
-                    // 编辑模式下按 Esc 则是返回预览模式，并交还焦点给 Finder
-                    MainActor.assumeIsolated {
-                        self.handleEscapeFromEditMode()
-                    }
-                } else {
-                    // 预览模式下按 Esc 为优雅关闭窗口
-                    self.closeWithAnimation()
-                }
+
+            if self.handleInternalNavigationIfNeeded(for: event) {
+                return nil
+            }
+
+            if self.refreshAfterFinderNavigationIfNeeded(for: event) {
                 return nil
             }
 
@@ -694,24 +1001,29 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
             return event
         }
 
-        // 2. 注册全局键盘事件监视器，用于在焦点在 Finder 时捕获 Esc 键以流畅飞回收缩关闭
-        self.globalEventMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
+        // 2. 注册全局事件监视器，用于在 Finder 前台时按选择事件加速刷新。
+        self.globalEventMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.keyDown, .leftMouseUp]) { [weak self] event in
             guard let self = self else { return }
-            if self.isVisible,
-               !self.isEditingDynamic,
-               let frontApp = NSWorkspace.shared.frontmostApplication,
-               frontApp.bundleIdentifier == "com.apple.finder",
-               event.keyCode == 53 {
-                DispatchQueue.main.async {
-                    self.closeWithAnimation()
-                }
-            } else if self.forwardFinderNavigationIfNeeded(for: event) {
+            if self.refreshAfterFinderSelectionEventIfNeeded(
+                for: event,
+                frontmostAppFallbackBundleIdentifier: Bundle.main.bundleIdentifier
+            ) {
+                return
+            } else if event.type == .keyDown, self.forwardFinderNavigationIfNeeded(for: event) {
                 return
             }
         }
 
-        // 3. 启动 150ms 周期定时监测，利用高性能 NSAppleScript 内存级实时拉取选中项变化
-        finderSelectionPollingController.start()
+        // Finder-driven previews keep a scoped selection watcher while visible.
+        // Direct-path previews avoid polling entirely.
+        if PreviewOverlayFinderFollowPolicy.shouldStartSelectionPolling(for: session.state.source) {
+            finderSelectionPollingController.start(
+                allowsUnknownFrontmost: true,
+                additionalAllowedFrontmostBundleIdentifiers: Set(
+                    [Bundle.main.bundleIdentifier].compactMap { $0 }
+                )
+            )
+        }
 
         // 3. 0ms 瞬间起跳：优先使用轮询预取的文件图标物理位置，若无缓存再降级到鼠标位置，保证零局限与零阻塞
         let initialSourceRect = self.sourceRectBackup ?? self.getMouseOrCenterSourceRect(targetRect: targetRect)
@@ -756,7 +1068,10 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         layer.position = CGPoint(x: targetRect.width / 2, y: targetRect.height / 2)
 
         // 扩展 sourceRect 加上 padding 缓冲，保持仿射变换中心与起跳大小 100% 精确匹配
-        let paddedSourceRect = sourceRect.insetBy(dx: -windowPadding, dy: -windowPadding)
+        let paddedSourceRect = PreviewOverlaySizingPolicy.animationSourceRect(
+            sourceRect,
+            outset: animationOutset
+        )
         
         let scaleX = paddedSourceRect.width / targetRect.width
         let scaleY = paddedSourceRect.height / targetRect.height
@@ -1065,6 +1380,8 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         activeSession = nil
         activeSessionState = nil
         activeSessionCancellable = nil
+        navigationContext = nil
+        navigationContextPath = nil
         finderSelectionPollingController.resetSelection()
         transitionGate.finishClose()
         
@@ -1107,6 +1424,8 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
             window.contentView = nil
             window.close()
             loadState.reset()
+            navigationContext = nil
+            navigationContextPath = nil
             transitionGate.finishClose()
             return
         }
@@ -1137,13 +1456,18 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         activeSession = nil
         activeSessionState = nil
         activeSessionCancellable = nil
+        navigationContext = nil
+        navigationContextPath = nil
         finderSelectionPollingController.resetSelection()
 
         let targetRect = window.frame
         let sourceRect = sourceRectBackup ?? Self.getDefaultSourceRect()
         
         // 同样在关闭时也要将 sourceRect 进行 padding 扩展以精准反向对齐
-        let paddedSourceRect = sourceRect.insetBy(dx: -windowPadding, dy: -windowPadding)
+        let paddedSourceRect = PreviewOverlaySizingPolicy.animationSourceRect(
+            sourceRect,
+            outset: animationOutset
+        )
         
         let scaleX = paddedSourceRect.width / targetRect.width
         let scaleY = paddedSourceRect.height / targetRect.height

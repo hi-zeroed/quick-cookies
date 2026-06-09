@@ -19,6 +19,13 @@ struct PreviewContentLoadCoordinator {
         activeRequest == request
     }
 
+    func shouldApplyResult(
+        for request: PreviewContentLoadRequest,
+        currentPath: String?
+    ) -> Bool {
+        shouldApplyResult(for: request) && request.path == currentPath
+    }
+
     mutating func reset() {
         activeRequest = nil
     }

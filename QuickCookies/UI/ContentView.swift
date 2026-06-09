@@ -9,6 +9,7 @@ enum ContentMode {
 struct PreviewWindowActions {
     let closeOverlay: () -> Void
     let focusWindowForEdit: () -> Void
+    let focusWindowForPreview: () -> Void
     let unfocusWindowToFinder: () -> Void
     let showToast: (_ message: String, _ icon: String?) -> Void
     let currentWindow: () -> NSWindow?
@@ -44,18 +45,123 @@ enum PreviewFileIconAssetRegistry {
     }
 }
 
+struct ContentRenderCapability {
+    let allowsEditing: Bool
+    let allowsPDFExport: Bool
+    let usesTextContentLoader: Bool
+    let showsGenericLoading: Bool
+}
+
+enum ContentRenderCapabilityRegistry {
+    static func capability(for renderType: FileRenderType?) -> ContentRenderCapability {
+        switch renderType {
+        case .markdown:
+            return ContentRenderCapability(
+                allowsEditing: true,
+                allowsPDFExport: true,
+                usesTextContentLoader: true,
+                showsGenericLoading: false
+            )
+        case .code, .plainText:
+            return ContentRenderCapability(
+                allowsEditing: true,
+                allowsPDFExport: false,
+                usesTextContentLoader: true,
+                showsGenericLoading: true
+            )
+        case .pdf, .image, .office, .unsupported, .none:
+            return ContentRenderCapability(
+                allowsEditing: false,
+                allowsPDFExport: false,
+                usesTextContentLoader: false,
+                showsGenericLoading: false
+            )
+        }
+    }
+
+    static func allowsEditing(for renderType: FileRenderType?) -> Bool {
+        capability(for: renderType).allowsEditing
+    }
+
+    static func allowsPDFExport(for renderType: FileRenderType?, mode: ContentMode) -> Bool {
+        mode == .preview && capability(for: renderType).allowsPDFExport
+    }
+
+    static func usesTextContentLoader(for renderType: FileRenderType?) -> Bool {
+        capability(for: renderType).usesTextContentLoader
+    }
+
+    static func showsGenericLoading(for renderType: FileRenderType?) -> Bool {
+        capability(for: renderType).showsGenericLoading
+    }
+}
+
 enum ContentLoadingPresentationPolicy {
     static func shouldShowGenericLoading(
         isLoading: Bool,
         renderType: FileRenderType?
     ) -> Bool {
         guard isLoading else { return false }
-        switch renderType {
-        case .markdown, .image, .pdf, .office, .unsupported:
+        return ContentRenderCapabilityRegistry.showsGenericLoading(for: renderType)
+    }
+}
+
+enum PreviewContentVisibilityPolicy {
+    static func canRenderLoadedContent(
+        renderType: FileRenderType?,
+        activePath: String?,
+        loadedContentPath: String?
+    ) -> Bool {
+        guard let renderType else {
             return false
-        case .code, .plainText, .none:
+        }
+
+        guard ContentRenderCapabilityRegistry.usesTextContentLoader(for: renderType) else {
             return true
         }
+
+        guard let activePath, let loadedContentPath else {
+            return false
+        }
+
+        return activePath == loadedContentPath
+    }
+}
+
+enum PreviewIncrementalContentLoadPolicy {
+    static func shouldApplyChunk(
+        request: PreviewContentLoadRequest,
+        activeRequest: PreviewContentLoadRequest?,
+        activePath: String?,
+        loadedContentPath: String?
+    ) -> Bool {
+        request == activeRequest && request.path == activePath && request.path == loadedContentPath
+    }
+}
+
+enum PreviewEditPreparationPolicy {
+    static func shouldApplyRemainingText(
+        request: PreviewContentLoadRequest,
+        activeRequest: PreviewContentLoadRequest?,
+        activePath: String?,
+        loadedContentPath: String?
+    ) -> Bool {
+        request == activeRequest && request.path == activePath && request.path == loadedContentPath
+    }
+}
+
+enum PreviewAsyncRequestCleanupPolicy {
+    static func shouldClearLoadingForRejectedResult(
+        request: PreviewContentLoadRequest,
+        activeRequest: PreviewContentLoadRequest?
+    ) -> Bool {
+        request == activeRequest
+    }
+}
+
+enum ContentEditingPolicy {
+    static func allowsEditing(for renderType: FileRenderType?) -> Bool {
+        ContentRenderCapabilityRegistry.allowsEditing(for: renderType)
     }
 }
 
@@ -122,8 +228,10 @@ struct ContentView: View {
     @ObservedObject var loadState: PreviewLoadState
     @ObservedObject private var session: PreviewSession
     private let windowActions: PreviewWindowActions
+    private let cardOuterPadding: CGFloat
 
     @State private var content: String = ""
+    @State private var loadedContentPath: String? = nil
     @State private var isLoading: Bool = true
     @State private var isTruncated: Bool = false
     @State private var isModified: Bool = false
@@ -159,11 +267,13 @@ struct ContentView: View {
     init(
         session: PreviewSession,
         loadState: PreviewLoadState,
-        windowActions: PreviewWindowActions
+        windowActions: PreviewWindowActions,
+        cardOuterPadding: CGFloat = 40
     ) {
         self.loadState = loadState
         self.session = session
         self.windowActions = windowActions
+        self.cardOuterPadding = cardOuterPadding
     }
 
     private var sessionState: PreviewSessionState {
@@ -198,8 +308,20 @@ struct ContentView: View {
         displayState.errorMessage
     }
 
+    private var allowsEditing: Bool {
+        ContentEditingPolicy.allowsEditing(for: activeRenderType)
+    }
+
     private var isLocatingSelection: Bool {
         displayState.isLoadingPath && activePath == nil
+    }
+
+    private var canRenderLoadedContent: Bool {
+        PreviewContentVisibilityPolicy.canRenderLoadedContent(
+            renderType: activeRenderType,
+            activePath: activePath,
+            loadedContentPath: loadedContentPath
+        )
     }
 
     private var contentIdentityKey: String {
@@ -254,7 +376,7 @@ struct ContentView: View {
                 .stroke(colorScheme == .dark ? Color.white.opacity(0.32) : Color.black.opacity(0.12), lineWidth: 0.5)
         )
         .shadow(color: Color.black.opacity(colorScheme == .dark ? 0.45 : 0.18), radius: 16, x: 0, y: 10) // 卡片精致的外阴影
-        .padding(40) // 核心透明留白，用于支撑弹簧过冲回弹的防裁剪与阴影扩散
+        .padding(cardOuterPadding)
         .background(Color.clear) // 根容器背景必须是透明 clear，保持留白边缘穿透
         .toast(isShowing: $showLocalToast, message: localToastMessage, icon: localToastIcon)
         .onDisappear {
@@ -266,6 +388,7 @@ struct ContentView: View {
             markdownHasLoadedInitialContent = false
             previewReadinessState = PreviewReadinessGate.resetState(for: nil)
             markdownBootstrapReady = false
+            loadedContentPath = nil
         }
         .task {
             if let path = activePath {
@@ -274,6 +397,7 @@ struct ContentView: View {
         }
         .onChange(of: activePath) { newPath in
             if let path = newPath {
+                prepareForIncomingPath(path)
                 Task {
                     await triggerPathLoadIfNeeded(path: path)
                 }
@@ -285,6 +409,7 @@ struct ContentView: View {
                 chunkReader?.close()
                 chunkReader = nil
                 content = ""
+                loadedContentPath = nil
                 isModified = false
                 showReloadAlert = false
                 markdownPreviewTimeline = nil
@@ -361,8 +486,10 @@ struct ContentView: View {
             // 右侧控制区域（模式切换与保存，右对齐固定 72px）
             HStack(spacing: 12) {
                 if activePath != nil && activeErrorMessage == nil {
-                    // 导出 PDF 按钮 (仅在预览 Markdown 时显示)
-                    if activeRenderType == .markdown && activeMode == .preview {
+                    if ContentRenderCapabilityRegistry.allowsPDFExport(
+                        for: activeRenderType,
+                        mode: activeMode
+                    ) {
                         Group {
                             if isExportingPDF {
                                 ProgressView()
@@ -383,7 +510,7 @@ struct ContentView: View {
                         .animation(.easeInOut(duration: 0.2), value: isExportingPDF)
                     }
                     
-                    if activeRenderType != .pdf && activeRenderType != .image && activeRenderType != .office {
+                    if allowsEditing {
                         // 模式切换按钮
                         Button(action: toggleMode) {
                             Image(activeMode == .preview ? "ToolbarEdit" : "ToolbarPreview")
@@ -393,7 +520,7 @@ struct ContentView: View {
                                 .foregroundColor(Color.appText.opacity(0.8))
                         }
                         .buttonStyle(.plain)
-                        .help(activeMode == .preview ? "Enter Edit (Cmd+E)".localized() : "Back to Preview (Esc)".localized())
+                        .help(activeMode == .preview ? "Enter Edit (Cmd+E)".localized() : "Back to Preview".localized())
 
                         // 保存按钮
                         if activeMode == .edit && isModified {
@@ -509,7 +636,7 @@ struct ContentView: View {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .transition(.opacity)
         } else if ContentLoadingPresentationPolicy.shouldShowGenericLoading(
-            isLoading: isLoading,
+            isLoading: isLoading || !canRenderLoadedContent,
             renderType: activeRenderType
         ) {
             VStack(spacing: 16) {
@@ -566,7 +693,7 @@ struct ContentView: View {
                     isDark: isDark,
                     loadState: loadState,
                     onLoadMore: {
-                        Task { await loadNextChunkAsync() }
+                        Task { await loadNextChunkAsync(for: path) }
                     }
                 )
             case .plainText:
@@ -577,7 +704,7 @@ struct ContentView: View {
                     isDark: isDark,
                     loadState: loadState,
                     onLoadMore: {
-                        Task { await loadNextChunkAsync() }
+                        Task { await loadNextChunkAsync(for: path) }
                     }
                 )
             case .pdf, .image:
@@ -649,8 +776,18 @@ struct ContentView: View {
 
     private func toggleMode() {
         if activeMode == .preview {
+            guard allowsEditing else { return }
+
             // 准备进入编辑模式，确保后台一次性静默读完全文，以保证保存时内容的绝对完整性
             if loadState.hasMoreChunks, let reader = chunkReader {
+                guard let request = loadCoordinator.activeRequest,
+                      PreviewEditPreparationPolicy.shouldApplyRemainingText(
+                        request: request,
+                        activeRequest: loadCoordinator.activeRequest,
+                        activePath: activePath,
+                        loadedContentPath: loadedContentPath
+                      ) else { return }
+
                 isLoading = true
                 Task {
                     let result = await Task.detached(priority: .userInitiated) { () -> Result<String, FileUtils.FileError> in
@@ -658,6 +795,21 @@ struct ContentView: View {
                     }.value
                     
                     await MainActor.run {
+                        guard PreviewEditPreparationPolicy.shouldApplyRemainingText(
+                            request: request,
+                            activeRequest: loadCoordinator.activeRequest,
+                            activePath: activePath,
+                            loadedContentPath: loadedContentPath
+                        ) else {
+                            if PreviewAsyncRequestCleanupPolicy.shouldClearLoadingForRejectedResult(
+                                request: request,
+                                activeRequest: loadCoordinator.activeRequest
+                            ) {
+                                self.isLoading = false
+                            }
+                            return
+                        }
+
                         switch result {
                         case .success(let remainingText):
                             self.content += remainingText
@@ -682,8 +834,8 @@ struct ContentView: View {
             }
         } else {
             transitionToPreviewMode()
-            // 返回预览模式时，把焦点交还给 Finder，窗口恢复为 non-key 状态
-            windowActions.unfocusWindowToFinder()
+            // 返回预览模式后按来源策略决定焦点，保持 Finder 驱动预览不抢焦点。
+            windowActions.focusWindowForPreview()
         }
     }
 
@@ -747,9 +899,9 @@ struct ContentView: View {
             }
         }
 
-        if activeRenderType == .pdf || activeRenderType == .image || activeRenderType == .unsupported || activeRenderType == .office {
+        if !ContentRenderCapabilityRegistry.usesTextContentLoader(for: activeRenderType) {
             return await MainActor.run {
-                guard loadCoordinator.shouldApplyResult(for: request) else {
+                guard loadCoordinator.shouldApplyResult(for: request, currentPath: activePath) else {
                     return false
                 }
                 self.session.markReady()
@@ -777,7 +929,7 @@ struct ContentView: View {
         }.value
 
         return await MainActor.run {
-            guard loadCoordinator.shouldApplyResult(for: request) else {
+            guard loadCoordinator.shouldApplyResult(for: request, currentPath: activePath) else {
                 if case .success(let payload) = result {
                     payload.0.close()
                 }
@@ -789,6 +941,7 @@ struct ContentView: View {
                 case .success(let payload):
                     self.chunkReader = payload.0
                     self.content = payload.1
+                    self.loadedContentPath = path
                     self.loadState.hasMoreChunks = payload.2
                     self.session.markReady()
                     if self.activeRenderType == .markdown {
@@ -800,6 +953,7 @@ struct ContentView: View {
                     }
                 case .failure(let error):
                     let runtimeErrorMessage = (error.errorDescription ?? "读取文件失败").localized()
+                    self.loadedContentPath = nil
                     let renderTypeOverride: FileRenderType?
                     if case .binaryFile = error {
                         renderTypeOverride = .unsupported
@@ -818,12 +972,22 @@ struct ContentView: View {
     }
 
     /// 后台线程增量读取后续段落，并通过 loadState.isIncrementalLoading 提示加载中
-    private func loadNextChunkAsync() async {
-        guard let reader = chunkReader, loadState.hasMoreChunks, !loadState.isIncrementalLoading else { return }
-        
-        await MainActor.run {
-            loadState.isIncrementalLoading = true
-        }
+    @MainActor
+    private func loadNextChunkAsync(for requestPath: String) async {
+        guard let request = loadCoordinator.activeRequest else { return }
+
+        guard let reader = chunkReader,
+              loadState.hasMoreChunks,
+              !loadState.isIncrementalLoading,
+              PreviewIncrementalContentLoadPolicy.shouldApplyChunk(
+                request: request,
+                activeRequest: loadCoordinator.activeRequest,
+                activePath: activePath,
+                loadedContentPath: loadedContentPath
+              ),
+              request.path == requestPath else { return }
+
+        loadState.isIncrementalLoading = true
         
         let result = await Task.detached(priority: .userInitiated) { () -> Result<(String, Bool), FileUtils.FileError> in
             let res = reader.readNextChunk(limitBytes: Constants.chunkSize)
@@ -834,19 +998,32 @@ struct ContentView: View {
                 return .failure(error)
             }
         }.value
-        
-        await MainActor.run {
-            withAnimation(.easeOut(duration: 0.2)) {
-                switch result {
-                case .success(let payload):
-                    self.content += payload.0
-                    self.loadState.hasMoreChunks = payload.1
-                    self.loadState.isIncrementalLoading = false
-                case .failure(let error):
-                    let runtimeErrorMessage = (error.errorDescription ?? "载入后续文本失败").localized()
-                    self.loadState.isIncrementalLoading = false
-                    windowActions.showToast(runtimeErrorMessage, "xmark.circle")
-                }
+
+        guard PreviewIncrementalContentLoadPolicy.shouldApplyChunk(
+            request: request,
+            activeRequest: loadCoordinator.activeRequest,
+            activePath: activePath,
+            loadedContentPath: loadedContentPath
+        ) else {
+            if PreviewAsyncRequestCleanupPolicy.shouldClearLoadingForRejectedResult(
+                request: request,
+                activeRequest: loadCoordinator.activeRequest
+            ) {
+                loadState.isIncrementalLoading = false
+            }
+            return
+        }
+
+        withAnimation(.easeOut(duration: 0.2)) {
+            switch result {
+            case .success(let payload):
+                self.content += payload.0
+                self.loadState.hasMoreChunks = payload.1
+                self.loadState.isIncrementalLoading = false
+            case .failure(let error):
+                let runtimeErrorMessage = (error.errorDescription ?? "载入后续文本失败").localized()
+                self.loadState.isIncrementalLoading = false
+                windowActions.showToast(runtimeErrorMessage, "xmark.circle")
             }
         }
     }
@@ -871,6 +1048,7 @@ struct ContentView: View {
         guard inflightLoadPath != path else { return }
 
         inflightLoadPath = path
+        prepareForIncomingPath(path)
         isLoading = true
         resetHeavyPreviewState(for: activeRenderType)
         markdownBootstrapReady = false
@@ -883,6 +1061,19 @@ struct ContentView: View {
         if inflightLoadPath == path {
             inflightLoadPath = nil
         }
+    }
+
+    @MainActor
+    private func prepareForIncomingPath(_ path: String) {
+        guard loadedContentPath != path else {
+            return
+        }
+
+        content = ""
+        loadedContentPath = nil
+        markdownHasLoadedInitialContent = false
+        markdownBootstrapReady = false
+        isLoading = true
     }
 
     private func resetHeavyPreviewState(for renderType: FileRenderType?) {
@@ -915,23 +1106,30 @@ struct ContentView: View {
     }
 
     private var shouldShowLoadingOverlay: Bool {
-        guard isLoading else { return false }
         guard activeRenderType == .markdown, activeMode == .preview, activePath != nil else { return false }
-        return !markdownBootstrapReady
+        guard isLoading || !canRenderLoadedContent else { return false }
+        return !canRenderLoadedContent || !markdownBootstrapReady
     }
 
     private var shouldRenderPreviewView: Bool {
         guard let renderType = activeRenderType else { return false }
+        guard canRenderLoadedContent else { return false }
         return MarkdownPreviewDisplayPolicy.shouldMountPreview(
             renderType: renderType,
             isLoading: isLoading,
             hasLoadedInitialContent: markdownHasLoadedInitialContent,
-            keepsPreviousPreviewMounted: renderType == .markdown && !content.isEmpty
+            keepsPreviousPreviewMounted: renderType == .markdown &&
+                activePath == loadedContentPath &&
+                !content.isEmpty
         )
     }
 
     private func exportMarkdownToPDF() {
-        guard let path = activePath, activeRenderType == .markdown else { return }
+        guard let path = activePath,
+              ContentRenderCapabilityRegistry.allowsPDFExport(
+                for: activeRenderType,
+                mode: activeMode
+              ) else { return }
         
         let savePanel = NSSavePanel()
         savePanel.allowedContentTypes = [.pdf]

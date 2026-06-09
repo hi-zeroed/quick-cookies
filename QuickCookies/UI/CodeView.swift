@@ -1,11 +1,38 @@
 import SwiftUI
 import AppKit
 
+enum CodeViewTextColorPolicy {
+    static func shouldApplyTextViewTextColor(language: String?) -> Bool {
+        language == nil
+    }
+}
+
 struct FontVariantCache {
     let regular: NSFont
     let bold: NSFont
     let italic: NSFont
     let boldItalic: NSFont
+}
+
+struct CodeViewRenderIdentity: Equatable {
+    let filePath: String
+    let contentLength: Int
+    let contentHash: Int
+    let language: String?
+    let themeName: String
+    let fontName: String
+    let fontSize: CGFloat
+}
+
+enum CodeViewAsyncRenderPolicy {
+    static func shouldApply(
+        capturedIdentity: CodeViewRenderIdentity,
+        currentIdentity: CodeViewRenderIdentity?,
+        capturedContent: String,
+        currentText: String
+    ) -> Bool {
+        capturedIdentity == currentIdentity && capturedContent == currentText
+    }
 }
 
 struct CodeView: NSViewRepresentable {
@@ -22,6 +49,22 @@ struct CodeView: NSViewRepresentable {
         Coordinator()
     }
 
+    private var themeName: String {
+        isDark ? "atom-one-dark" : "atom-one-light"
+    }
+
+    private var renderIdentity: CodeViewRenderIdentity {
+        CodeViewRenderIdentity(
+            filePath: filePath,
+            contentLength: content.count,
+            contentHash: content.hashValue,
+            language: language,
+            themeName: themeName,
+            fontName: fontName,
+            fontSize: fontSize
+        )
+    }
+
     class Coordinator: NSObject {
         var lastIsDark: Bool?
         var lastFontName: String?
@@ -32,6 +75,7 @@ struct CodeView: NSViewRepresentable {
         var loadState: PreviewLoadState?
         var onLoadMore: (() -> Void)?
         var fontCache: FontVariantCache?
+        var currentRenderIdentity: CodeViewRenderIdentity?
         
         func makeFontVariantCache(name: String, size: CGFloat) -> FontVariantCache {
             let baseFont = NSFont.editorFont(name: name, size: size)
@@ -98,7 +142,9 @@ struct CodeView: NSViewRepresentable {
         textView.font = NSFont.editorFont(name: fontName, size: fontSize)
         textView.backgroundColor = .clear
         textView.drawsBackground = false
-        textView.textColor = .appText
+        if CodeViewTextColorPolicy.shouldApplyTextViewTextColor(language: language) {
+            textView.textColor = .appText
+        }
         textView.isRichText = false
         textView.string = content
         // NOTE: 不设置 textView.wantsLayer = true，避免在非 Layer 的 NSScrollView 中产生
@@ -140,9 +186,15 @@ struct CodeView: NSViewRepresentable {
         // 生成字体变体缓存
         let cache = context.coordinator.makeFontVariantCache(name: fontName, size: fontSize)
         context.coordinator.fontCache = cache
+        context.coordinator.currentRenderIdentity = renderIdentity
 
         // 首次加载语法高亮
-        loadSyntaxHighlightFirstTime(for: textView, isDark: isDark, fontCache: cache)
+        loadSyntaxHighlightFirstTime(
+            for: textView,
+            isDark: isDark,
+            fontCache: cache,
+            coordinator: context.coordinator
+        )
 
         return scrollView
     }
@@ -170,6 +222,7 @@ struct CodeView: NSViewRepresentable {
         context.coordinator.lastFontName = fontName
         context.coordinator.lastFontSize = fontSize
         context.coordinator.lastFilePath = filePath
+        context.coordinator.currentRenderIdentity = renderIdentity
 
         // 动态更新字体变体缓存
         if fontChanged || context.coordinator.fontCache == nil {
@@ -190,21 +243,33 @@ struct CodeView: NSViewRepresentable {
         if textView.drawsBackground != false {
             textView.drawsBackground = false
         }
-        if textView.textColor != .appText {
+        if CodeViewTextColorPolicy.shouldApplyTextViewTextColor(language: language),
+           textView.textColor != .appText {
             textView.textColor = .appText
         }
 
         if isIncremental {
             // 增量追加段落
             let newText = String(content[content.index(content.startIndex, offsetBy: currentLength)...])
-            appendChunk(newText: newText, for: textView, isDark: isDark, fontCache: cache)
+            appendChunk(
+                newText: newText,
+                for: textView,
+                isDark: isDark,
+                fontCache: cache,
+                coordinator: context.coordinator
+            )
             context.coordinator.lastRenderedContent = content
             context.coordinator.lastContentLength = textView.textStorage?.length ?? 0
         } else if !isSameFile || contentChanged || isDarkChanged || fontChanged {
             // 首次加载、修改主题或字体
             textView.string = content
             textView.scrollRangeToVisible(NSRange(location: 0, length: 0))
-            loadSyntaxHighlightFirstTime(for: textView, isDark: isDark, fontCache: cache)
+            loadSyntaxHighlightFirstTime(
+                for: textView,
+                isDark: isDark,
+                fontCache: cache,
+                coordinator: context.coordinator
+            )
             context.coordinator.lastRenderedContent = content
             context.coordinator.lastContentLength = textView.textStorage?.length ?? 0
         } else {
@@ -213,9 +278,15 @@ struct CodeView: NSViewRepresentable {
     }
 
     /// 首次异步语法高亮（首屏 500 行秒开展示 + 后台全量高亮平滑刷入）
-    private func loadSyntaxHighlightFirstTime(for textView: NSTextView, isDark: Bool, fontCache: FontVariantCache) {
+    private func loadSyntaxHighlightFirstTime(
+        for textView: NSTextView,
+        isDark: Bool,
+        fontCache: FontVariantCache,
+        coordinator: Coordinator
+    ) {
         let fullContent = content
-        let themeName = isDark ? "atom-one-dark" : "atom-one-light"
+        let themeName = self.themeName
+        let capturedIdentity = renderIdentity
         let modDate = FileUtils.getModificationDate(at: filePath)
 
         // 1. 安全降级防护网：如果无指定语言（纯文本），或者高亮引擎初始化失败（Release 包环境差异）
@@ -228,6 +299,12 @@ struct CodeView: NSViewRepresentable {
             ]
             let attributed = NSAttributedString(string: fullContent, attributes: attributes)
             DispatchQueue.main.async {
+                guard CodeViewAsyncRenderPolicy.shouldApply(
+                    capturedIdentity: capturedIdentity,
+                    currentIdentity: coordinator.currentRenderIdentity,
+                    capturedContent: fullContent,
+                    currentText: textView.string
+                ) else { return }
                 textView.textStorage?.setAttributedString(attributed)
             }
             return
@@ -235,7 +312,14 @@ struct CodeView: NSViewRepresentable {
         
         // 2. 尝试从内存缓存中直接匹配高亮文本
         if let cached = HighlightCache.shared.get(for: filePath, themeName: themeName, fontName: fontName, fontSize: fontSize, modificationDate: modDate) {
-            textView.textStorage?.setAttributedString(cached)
+            if CodeViewAsyncRenderPolicy.shouldApply(
+                capturedIdentity: capturedIdentity,
+                currentIdentity: coordinator.currentRenderIdentity,
+                capturedContent: fullContent,
+                currentText: textView.string
+            ) {
+                textView.textStorage?.setAttributedString(cached)
+            }
             return
         }
 
@@ -252,6 +336,12 @@ struct CodeView: NSViewRepresentable {
                     HighlightCache.shared.set(customAttributed, for: filePath, themeName: themeName, fontName: fontName, fontSize: fontSize, modificationDate: modDate)
                     
                     DispatchQueue.main.async {
+                        guard CodeViewAsyncRenderPolicy.shouldApply(
+                            capturedIdentity: capturedIdentity,
+                            currentIdentity: coordinator.currentRenderIdentity,
+                            capturedContent: fullContent,
+                            currentText: textView.string
+                        ) else { return }
                         // NOTE: 直接替换，无 CATransition 动画
                         textView.textStorage?.setAttributedString(customAttributed)
                     }
@@ -277,6 +367,12 @@ struct CodeView: NSViewRepresentable {
                 tempFull.append(remainAttributed)
                 
                 DispatchQueue.main.async {
+                    guard CodeViewAsyncRenderPolicy.shouldApply(
+                        capturedIdentity: capturedIdentity,
+                        currentIdentity: coordinator.currentRenderIdentity,
+                        capturedContent: fullContent,
+                        currentText: textView.string
+                    ) else { return }
                     textView.textStorage?.setAttributedString(tempFull)
                 }
                 
@@ -288,7 +384,12 @@ struct CodeView: NSViewRepresentable {
                     HighlightCache.shared.set(customFull, for: filePath, themeName: themeName, fontName: fontName, fontSize: fontSize, modificationDate: modDate)
                     
                     DispatchQueue.main.async {
-                        guard textView.string == fullContent,
+                        guard CodeViewAsyncRenderPolicy.shouldApply(
+                                  capturedIdentity: capturedIdentity,
+                                  currentIdentity: coordinator.currentRenderIdentity,
+                                  capturedContent: fullContent,
+                                  currentText: textView.string
+                              ),
                               let textStorage = textView.textStorage else { return }
                         // PERF: 高效率的 setAttributedString 整体覆写（仅耗时 0.3ms）
                         // 避免在主线程使用 enumerateAttributes 产生上千次 ObjC 桥接调用阻塞主线程
@@ -300,7 +401,13 @@ struct CodeView: NSViewRepresentable {
     }
 
     /// 增量追加新片段（新文本在主线程追加呈现，后台头部起算高亮以保证完美着色，完成后刷入属性）
-    private func appendChunk(newText: String, for textView: NSTextView, isDark: Bool, fontCache: FontVariantCache) {
+    private func appendChunk(
+        newText: String,
+        for textView: NSTextView,
+        isDark: Bool,
+        fontCache: FontVariantCache,
+        coordinator: Coordinator
+    ) {
         guard let textStorage = textView.textStorage else { return }
         
         let previousFullText = textView.string
@@ -319,7 +426,8 @@ struct CodeView: NSViewRepresentable {
         guard let language = language else { return }
         
         // 2. 后台执行全量高亮，保障边界着色完美连续（使用 utility 优先级避免与滚动竞争 CPU）
-        let themeName = isDark ? "atom-one-dark" : "atom-one-light"
+        let themeName = self.themeName
+        let capturedIdentity = renderIdentity
         let modDate = FileUtils.getModificationDate(at: filePath)
         let fullText = previousFullText + newText
         
@@ -335,7 +443,12 @@ struct CodeView: NSViewRepresentable {
             
             // 4. 主线程中直接一次性将高亮完整的富文本整体写入（仅需一次 Bridge 桥接，速度比 enumerateAttributes 快 20 倍以上）
             DispatchQueue.main.async {
-                guard textView.string == fullText else { return }
+                guard CodeViewAsyncRenderPolicy.shouldApply(
+                    capturedIdentity: capturedIdentity,
+                    currentIdentity: coordinator.currentRenderIdentity,
+                    capturedContent: fullText,
+                    currentText: textView.string
+                ) else { return }
                 textStorage.setAttributedString(customFull)
             }
         }

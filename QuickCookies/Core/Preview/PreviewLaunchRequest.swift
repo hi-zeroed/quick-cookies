@@ -105,6 +105,7 @@ enum PreviewLaunchSource: Equatable {
     case urlScheme
     case menuBar
     case finderSync
+    case internalNavigation
 }
 
 enum PreviewLaunchPathIntent: Equatable {
@@ -188,6 +189,8 @@ final class FinderSelectionMonitor {
 
     func refreshIfFinderFrontmost<SelectionError: Error>(
         frontmostBundleIdentifier: String?,
+        allowsUnknownFrontmost: Bool = false,
+        additionalAllowedFrontmostBundleIdentifiers: Set<String> = [],
         runAsync: @escaping (@escaping () -> Void) -> Void,
         deliverOnMain: @escaping (@escaping () -> Void) -> Void,
         detectSelectionPath: @escaping () -> Result<String, SelectionError>,
@@ -195,7 +198,12 @@ final class FinderSelectionMonitor {
         onRequest: @escaping (PreviewLaunchRequest) -> Void,
         onSourceRectUpdate: @escaping (CGRect) -> Void
     ) {
-        guard frontmostBundleIdentifier == "com.apple.finder" else {
+        let isAllowedFrontmost =
+            frontmostBundleIdentifier == "com.apple.finder" ||
+            (allowsUnknownFrontmost && frontmostBundleIdentifier == nil) ||
+            frontmostBundleIdentifier.map(additionalAllowedFrontmostBundleIdentifiers.contains) == true
+
+        guard isAllowedFrontmost else {
             return
         }
 
@@ -290,13 +298,20 @@ final class FinderSelectionPollingController {
         monitor.reset()
     }
 
-    func start(interval: TimeInterval = 0.15) {
+    func start(
+        interval: TimeInterval = 0.15,
+        allowsUnknownFrontmost: Bool = false,
+        additionalAllowedFrontmostBundleIdentifiers: Set<String> = []
+    ) {
         guard timer == nil else {
             return
         }
 
         timer = timerFactory(interval) { [weak self] in
-            self?.refresh()
+            self?.refresh(
+                allowsUnknownFrontmost: allowsUnknownFrontmost,
+                additionalAllowedFrontmostBundleIdentifiers: additionalAllowedFrontmostBundleIdentifiers
+            )
         }
     }
 
@@ -305,9 +320,14 @@ final class FinderSelectionPollingController {
         timer = nil
     }
 
-    func refresh() {
+    func refresh(
+        allowsUnknownFrontmost: Bool = false,
+        additionalAllowedFrontmostBundleIdentifiers: Set<String> = []
+    ) {
         monitor.refreshIfFinderFrontmost(
             frontmostBundleIdentifier: frontmostBundleIdentifier(),
+            allowsUnknownFrontmost: allowsUnknownFrontmost,
+            additionalAllowedFrontmostBundleIdentifiers: additionalAllowedFrontmostBundleIdentifiers,
             runAsync: runAsync,
             deliverOnMain: deliverOnMain,
             detectSelectionPath: detectSelectionPath,
@@ -315,6 +335,22 @@ final class FinderSelectionPollingController {
             onRequest: onRequest,
             onSourceRectUpdate: onSourceRectUpdate
         )
+    }
+
+    func refreshBurst(
+        delays: [TimeInterval],
+        allowsUnknownFrontmost: Bool = false,
+        additionalAllowedFrontmostBundleIdentifiers: Set<String> = [],
+        schedule: @escaping (_ delay: TimeInterval, _ work: @escaping () -> Void) -> Void
+    ) {
+        for delay in delays {
+            schedule(delay) { [weak self] in
+                self?.refresh(
+                    allowsUnknownFrontmost: allowsUnknownFrontmost,
+                    additionalAllowedFrontmostBundleIdentifiers: additionalAllowedFrontmostBundleIdentifiers
+                )
+            }
+        }
     }
 }
 

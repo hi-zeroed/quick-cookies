@@ -84,8 +84,8 @@ final class PreviewCoordinatorTests: XCTestCase {
     }
 
     func test_coordinator_openUnsupportedFile_keepsResolvedTargetForPresentation() throws {
-        let fileURL = temporaryDirectoryURL.appendingPathComponent("archive.zip")
-        try Data([0x50, 0x4B, 0x03, 0x04]).write(to: fileURL)
+        let fileURL = temporaryDirectoryURL.appendingPathComponent("executable.bin")
+        try Data([0x41, 0x42, 0x00, 0x43]).write(to: fileURL)
 
         let session = PreviewSession()
         let coordinator = PreviewCoordinator(
@@ -96,7 +96,7 @@ final class PreviewCoordinatorTests: XCTestCase {
         try coordinator.handle(.openPath(fileURL.path, source: .service))
 
         XCTAssertEqual(session.state.target?.resolvedPath, fileURL.path)
-        XCTAssertEqual(session.state.target?.displayName, "archive.zip")
+        XCTAssertEqual(session.state.target?.displayName, "executable.bin")
         XCTAssertEqual(session.state.runtimeKind, .text)
         XCTAssertEqual(session.state.readiness, .loading)
         XCTAssertEqual(session.state.target?.renderType, .unsupported)

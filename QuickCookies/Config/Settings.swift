@@ -377,7 +377,7 @@ struct Localization {
             "Locating...": [.en: "Locating...", .zhHans: "定位中..."],
             "⚠️ Loaded first 1000 lines only": [.en: "⚠️ Loaded first 1000 lines only", .zhHans: "⚠️只加载了前1000行"],
             "Enter Edit (Cmd+E)": [.en: "Enter Edit (Cmd+E)", .zhHans: "进入编辑 (Cmd+E)"],
-            "Back to Preview (Esc)": [.en: "Back to Preview (Esc)", .zhHans: "回到预览 (Esc)"],
+            "Back to Preview": [.en: "Back to Preview", .zhHans: "回到预览"],
             "Save (Cmd+S)": [.en: "Save (Cmd+S)", .zhHans: "保存 (Cmd+S)"],
             "Failed to read file": [.en: "Failed to read file", .zhHans: "读取文件失败"],
             "Size": [.en: "Size", .zhHans: "大小"],

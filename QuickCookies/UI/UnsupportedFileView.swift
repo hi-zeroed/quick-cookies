@@ -61,10 +61,6 @@ struct UnsupportedFileView: View {
                 Text(errorMessage?.localized() ?? "Unsupported file type (detail)".localized())
                     .font(.system(size: 13, weight: .medium, design: .default))
                     .foregroundColor(Color.appText.opacity(0.8))
-                
-                Text("按 Esc 键关闭窗口".localized())
-                    .font(.system(size: 11, design: .monospaced))
-                    .foregroundColor(Color.appText.opacity(0.35))
             }
             
             // 用默认应用打开的按钮（如果有路径）

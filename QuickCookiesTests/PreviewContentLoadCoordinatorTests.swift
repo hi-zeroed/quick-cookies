@@ -40,4 +40,30 @@ final class PreviewContentLoadCoordinatorTests: XCTestCase {
 
         XCTAssertNil(coordinator.activeRequest)
     }
+
+    func test_shouldApply_rejectsRequestWhenCurrentPathHasMovedBeforeNextRequestStarts() {
+        var coordinator = PreviewContentLoadCoordinator()
+
+        let request = coordinator.beginLoad(path: "/tmp/a.md")
+
+        XCTAssertFalse(
+            coordinator.shouldApplyResult(
+                for: request,
+                currentPath: "/tmp/b.md"
+            )
+        )
+    }
+
+    func test_shouldApply_acceptsLatestRequestOnlyWhenItStillMatchesCurrentPath() {
+        var coordinator = PreviewContentLoadCoordinator()
+
+        let request = coordinator.beginLoad(path: "/tmp/a.md")
+
+        XCTAssertTrue(
+            coordinator.shouldApplyResult(
+                for: request,
+                currentPath: "/tmp/a.md"
+            )
+        )
+    }
 }
