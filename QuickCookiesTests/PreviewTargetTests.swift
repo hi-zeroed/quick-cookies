@@ -1,6 +1,14 @@
 import XCTest
 @testable import QuickCookies
 
+private struct StubFinderSelectionPathProvider: FinderSelectionPathProviding {
+    let result: Result<String, FileDetector.DetectError>
+
+    func selectedPath() -> Result<String, FileDetector.DetectError> {
+        result
+    }
+}
+
 final class PreviewTargetTests: XCTestCase {
     private var tempDirectoryURL: URL!
 
@@ -33,7 +41,9 @@ final class PreviewTargetTests: XCTestCase {
         )
 
         let resolver = PreviewTargetResolver(
-            finderSelectionProvider: { nil }
+            finderSelectionPathProvider: StubFinderSelectionPathProvider(
+                result: .failure(.noFileSelected)
+            )
         )
 
         let target = try resolver.resolve(
@@ -49,7 +59,9 @@ final class PreviewTargetTests: XCTestCase {
 
     func test_resolver_finderSelectionWithoutSelection_throwsStructuredError() {
         let resolver = PreviewTargetResolver(
-            finderSelectionProvider: { nil }
+            finderSelectionPathProvider: StubFinderSelectionPathProvider(
+                result: .failure(.noFileSelected)
+            )
         )
 
         XCTAssertThrowsError(
@@ -67,7 +79,9 @@ final class PreviewTargetTests: XCTestCase {
         )
 
         let resolver = PreviewTargetResolver(
-            finderSelectionProvider: { nil }
+            finderSelectionPathProvider: StubFinderSelectionPathProvider(
+                result: .failure(.noFileSelected)
+            )
         )
 
         let target = try resolver.resolve(
