@@ -96,53 +96,25 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: ./release_dist/QuickCookies-macOS.dmg
+          generate_release_notes: true
           body: |
             # Quick Cookies Release
 
-            ## 🍺 通过 Homebrew Cask 一键安装 / Install via Homebrew Cask
+            ## Install
             
             ```bash
             brew tap hi-zeroed/tap
             brew install --cask quick-cookies
             ```
 
-            ---
+            ## First Launch
 
-            ## 📥 手动安装运行说明 / Manual Installation & Running Guide
+            QuickCookies is currently distributed without Apple notarization. If macOS blocks the first launch, follow the manual installation notes in the README.
 
-            ---
-
-            ### 🇨🇳 简体中文说明
-            
-            由于本软件为个人开源项目，未加入苹果开发者付费计划，下载后可能提示“已损坏，移至废纸篓”或“无法确认开发者”警告。请按照以下方式运行：
-            
-            #### 💡 方法一：右键授权打开 (推荐)
-            1. 将 `QuickCookies.app` 拖入 **Applications (应用程序)** 文件夹。
-            2. 在 Applications 文件夹中，**按住 Control 键并右键点击** `QuickCookies` 图标，在菜单中选择 **打开 (Open)**。
-            3. 在弹出的警告窗口中，点击 **打开 (Open)** 按钮。此后系统会永久豁免该提醒，双击直接运行。
-            
-            #### 💻 方法二：终端命令行消除隔离标签
-            若双击提示损坏，这是浏览器对下载文件施加的隔离限制。只需打开 **终端 (Terminal)** 运行以下指令：
-            ```bash
-            sudo xattr -r -d com.apple.quarantine /Applications/QuickCookies.app
-            ```
+            - 简体中文: https://github.com/hi-zeroed/quick-cookies/blob/main/README-cn.md
+            - English: https://github.com/hi-zeroed/quick-cookies/blob/main/README.md
 
             ---
-
-            ### 🇺🇸 English Guide
-            
-            Since this software is a personal open-source project and is not signed with a paid Apple Developer certificate, macOS Gatekeeper may show "App is damaged" or "Cannot confirm developer" warnings upon opening. Please follow either method below to run it:
-            
-            #### 💡 Method 1: Right-Click to Open (Recommended)
-            1. Drag `QuickCookies.app` into your **Applications** folder.
-            2. In the Applications folder, **hold down the Control key and right-click** the `QuickCookies` icon, then select **Open**.
-            3. In the pop-up warning dialog, click the **Open** button. macOS will remember this exception, and you can open it by double-clicking in the future.
-            
-            #### 💻 Method 2: Clear Quarantine Attribute via Terminal
-            If macOS reports the app is damaged, it is because the browser adds a quarantine flag to downloaded files. Simply open your **Terminal** and execute:
-            ```bash
-            sudo xattr -r -d com.apple.quarantine /Applications/QuickCookies.app
-            ```
           draft: false
           prerelease: false
         env:

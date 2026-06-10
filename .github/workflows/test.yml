@@ -10,18 +10,23 @@ on:
 
 jobs:
   test:
-    runs-on: macos-14
+    runs-on: macos-26
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Print Test Environment
+        run: |
+          sw_vers
+          xcodebuild -version
+          xcrun --sdk macosx --show-sdk-version
 
       - name: Cache SwiftPM
         uses: actions/cache@v4
         with:
           path: |
             ~/Library/Caches/org.swift.swiftpm
-            ~/Library/Developer/Xcode/DerivedData
           key: ${{ runner.os }}-spm-${{ hashFiles('**/Package.resolved') }}
           restore-keys: |
             ${{ runner.os }}-spm-
@@ -31,7 +36,8 @@ jobs:
           xcodebuild test \
             -project QuickCookies.xcodeproj \
             -scheme QuickCookies \
-            -destination 'platform=macOS' \
+            -destination 'platform=macOS,arch=arm64' \
+            -derivedDataPath "./derived_data/test-${{ github.run_id }}-${{ github.run_attempt }}" \
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO
