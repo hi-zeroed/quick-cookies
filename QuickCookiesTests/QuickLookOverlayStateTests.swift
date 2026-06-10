@@ -1250,6 +1250,25 @@ final class QuickLookOverlayStateTests: XCTestCase {
         )
     }
 
+    func test_codeViewHighlightFallbackPolicy_returnsVisiblePlainTextWhenHighlightingFails() {
+        let content = "let value = 1"
+
+        let attributed = CodeViewHighlightFallbackPolicy.attributedText(
+            highlighted: nil,
+            fallbackContent: content,
+            fontName: "Menlo",
+            fontSize: 13,
+            isDark: true
+        )
+
+        XCTAssertEqual(attributed.string, content)
+        XCTAssertEqual(attributed.length, content.count)
+
+        let attributes = attributed.attributes(at: 0, effectiveRange: nil)
+        XCTAssertNotNil(attributes[.font])
+        XCTAssertNotNil(attributes[.foregroundColor])
+    }
+
     func test_previewIncrementalContentLoadPolicy_acceptsOnlyCurrentLoadedPath() {
         let request = PreviewContentLoadRequest(id: UUID(), path: "/tmp/current.swift")
 

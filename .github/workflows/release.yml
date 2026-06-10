@@ -10,11 +10,17 @@ permissions:
 
 jobs:
   build-and-release:
-    runs-on: macos-14  # 使用 macOS 14 硅芯片容器，拥有极佳的编译速度
+    runs-on: macos-26  # 使用 macOS 26 arm64 runner，贴近本地 Xcode 26 构建环境
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+
+      - name: Print Build Environment
+        run: |
+          sw_vers
+          xcodebuild -version
+          xcrun --sdk macosx --show-sdk-version
 
       - name: Build macOS App (Unsigned)
         run: |
@@ -37,6 +43,11 @@ jobs:
           else
             echo "Warning: Highlightr.bundle not found."
           fi
+          echo "Highlightr bundle files: $(find "$HIGHLIGHTR_BUNDLE_RESOURCES" -type f | wc -l | tr -d ' ')"
+          stat -f "highlight.min.js bytes: %z" "$APP_PATH/Contents/Resources/highlight.min.js"
+          stat -f "atom-one-dark.min.css bytes: %z" "$APP_PATH/Contents/Resources/atom-one-dark.min.css"
+          /usr/libexec/PlistBuddy -c 'Print :DTXcode' "$APP_PATH/Contents/Info.plist"
+          /usr/libexec/PlistBuddy -c 'Print :DTSDKName' "$APP_PATH/Contents/Info.plist"
 
       - name: Ad-hoc Force Sign App & Extension
         run: |

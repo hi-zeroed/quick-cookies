@@ -35,6 +35,30 @@ enum CodeViewAsyncRenderPolicy {
     }
 }
 
+enum CodeViewHighlightFallbackPolicy {
+    static func attributedText(
+        highlighted: NSAttributedString?,
+        fallbackContent: String,
+        fontName: String,
+        fontSize: CGFloat,
+        isDark: Bool,
+        fontCache: FontVariantCache? = nil
+    ) -> NSAttributedString {
+        if let highlighted {
+            if let fontCache {
+                return highlighted.applyingFontCache(fontCache)
+            }
+            return highlighted.applyingEditorFont(name: fontName, size: fontSize)
+        }
+
+        let attributes: [NSAttributedString.Key: Any] = [
+            .font: NSFont.editorFont(name: fontName, size: fontSize),
+            .foregroundColor: isDark ? NSColor(white: 0.85, alpha: 1.0) : NSColor(white: 0.15, alpha: 1.0)
+        ]
+        return NSAttributedString(string: fallbackContent, attributes: attributes)
+    }
+}
+
 struct CodeView: NSViewRepresentable {
     let filePath: String
     let content: String
@@ -293,11 +317,13 @@ struct CodeView: NSViewRepresentable {
         //    则以用户配置的默认字体与高对比度前景颜色渲染并覆写 textStorage，消除默认的“黑底黑字”空白现象
         guard let language = language,
               SyntaxHighlighter.shared != nil else {
-            let attributes: [NSAttributedString.Key: Any] = [
-                .font: NSFont.editorFont(name: fontName, size: fontSize),
-                .foregroundColor: isDark ? NSColor(white: 0.85, alpha: 1.0) : NSColor(white: 0.15, alpha: 1.0)
-            ]
-            let attributed = NSAttributedString(string: fullContent, attributes: attributes)
+            let attributed = CodeViewHighlightFallbackPolicy.attributedText(
+                highlighted: nil,
+                fallbackContent: fullContent,
+                fontName: fontName,
+                fontSize: fontSize,
+                isDark: isDark
+            )
             DispatchQueue.main.async {
                 guard CodeViewAsyncRenderPolicy.shouldApply(
                     capturedIdentity: capturedIdentity,
@@ -329,22 +355,28 @@ struct CodeView: NSViewRepresentable {
             
             if lines.count <= 1000 {
                 // 中小文件：直接一次性后台高亮并缓存，极速呈现
-                if let highlighter = SyntaxHighlighter.shared,
-                   let attributed = highlighter.highlight(code: fullContent, language: language, theme: themeName) {
-                    let customAttributed = attributed.applyingFontCache(fontCache)
-                    
+                let highlighted = SyntaxHighlighter.shared?.highlight(code: fullContent, language: language, theme: themeName)
+                let customAttributed = CodeViewHighlightFallbackPolicy.attributedText(
+                    highlighted: highlighted,
+                    fallbackContent: fullContent,
+                    fontName: fontName,
+                    fontSize: fontSize,
+                    isDark: isDark,
+                    fontCache: fontCache
+                )
+                if highlighted != nil {
                     HighlightCache.shared.set(customAttributed, for: filePath, themeName: themeName, fontName: fontName, fontSize: fontSize, modificationDate: modDate)
+                }
                     
-                    DispatchQueue.main.async {
-                        guard CodeViewAsyncRenderPolicy.shouldApply(
-                            capturedIdentity: capturedIdentity,
-                            currentIdentity: coordinator.currentRenderIdentity,
-                            capturedContent: fullContent,
-                            currentText: textView.string
-                        ) else { return }
-                        // NOTE: 直接替换，无 CATransition 动画
-                        textView.textStorage?.setAttributedString(customAttributed)
-                    }
+                DispatchQueue.main.async {
+                    guard CodeViewAsyncRenderPolicy.shouldApply(
+                        capturedIdentity: capturedIdentity,
+                        currentIdentity: coordinator.currentRenderIdentity,
+                        capturedContent: fullContent,
+                        currentText: textView.string
+                    ) else { return }
+                    // NOTE: 直接替换，无 CATransition 动画
+                    textView.textStorage?.setAttributedString(customAttributed)
                 }
             } else {
                 // 超大文件首段：先高亮前 500 行，剩下普通文本显示，实现窗口 0ms 秒开
@@ -353,6 +385,22 @@ struct CodeView: NSViewRepresentable {
                 
                 guard let highlighter = SyntaxHighlighter.shared,
                       let firstAttributed = highlighter.highlight(code: firstPart, language: language, theme: themeName) else {
+                    let fallbackAttributed = CodeViewHighlightFallbackPolicy.attributedText(
+                        highlighted: nil,
+                        fallbackContent: fullContent,
+                        fontName: fontName,
+                        fontSize: fontSize,
+                        isDark: isDark
+                    )
+                    DispatchQueue.main.async {
+                        guard CodeViewAsyncRenderPolicy.shouldApply(
+                            capturedIdentity: capturedIdentity,
+                            currentIdentity: coordinator.currentRenderIdentity,
+                            capturedContent: fullContent,
+                            currentText: textView.string
+                        ) else { return }
+                        textView.textStorage?.setAttributedString(fallbackAttributed)
+                    }
                     return
                 }
                 
@@ -378,10 +426,19 @@ struct CodeView: NSViewRepresentable {
                 
                 // 随后在后台默默做首段文本的全量高亮（使用 utility 优先级避免与主线程滚动抢占 CPU 资源）
                 DispatchQueue.global(qos: .utility).async {
-                    guard let fullAttributed = highlighter.highlight(code: fullContent, language: language, theme: themeName) else { return }
-                    let customFull = fullAttributed.applyingFontCache(fontCache)
-                    
-                    HighlightCache.shared.set(customFull, for: filePath, themeName: themeName, fontName: fontName, fontSize: fontSize, modificationDate: modDate)
+                    let highlighted = highlighter.highlight(code: fullContent, language: language, theme: themeName)
+                    let customFull = CodeViewHighlightFallbackPolicy.attributedText(
+                        highlighted: highlighted,
+                        fallbackContent: fullContent,
+                        fontName: fontName,
+                        fontSize: fontSize,
+                        isDark: isDark,
+                        fontCache: fontCache
+                    )
+
+                    if highlighted != nil {
+                        HighlightCache.shared.set(customFull, for: filePath, themeName: themeName, fontName: fontName, fontSize: fontSize, modificationDate: modDate)
+                    }
                     
                     DispatchQueue.main.async {
                         guard CodeViewAsyncRenderPolicy.shouldApply(
@@ -432,14 +489,19 @@ struct CodeView: NSViewRepresentable {
         let fullText = previousFullText + newText
         
         DispatchQueue.global(qos: .utility).async {
-            guard let highlighter = SyntaxHighlighter.shared,
-                  let fullAttributed = highlighter.highlight(code: fullText, language: language, theme: themeName) else {
-                return
+            let highlighted = SyntaxHighlighter.shared?.highlight(code: fullText, language: language, theme: themeName)
+            let customFull = CodeViewHighlightFallbackPolicy.attributedText(
+                highlighted: highlighted,
+                fallbackContent: fullText,
+                fontName: fontName,
+                fontSize: fontSize,
+                isDark: isDark,
+                fontCache: fontCache
+            )
+
+            if highlighted != nil {
+                HighlightCache.shared.set(customFull, for: filePath, themeName: themeName, fontName: fontName, fontSize: fontSize, modificationDate: modDate)
             }
-            
-            // 3. 将高亮完的 fullText 富文本覆盖写入缓存，以便下一次秒开
-            let customFull = fullAttributed.applyingFontCache(fontCache)
-            HighlightCache.shared.set(customFull, for: filePath, themeName: themeName, fontName: fontName, fontSize: fontSize, modificationDate: modDate)
             
             // 4. 主线程中直接一次性将高亮完整的富文本整体写入（仅需一次 Bridge 桥接，速度比 enumerateAttributes 快 20 倍以上）
             DispatchQueue.main.async {
