@@ -41,15 +41,17 @@ jobs:
       - name: Ad-hoc Force Sign App & Extension
         run: |
           APP_PATH="./derived_data/Build/Products/Release/QuickCookies.app"
+          ENTITLEMENTS_PATH="./QuickCookies/QuickCookies.entitlements"
           
           # 1. 强制对内置的 Finder Sync 插件进行 Ad-hoc 覆盖签名
-          codesign --force --deep --sign - "$APP_PATH/Contents/PlugIns/QuickCookiesFinderSync.appex"
+          codesign --force --deep --sign - --entitlements "$ENTITLEMENTS_PATH" "$APP_PATH/Contents/PlugIns/QuickCookiesFinderSync.appex"
           
           # 2. 强制对主应用进行 Ad-hoc 覆盖签名
-          codesign --force --deep --sign - "$APP_PATH"
+          codesign --force --deep --sign - --entitlements "$ENTITLEMENTS_PATH" "$APP_PATH"
           
           # 3. 校验签名状态
           codesign -vvv --deep --display "$APP_PATH"
+          codesign -d --entitlements :- "$APP_PATH"
 
       - name: Install create-dmg
         run: brew install create-dmg
@@ -192,4 +194,3 @@ jobs:
             git commit -m "Update quick-cookies to v$VERSION"
             git push origin main
           fi
-

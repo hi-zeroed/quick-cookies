@@ -65,7 +65,7 @@ final class PreviewDisplayStateResolverTests: XCTestCase {
         let resolved = PreviewDisplayStateResolver.resolve(sessionState: sessionState)
 
         XCTAssertNil(resolved.filePath)
-        XCTAssertNil(resolved.renderType)
+        XCTAssertEqual(resolved.renderType, .unsupported)
         XCTAssertEqual(resolved.errorMessage, PreviewTargetError.noFinderSelection.defaultMessage)
         XCTAssertEqual(resolved.mode, .preview)
         XCTAssertFalse(resolved.isExpanded)

@@ -112,24 +112,26 @@ fi
 # ==========================================
 APP_PATH="$BUILD_DIR/Build/Products/Release/QuickCookies.app"
 EXTENSION_PATH="$APP_PATH/Contents/PlugIns/QuickCookiesFinderSync.appex"
+ENTITLEMENTS_PATH="./QuickCookies/QuickCookies.entitlements"
 
 log_info "正在执行 Ad-hoc 覆盖自签名... / Applying Ad-hoc force signing..."
 
 # 1. Sign Extension (Inside-out rule)
 if [ -d "$EXTENSION_PATH" ]; then
     log_info "1. 正在对内置 Finder Sync 插件进行 Ad-hoc 签名... / 1. Signing Finder Sync app extension..."
-    codesign --force --deep --sign - "$EXTENSION_PATH"
+    codesign --force --deep --sign - --entitlements "$ENTITLEMENTS_PATH" "$EXTENSION_PATH"
 else
     log_warning "未发现 Finder Sync 扩展插件，跳过其签名。 / Finder Sync app extension not found. Skipping."
 fi
 
 # 2. Sign main App wrapper
 log_info "2. 正在对主 App 进行 Ad-hoc 签名... / 2. Signing main App..."
-codesign --force --deep --sign - "$APP_PATH"
+codesign --force --deep --sign - --entitlements "$ENTITLEMENTS_PATH" "$APP_PATH"
 
 # 3. Verify signature
 log_info "正在校验 App 签名完整性状态... / Verifying code signature..."
 codesign -vvv --deep --display "$APP_PATH"
+codesign -d --entitlements :- "$APP_PATH"
 log_success "Ad-hoc 签名覆盖完成。 / Ad-hoc signing completed."
 
 # ==========================================

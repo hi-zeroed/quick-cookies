@@ -167,13 +167,16 @@ enum ContentEditingPolicy {
 
 enum PreviewDisplayStateResolver {
     static func resolve(sessionState: PreviewSessionState) -> PreviewDisplayState {
+        let errorMessage = sessionState.errorMessage
+        let renderType = sessionState.displayRenderType ?? (errorMessage == nil ? nil : .unsupported)
+
         return PreviewDisplayState(
             filePath: sessionState.target?.resolvedPath,
             displayName: sessionState.target?.displayName,
-            renderType: sessionState.displayRenderType,
+            renderType: renderType,
             language: sessionState.target?.language,
             mode: sessionState.mode == .edit ? .edit : .preview,
-            errorMessage: sessionState.errorMessage,
+            errorMessage: errorMessage,
             isLoadingPath: sessionState.readiness == .loading,
             isExpanded: sessionState.isExpanded
         )
