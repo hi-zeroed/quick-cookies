@@ -432,6 +432,7 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
     private let stableCardOuterPadding: CGFloat = 0
     private let animationOutset: CGFloat = 40
     private let finderSelectionRefreshBurstDelays: [TimeInterval] = [0.05, 0.12, 0.24]
+    var finderSelectionPathProvider: any FinderSelectionPathProviding = AppleScriptFinderSelectionPathProvider()
     var onFinderSelectionRequest: ((PreviewLaunchRequest) -> Void)?
     private var previewWindow: NSWindow?
     var currentWindow: NSWindow? { previewWindow }
@@ -473,8 +474,9 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         frontmostBundleIdentifier: {
             NSWorkspace.shared.frontmostApplication?.bundleIdentifier
         },
-        detectSelectionPath: {
-            FileDetector.getSelectedFilePath().mapError { $0 as any Error }
+        detectSelectionPath: { [weak self] in
+            self?.finderSelectionPollingSelectionPathResult()
+                ?? AppleScriptFinderSelectionPathProvider().selectedPath().mapError { $0 as any Error }
         },
         detectSourceRect: {
             Self.getSourceRect()
@@ -492,6 +494,10 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
             DispatchQueue.main.async(execute: work)
         }
     )
+
+    func finderSelectionPollingSelectionPathResult() -> Result<String, any Error> {
+        finderSelectionPathProvider.selectedPath().mapError { $0 as any Error }
+    }
 
     var canBecomeKeyDynamic: Bool {
         PreviewOverlayKeyWindowPolicy.canBecomeKey(

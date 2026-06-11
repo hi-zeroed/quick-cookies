@@ -4,18 +4,29 @@ import SwiftUI
 
 /// Finder 菜单集成管理
 struct FinderMenuIntegration {
-    enum OpenSelectedFileOutcome {
+    enum OpenSelectedFileOutcome: Equatable {
         case request(PreviewLaunchRequest)
         case failure(message: String, icon: String?)
     }
 
     let openSelectedFile: () -> Void
     let showSettings: () -> Void
+    let finderSelectionPathProvider: any FinderSelectionPathProviding
 
-    static func resolveOpenSelectedFileRequest() -> OpenSelectedFileOutcome {
-        switch FileDetector.getSelectedFilePath() {
+    init(
+        openSelectedFile: @escaping () -> Void,
+        showSettings: @escaping () -> Void,
+        finderSelectionPathProvider: any FinderSelectionPathProviding = AppleScriptFinderSelectionPathProvider()
+    ) {
+        self.openSelectedFile = openSelectedFile
+        self.showSettings = showSettings
+        self.finderSelectionPathProvider = finderSelectionPathProvider
+    }
+
+    func resolveOpenSelectedFileRequest() -> OpenSelectedFileOutcome {
+        switch finderSelectionPathProvider.selectedPath() {
         case .success(let path):
-            return .request(PreviewLaunchRequest.openPath(path, source: .menuBar))
+            return .request(.openPath(path, source: .menuBar))
         case .failure(let error):
             let message = (error.errorDescription ?? "未知错误").localized()
             return .failure(message: message, icon: "xmark.circle")

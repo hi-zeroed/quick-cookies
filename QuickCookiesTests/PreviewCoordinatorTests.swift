@@ -1,6 +1,14 @@
 import XCTest
 @testable import QuickCookies
 
+private struct StubFinderSelectionPathProvider: FinderSelectionPathProviding {
+    let result: Result<String, FileDetector.DetectError>
+
+    func selectedPath() -> Result<String, FileDetector.DetectError> {
+        result
+    }
+}
+
 @MainActor
 final class PreviewCoordinatorTests: XCTestCase {
     private var temporaryDirectoryURL: URL!
@@ -28,7 +36,11 @@ final class PreviewCoordinatorTests: XCTestCase {
         let session = PreviewSession()
         let coordinator = PreviewCoordinator(
             session: session,
-            resolver: PreviewTargetResolver(finderSelectionProvider: { fileURL.path })
+            resolver: PreviewTargetResolver(
+                finderSelectionPathProvider: StubFinderSelectionPathProvider(
+                    result: .success(fileURL.path)
+                )
+            )
         )
 
         try coordinator.handle(.openPath(fileURL.path, source: .service))
@@ -42,7 +54,32 @@ final class PreviewCoordinatorTests: XCTestCase {
         let session = PreviewSession()
         let coordinator = PreviewCoordinator(
             session: session,
-            resolver: PreviewTargetResolver(finderSelectionProvider: { nil })
+            resolver: PreviewTargetResolver(
+                finderSelectionPathProvider: StubFinderSelectionPathProvider(
+                    result: .failure(.noFileSelected)
+                )
+            )
+        )
+
+        XCTAssertThrowsError(
+            try coordinator.handle(.toggleFromFinderHotkey())
+        ) { error in
+            XCTAssertEqual(error as? PreviewTargetError, .noFinderSelection)
+        }
+
+        XCTAssertEqual(session.state.readiness, .failed(.noFinderSelection))
+        XCTAssertNil(session.state.target)
+    }
+
+    func test_coordinator_scriptFailureStillCollapsesToNoFinderSelection() {
+        let session = PreviewSession()
+        let coordinator = PreviewCoordinator(
+            session: session,
+            resolver: PreviewTargetResolver(
+                finderSelectionPathProvider: StubFinderSelectionPathProvider(
+                    result: .failure(.scriptingBridgeError("boom"))
+                )
+            )
         )
 
         XCTAssertThrowsError(
@@ -62,11 +99,19 @@ final class PreviewCoordinatorTests: XCTestCase {
         let session = PreviewSession()
         let successCoordinator = PreviewCoordinator(
             session: session,
-            resolver: PreviewTargetResolver(finderSelectionProvider: { fileURL.path })
+            resolver: PreviewTargetResolver(
+                finderSelectionPathProvider: StubFinderSelectionPathProvider(
+                    result: .success(fileURL.path)
+                )
+            )
         )
         let failureCoordinator = PreviewCoordinator(
             session: session,
-            resolver: PreviewTargetResolver(finderSelectionProvider: { nil })
+            resolver: PreviewTargetResolver(
+                finderSelectionPathProvider: StubFinderSelectionPathProvider(
+                    result: .failure(.noFileSelected)
+                )
+            )
         )
 
         try successCoordinator.handle(.openPath(fileURL.path, source: .service))
@@ -90,7 +135,11 @@ final class PreviewCoordinatorTests: XCTestCase {
         let session = PreviewSession()
         let coordinator = PreviewCoordinator(
             session: session,
-            resolver: PreviewTargetResolver(finderSelectionProvider: { fileURL.path })
+            resolver: PreviewTargetResolver(
+                finderSelectionPathProvider: StubFinderSelectionPathProvider(
+                    result: .success(fileURL.path)
+                )
+            )
         )
 
         try coordinator.handle(.openPath(fileURL.path, source: .service))
@@ -112,7 +161,11 @@ final class PreviewCoordinatorTests: XCTestCase {
         let session = PreviewSession()
         let coordinator = PreviewCoordinator(
             session: session,
-            resolver: PreviewTargetResolver(finderSelectionProvider: { directoryURL.path })
+            resolver: PreviewTargetResolver(
+                finderSelectionPathProvider: StubFinderSelectionPathProvider(
+                    result: .success(directoryURL.path)
+                )
+            )
         )
 
         try coordinator.handle(.openPath(directoryURL.path, source: .service))
@@ -131,7 +184,11 @@ final class PreviewCoordinatorTests: XCTestCase {
         let session = PreviewSession()
         let coordinator = PreviewCoordinator(
             session: session,
-            resolver: PreviewTargetResolver(finderSelectionProvider: { fileURL.path })
+            resolver: PreviewTargetResolver(
+                finderSelectionPathProvider: StubFinderSelectionPathProvider(
+                    result: .success(fileURL.path)
+                )
+            )
         )
 
         try coordinator.handle(.openPath(fileURL.path, source: .service))

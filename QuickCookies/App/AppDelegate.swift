@@ -39,6 +39,7 @@ enum PreviewCommandRouter {
 
 @MainActor
 class AppDelegate: NSObject, NSApplicationDelegate {
+    private let finderSelectionPathProvider: any FinderSelectionPathProviding
     private var onboardingWindow: NSWindow?
     private var didSetupNormalFlow = false
     private var notificationObservers: [NSObjectProtocol] = []
@@ -48,7 +49,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     // 所有长期保留的预览入口都应汇聚到 coordinator，而不是在各入口直接拼 overlay 业务逻辑。
     private lazy var previewCoordinator = PreviewCoordinator(
         session: previewSession,
-        resolver: PreviewTargetResolver()
+        resolver: PreviewTargetResolver(
+            finderSelectionPathProvider: finderSelectionPathProvider
+        )
     )
     lazy var finderMenuIntegration = FinderMenuIntegration(
         openSelectedFile: { [weak self] in
@@ -58,8 +61,19 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             DispatchQueue.main.async {
                 SettingsWindowController.shared.show()
             }
-        }
+        },
+        finderSelectionPathProvider: finderSelectionPathProvider
     )
+
+    override init() {
+        self.finderSelectionPathProvider = AppleScriptFinderSelectionPathProvider()
+        super.init()
+    }
+
+    init(finderSelectionPathProvider: any FinderSelectionPathProviding) {
+        self.finderSelectionPathProvider = finderSelectionPathProvider
+        super.init()
+    }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
         // 强制初始化 Settings 单例以加载用户偏好语言或根据系统自适应首选语言
@@ -82,6 +96,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         guard !didSetupNormalFlow else { return }
         didSetupNormalFlow = true
 
+        installFinderSelectionPathProvider(on: QuickLookOverlay.shared)
         // 设置为后台 Agent，不显示 Dock 图标与顶部菜单栏，仅显示独立窗口
         NSApp.setActivationPolicy(.accessory)
         previewRequestController.onRequest = { [weak self] request in
@@ -126,6 +141,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             )
         }
 
+    }
+
+    func installFinderSelectionPathProvider(on overlay: QuickLookOverlay) {
+        overlay.finderSelectionPathProvider = finderSelectionPathProvider
     }
     
     private func showOnboarding() {
@@ -254,7 +273,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
     @MainActor
     private func openSelectedFileFromMenuBar() {
-        switch FinderMenuIntegration.resolveOpenSelectedFileRequest() {
+        switch finderMenuIntegration.resolveOpenSelectedFileRequest() {
         case .request(let request):
             previewRequestController.submit(request)
         case .failure(let message, let icon):

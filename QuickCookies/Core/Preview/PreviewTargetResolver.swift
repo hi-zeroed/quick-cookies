@@ -1,19 +1,12 @@
 import Foundation
 
 struct PreviewTargetResolver {
-    let finderSelectionProvider: () -> String?
+    let finderSelectionPathProvider: any FinderSelectionPathProviding
 
     init(
-        finderSelectionProvider: @escaping () -> String? = {
-            switch FileDetector.getSelectedFilePath() {
-            case .success(let path):
-                return path
-            case .failure:
-                return nil
-            }
-        }
+        finderSelectionPathProvider: any FinderSelectionPathProviding = AppleScriptFinderSelectionPathProvider()
     ) {
-        self.finderSelectionProvider = finderSelectionProvider
+        self.finderSelectionPathProvider = finderSelectionPathProvider
     }
 
     func resolve(request: PreviewLaunchRequest) throws -> PreviewTarget {
@@ -23,10 +16,12 @@ struct PreviewTargetResolver {
         case .direct(let path):
             originalPath = path
         case .finderSelection:
-            guard let selectedPath = finderSelectionProvider() else {
+            switch finderSelectionPathProvider.selectedPath() {
+            case .success(let selectedPath):
+                originalPath = selectedPath
+            case .failure:
                 throw PreviewTargetError.noFinderSelection
             }
-            originalPath = selectedPath
         }
 
         let resolvedPath = FileUtils.resolveSymlink(at: originalPath)

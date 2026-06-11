@@ -1,8 +1,44 @@
 import Foundation
 import AppKit
 
+protocol FinderSelectionPathProviding {
+    func selectedPath() -> Result<String, FileDetector.DetectError>
+}
+
+struct AppleScriptFinderSelectionPathProvider: FinderSelectionPathProviding {
+    typealias FinderRunningCheck = () -> Bool
+    typealias SelectionScriptFactory = () -> NSAppleScript?
+    typealias ScriptExecutor = (NSAppleScript) -> Result<String, FileDetector.DetectError>
+
+    private let isFinderRunning: FinderRunningCheck
+    private let selectionScriptFactory: SelectionScriptFactory
+    private let executeScript: ScriptExecutor
+
+    init(
+        isFinderRunning: @escaping FinderRunningCheck = FileDetector.isFinderRunningLive,
+        selectionScriptFactory: @escaping SelectionScriptFactory = { FileDetector.finderSelectionScript },
+        executeScript: @escaping ScriptExecutor = FileDetector.executeSelectionScript
+    ) {
+        self.isFinderRunning = isFinderRunning
+        self.selectionScriptFactory = selectionScriptFactory
+        self.executeScript = executeScript
+    }
+
+    func selectedPath() -> Result<String, FileDetector.DetectError> {
+        guard isFinderRunning() else {
+            return .failure(.finderNotRunning)
+        }
+
+        guard let script = selectionScriptFactory() else {
+            return .failure(.scriptingBridgeError("无法初始化 AppleScript 脚本"))
+        }
+
+        return executeScript(script)
+    }
+}
+
 enum FileDetector {
-    enum DetectError: Error, LocalizedError {
+    enum DetectError: Error, LocalizedError, Equatable {
         case finderNotRunning
         case noFileSelected
         case scriptingBridgeError(String)
@@ -20,7 +56,7 @@ enum FileDetector {
     }
 
     /// 静态常驻预编译 AppleScript 对象，消除高频执行时的重复解析与编译开销
-    private static let finderSelectionScript: NSAppleScript? = {
+    fileprivate static let finderSelectionScript: NSAppleScript? = {
         let scriptText = """
         tell application "Finder"
             set theSelection to selection
@@ -44,17 +80,16 @@ enum FileDetector {
         return NSAppleScript(source: scriptText)
     }()
 
+    static var liveFinderSelectionPathProvider: any FinderSelectionPathProviding {
+        AppleScriptFinderSelectionPathProvider()
+    }
+
     /// 获取 Finder 当前选中的文件路径（使用高性能进程内 NSAppleScript，无缓存 Bug，零子进程）
     static func getSelectedFilePath() -> Result<String, DetectError> {
-        // 检查 Finder 是否运行
-        guard isFinderRunning() else {
-            return .failure(.finderNotRunning)
-        }
+        liveFinderSelectionPathProvider.selectedPath()
+    }
 
-        guard let script = finderSelectionScript else {
-            return .failure(.scriptingBridgeError("无法初始化 AppleScript 脚本"))
-        }
-
+    static func executeSelectionScript(_ script: NSAppleScript) -> Result<String, DetectError> {
         var error: NSDictionary?
         let descriptor = script.executeAndReturnError(&error)
         if let error = error {
@@ -71,7 +106,7 @@ enum FileDetector {
     }
 
     /// 检查 Finder 是否运行
-    private static func isFinderRunning() -> Bool {
+    static func isFinderRunningLive() -> Bool {
         let runningApps = NSWorkspace.shared.runningApplications
         return runningApps.contains { app in
             app.bundleIdentifier == "com.apple.finder"

@@ -126,17 +126,16 @@
 
 ### 5.1 `FileDetector`
 
-当前实现直接依赖：
+`FileDetector` 作为直接系统集成入口，仍然不适合做依赖真实 Finder 状态的集成单测。
 
-* Finder 是否运行
-* `NSAppleScript` 是否执行成功
-* 当前 Finder 选中状态
+但在引入 `FinderSelectionPathProviding` 与 `AppleScriptFinderSelectionPathProvider` 之后，
+Finder 路径发现的错误分支已经可以通过注入 `isFinderRunning`、`selectionScriptFactory`
+和 `executeScript` 做稳定单元测试。
 
-这意味着它更像系统集成能力，而不是纯逻辑单元。若直接写测试，很容易出现：
+结论：
 
-* 本机能跑，CI 跑不了
-* 与 Finder 当前状态耦合
-* 权限弹窗或无头环境导致失败
+* 不测真实 Finder / AppleScript 环境
+* 测 provider 层纯逻辑和调用方注入行为
 
 ### 5.2 `Settings`
 
