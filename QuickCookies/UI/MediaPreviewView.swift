@@ -29,6 +29,15 @@ struct MediaPreviewView: View {
 }
 
 /// A wrapper for PDFView from PDFKit to SwiftUI
+enum PDFPreviewUpdatePolicy {
+    static func shouldReloadDocument(
+        previousURL: URL?,
+        nextURL: URL
+    ) -> Bool {
+        previousURL != nextURL
+    }
+}
+
 struct PDFKitView: NSViewRepresentable {
     let url: URL
     let readyToken: UUID
@@ -61,6 +70,7 @@ struct PDFKitView: NSViewRepresentable {
             layer.cornerRadius = 12
             layer.masksToBounds = true
         }
+        context.coordinator.currentURL = url
         context.coordinator.scheduleReady(
             for: readyToken,
             view: pdfView,
@@ -70,7 +80,13 @@ struct PDFKitView: NSViewRepresentable {
     }
     
     func updateNSView(_ nsView: PDFView, context: Context) {
-        nsView.document = PDFDocument(url: url)
+        if PDFPreviewUpdatePolicy.shouldReloadDocument(
+            previousURL: context.coordinator.currentURL,
+            nextURL: url
+        ) {
+            nsView.document = PDFDocument(url: url)
+            context.coordinator.currentURL = url
+        }
         context.coordinator.scheduleReady(
             for: readyToken,
             view: nsView,
@@ -79,6 +95,7 @@ struct PDFKitView: NSViewRepresentable {
     }
 
     final class Coordinator {
+        var currentURL: URL?
         private var deliveredToken: UUID?
 
         func scheduleReady(

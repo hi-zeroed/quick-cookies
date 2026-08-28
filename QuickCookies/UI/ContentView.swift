@@ -45,6 +45,30 @@ enum PreviewFileIconAssetRegistry {
     }
 }
 
+enum PreviewCardChromePolicy {
+    enum LightBorderSource {
+        case systemSeparator
+    }
+
+    static let cornerRadius: CGFloat = 20
+    static let borderLineWidth: CGFloat = 0.75
+    static let lightBorderOpacity: Double = 0.08
+    static let lightBorderSource: LightBorderSource = .systemSeparator
+    static let darkBorderOpacity: Double = 0.26
+    static let innerHighlightLineWidth: CGFloat = 0.5
+    static let lightInnerHighlightOpacity: Double = 0.35
+    static let darkInnerHighlightOpacity: Double = 0.10
+    static let ambientShadowRadius: CGFloat = 0
+    static let contactShadowRadius: CGFloat = 0
+
+    static var lightBorderColor: Color {
+        switch lightBorderSource {
+        case .systemSeparator:
+            return Color(NSColor.separatorColor).opacity(lightBorderOpacity)
+        }
+    }
+}
+
 struct ContentRenderCapability {
     let allowsEditing: Bool
     let allowsPDFExport: Bool
@@ -103,6 +127,36 @@ enum ContentLoadingPresentationPolicy {
     ) -> Bool {
         guard isLoading else { return false }
         return ContentRenderCapabilityRegistry.showsGenericLoading(for: renderType)
+    }
+}
+
+enum PreviewContentAreaChrome {
+    enum BackgroundStyle: Equatable {
+        case appBackground
+        case transparent
+    }
+
+    enum BorderStyle: Equatable {
+        case appBorder
+        case none
+    }
+
+    static func backgroundStyle(for renderType: FileRenderType?) -> BackgroundStyle {
+        switch renderType {
+        case .image, .unsupported:
+            return .transparent
+        case .markdown, .code, .plainText, .pdf, .office, .none:
+            return .appBackground
+        }
+    }
+
+    static func borderStyle(for renderType: FileRenderType?) -> BorderStyle {
+        switch renderType {
+        case .image, .unsupported:
+            return .none
+        case .markdown, .code, .plainText, .pdf, .office, .none:
+            return .appBorder
+        }
     }
 }
 
@@ -260,7 +314,6 @@ struct ContentView: View {
     @State private var previewReadinessState = PreviewReadinessGate.resetState(for: nil)
     @State private var markdownBootstrapReady: Bool = false
     @State private var loadCoordinator = PreviewContentLoadCoordinator()
-    @State private var contentReloadGeneration: Int = 0
     @State private var inflightLoadPath: String? = nil
 
     // NOTE: 不在 ContentView 根节点订阅 Settings.shared，
@@ -327,15 +380,6 @@ struct ContentView: View {
         )
     }
 
-    private var contentIdentityKey: String {
-        let baseKey = PreviewContentIdentity.makeKey(
-            path: activePath,
-            renderType: activeRenderType,
-            mode: activeMode
-        )
-        return "\(baseKey)#\(contentReloadGeneration)"
-    }
-
     var body: some View {
         VStack(spacing: 0) {
             // 工具栏
@@ -373,12 +417,8 @@ struct ContentView: View {
         .background(
             VisualEffectView(material: .hudWindow, blendingMode: .behindWindow)
         )
-        .cornerRadius(20) // 卡片自身的圆角
-        .overlay(
-            RoundedRectangle(cornerRadius: 20)
-                .stroke(colorScheme == .dark ? Color.white.opacity(0.32) : Color.black.opacity(0.12), lineWidth: 0.5)
-        )
-        .shadow(color: Color.black.opacity(colorScheme == .dark ? 0.45 : 0.18), radius: 16, x: 0, y: 10) // 卡片精致的外阴影
+        .clipShape(RoundedRectangle(cornerRadius: PreviewCardChromePolicy.cornerRadius, style: .continuous))
+        .overlay(cardChromeBorder)
         .padding(cardOuterPadding)
         .background(Color.clear) // 根容器背景必须是透明 clear，保持留白边缘穿透
         .toast(isShowing: $showLocalToast, message: localToastMessage, icon: localToastIcon)
@@ -429,6 +469,55 @@ struct ContentView: View {
                 markdownHasLoadedInitialContent = false
             }
         }
+    }
+
+    private var cardChromeBorder: some View {
+        ZStack {
+            RoundedRectangle(cornerRadius: PreviewCardChromePolicy.cornerRadius, style: .continuous)
+                .stroke(cardBorderGradient, lineWidth: PreviewCardChromePolicy.borderLineWidth)
+
+            if PreviewCardChromePolicy.innerHighlightLineWidth > 0 {
+                RoundedRectangle(cornerRadius: PreviewCardChromePolicy.cornerRadius, style: .continuous)
+                    .inset(by: PreviewCardChromePolicy.borderLineWidth)
+                    .stroke(cardInnerHighlightGradient, lineWidth: PreviewCardChromePolicy.innerHighlightLineWidth)
+            }
+        }
+    }
+
+    private var cardBorderGradient: LinearGradient {
+        if colorScheme == .dark {
+            return LinearGradient(
+                gradient: Gradient(colors: [
+                    Color.white.opacity(PreviewCardChromePolicy.darkBorderOpacity),
+                    Color.white.opacity(PreviewCardChromePolicy.darkBorderOpacity * 0.4)
+                ]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        } else {
+            return LinearGradient(
+                gradient: Gradient(colors: [
+                    Color.white.opacity(0.65),
+                    PreviewCardChromePolicy.lightBorderColor
+                ]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
+        }
+    }
+
+    private var cardInnerHighlightGradient: LinearGradient {
+        let topOpacity = colorScheme == .dark
+            ? PreviewCardChromePolicy.darkInnerHighlightOpacity
+            : PreviewCardChromePolicy.lightInnerHighlightOpacity
+        return LinearGradient(
+            gradient: Gradient(colors: [
+                Color.white.opacity(topOpacity),
+                Color.clear
+            ]),
+            startPoint: .top,
+            endPoint: .center
+        )
     }
 
     @ViewBuilder
@@ -565,14 +654,12 @@ struct ContentView: View {
     @ViewBuilder
     private var contentArea: some View {
         ZStack(alignment: .bottom) {
-            let isImage = activeRenderType == .image
             mainContent
-                .id(contentIdentityKey)
-                .background(isImage ? Color.clear : Color.appBackground)
+                .background(contentAreaBackgroundColor)
                 .cornerRadius(15)
                 .overlay(
                     Group {
-                        if !isImage {
+                        if PreviewContentAreaChrome.borderStyle(for: activeRenderType) == .appBorder {
                             RoundedRectangle(cornerRadius: 15)
                                 .stroke(Color.appBorder.opacity(colorScheme == .dark ? 0.25 : 0.12), lineWidth: 0.8)
                         }
@@ -617,6 +704,15 @@ struct ContentView: View {
                 .transition(.move(edge: .bottom).combined(with: .opacity))
                 .padding(.bottom, 20)
             }
+        }
+    }
+
+    private var contentAreaBackgroundColor: Color {
+        switch PreviewContentAreaChrome.backgroundStyle(for: activeRenderType) {
+        case .appBackground:
+            return Color.appBackground
+        case .transparent:
+            return Color.clear
         }
     }
 
@@ -880,12 +976,6 @@ struct ContentView: View {
             saveErrorMessage = ""
             loadState.hasMoreChunks = false
             loadState.isIncrementalLoading = false
-            if PreviewContentReloadIdentityPolicy.shouldBumpGeneration(
-                previousPath: previousPath,
-                nextPath: path
-            ) {
-                contentReloadGeneration += 1
-            }
             resetHeavyPreviewState(for: activeRenderType)
             return request
         }

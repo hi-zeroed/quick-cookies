@@ -384,8 +384,85 @@ final class QuickLookOverlayStateTests: XCTestCase {
         )
     }
 
-    func test_previewOverlayWindowChromePolicy_disablesSystemShadowForRoundedCardWindow() {
-        XCTAssertFalse(PreviewOverlayWindowChromePolicy.usesSystemWindowShadow)
+    func test_previewOverlayWindowChromePolicy_usesSystemShadowForBorderlessWindow() {
+        XCTAssertTrue(PreviewOverlayWindowChromePolicy.usesSystemWindowShadow)
+    }
+
+    func test_previewCardChromePolicy_usesRoundedContentBorderWithSystemWindowShadow() {
+        XCTAssertEqual(PreviewCardChromePolicy.cornerRadius, 20)
+        XCTAssertLessThanOrEqual(PreviewCardChromePolicy.borderLineWidth, 0.75)
+        XCTAssertLessThanOrEqual(PreviewCardChromePolicy.lightBorderOpacity, 0.09)
+        XCTAssertEqual(PreviewCardChromePolicy.lightBorderSource, .systemSeparator)
+        XCTAssertLessThanOrEqual(PreviewCardChromePolicy.darkBorderOpacity, 0.28)
+        XCTAssertTrue(PreviewOverlayWindowChromePolicy.usesSystemWindowShadow)
+    }
+
+    func test_previewCardChromePolicy_usesLightSingleStrokeWithoutSwiftUIOuterShadow() {
+        XCTAssertEqual(PreviewCardChromePolicy.ambientShadowRadius, 0)
+        XCTAssertEqual(PreviewCardChromePolicy.contactShadowRadius, 0)
+        XCTAssertEqual(PreviewCardChromePolicy.innerHighlightLineWidth, 0.5)
+        XCTAssertGreaterThan(PreviewCardChromePolicy.lightInnerHighlightOpacity, 0)
+        XCTAssertGreaterThan(PreviewCardChromePolicy.darkInnerHighlightOpacity, 0)
+        XCTAssertTrue(PreviewOverlayWindowChromePolicy.usesSystemWindowShadow)
+    }
+
+    func test_previewOverlayOpenAnimationPolicy_usesSingleLayerSpringPhysics() {
+        XCTAssertTrue(PreviewOverlayOpenAnimationPolicy.masksRoundedContentAfterOpening)
+        XCTAssertTrue(PreviewOverlayOpenAnimationPolicy.usesSpringAnimation)
+        XCTAssertFalse(PreviewOverlayOpenAnimationPolicy.animatesRealPreviewWindowFrame)
+        XCTAssertFalse(PreviewOverlayOpenAnimationPolicy.resizesHostingViewDuringFrameAnimation)
+        XCTAssertGreaterThan(PreviewOverlayOpenAnimationPolicy.springDamping, 0)
+        XCTAssertGreaterThan(PreviewOverlayOpenAnimationPolicy.springStiffness, 0)
+        XCTAssertGreaterThan(PreviewOverlayOpenAnimationPolicy.springMass, 0)
+        XCTAssertLessThanOrEqual(PreviewOverlayOpenAnimationPolicy.frameDuration, 0.28)
+        XCTAssertLessThanOrEqual(PreviewOverlayOpenAnimationPolicy.fadeInDuration, PreviewOverlayOpenAnimationPolicy.frameDuration)
+    }
+
+    func test_previewOverlayCloseAnimationPolicy_usesFluidTimingAndSynchronousWindowAlpha() {
+        XCTAssertEqual(PreviewOverlayCloseAnimationPolicy.duration, 0.18, accuracy: 0.001)
+        XCTAssertTrue(PreviewOverlayCloseAnimationPolicy.animatesWindowAlpha)
+        XCTAssertGreaterThan(PreviewOverlayCloseAnimationPolicy.controlPoint1.x, 0)
+        XCTAssertGreaterThan(PreviewOverlayCloseAnimationPolicy.controlPoint2.y, 0)
+    }
+
+    func test_previewOverlayOpenAnimationPolicy_buildsSourceCenteredStartFrameWithTargetAspectRatio() {
+        let sourceRect = CGRect(x: 100, y: 120, width: 80, height: 80)
+        let targetRect = CGRect(x: 300, y: 200, width: 800, height: 500)
+
+        let startFrame = PreviewOverlayOpenAnimationPolicy.sourceCenteredStartFrame(
+            sourceRect: sourceRect,
+            targetRect: targetRect
+        )
+
+        XCTAssertEqual(startFrame.midX, sourceRect.midX, accuracy: 0.0001)
+        XCTAssertEqual(startFrame.midY, sourceRect.midY, accuracy: 0.0001)
+        XCTAssertEqual(
+            startFrame.width / startFrame.height,
+            targetRect.width / targetRect.height,
+            accuracy: 0.0001
+        )
+        XCTAssertGreaterThanOrEqual(startFrame.width, sourceRect.width)
+        XCTAssertGreaterThanOrEqual(startFrame.height, sourceRect.height)
+        XCTAssertLessThan(startFrame.width, targetRect.width)
+        XCTAssertLessThan(startFrame.height, targetRect.height)
+    }
+
+    func test_previewOverlayOpenAnimationPolicy_clampsAbnormallyLargeSourceFrame() {
+        let sourceRect = CGRect(x: 533, y: -19152, width: 19625, height: 20139)
+        let targetRect = CGRect(x: 300, y: 200, width: 800, height: 500)
+
+        let startFrame = PreviewOverlayOpenAnimationPolicy.sourceCenteredStartFrame(
+            sourceRect: sourceRect,
+            targetRect: targetRect
+        )
+
+        XCTAssertLessThanOrEqual(startFrame.width, targetRect.width * PreviewOverlayOpenAnimationPolicy.maximumStartScale)
+        XCTAssertLessThanOrEqual(startFrame.height, targetRect.height * PreviewOverlayOpenAnimationPolicy.maximumStartScale)
+        XCTAssertEqual(
+            startFrame.width / startFrame.height,
+            targetRect.width / targetRect.height,
+            accuracy: 0.0001
+        )
     }
 
     func test_previewOverlayKeyboardRoutingPolicy_forwardsFinderNavigationOnlyWhenExplicitlyEnabled() {
@@ -660,7 +737,7 @@ final class QuickLookOverlayStateTests: XCTestCase {
     func test_previewOverlaySizingPolicy_preservesDefaultWidthForNonOfficeContent() {
         XCTAssertEqual(
             PreviewOverlaySizingPolicy.widthRatio(for: .markdown, fileExtension: nil, isExpanded: false),
-            0.38,
+            0.48,
             accuracy: 0.0001
         )
         XCTAssertEqual(
@@ -717,8 +794,45 @@ final class QuickLookOverlayStateTests: XCTestCase {
             screenVisibleFrame: screenFrame
         )
 
-        XCTAssertEqual(size.width, 608, accuracy: 0.0001)
+        XCTAssertEqual(size.width, 768, accuracy: 0.0001)
         XCTAssertEqual(size.height, 880, accuracy: 0.0001)
+    }
+
+    func test_previewContentAreaChrome_keepsUnsupportedPresentationTransparent() {
+        XCTAssertEqual(
+            PreviewContentAreaChrome.backgroundStyle(for: .unsupported),
+            .transparent
+        )
+        XCTAssertEqual(
+            PreviewContentAreaChrome.borderStyle(for: .unsupported),
+            .none
+        )
+    }
+
+    func test_previewContentAreaChrome_keepsRegularTextPresentationCarded() {
+        XCTAssertEqual(
+            PreviewContentAreaChrome.backgroundStyle(for: .code),
+            .appBackground
+        )
+        XCTAssertEqual(
+            PreviewContentAreaChrome.borderStyle(for: .code),
+            .appBorder
+        )
+    }
+
+    func test_previewOverlaySizingPolicy_usesReadableRegularWidthOnMacBookAirClassScreens() {
+        let screenFrame = NSRect(x: 0, y: 0, width: 1470, height: 900)
+
+        let size = PreviewOverlaySizingPolicy.stableContentSize(
+            renderType: .code,
+            filePath: "/tmp/demo.swift",
+            isExpanded: false,
+            errorMessage: nil,
+            screenVisibleFrame: screenFrame
+        )
+
+        XCTAssertGreaterThanOrEqual(size.width, 700)
+        XCTAssertEqual(size.height, 792, accuracy: 0.0001)
     }
 
     func test_previewOverlaySizingPolicy_keepsAnimationOutsetSeparateFromStableWindowSize() {
@@ -1240,6 +1354,73 @@ final class QuickLookOverlayStateTests: XCTestCase {
                 currentIdentity: identity,
                 capturedContent: "let value = 1",
                 currentText: "let value = 1"
+            )
+        )
+    }
+
+    func test_codeViewRepresentableUpdatePolicy_skipsRenderSyncForSameIdentityHoverRefresh() {
+        let identity = CodeViewRenderIdentity(
+            filePath: "/tmp/current.swift",
+            contentLength: 12,
+            contentHash: 1234,
+            language: "swift",
+            themeName: "atom-one-dark",
+            fontName: "Menlo",
+            fontSize: 13
+        )
+
+        XCTAssertTrue(
+            CodeViewRepresentableUpdatePolicy.shouldSkipRenderSync(
+                previousIdentity: identity,
+                nextIdentity: identity
+            )
+        )
+    }
+
+    func test_codeViewRepresentableUpdatePolicy_rendersWhenIdentityChanges() {
+        let previousIdentity = CodeViewRenderIdentity(
+            filePath: "/tmp/current.swift",
+            contentLength: 12,
+            contentHash: 1234,
+            language: "swift",
+            themeName: "atom-one-dark",
+            fontName: "Menlo",
+            fontSize: 13
+        )
+        let nextIdentity = CodeViewRenderIdentity(
+            filePath: "/tmp/current.swift",
+            contentLength: 13,
+            contentHash: 5678,
+            language: "swift",
+            themeName: "atom-one-dark",
+            fontName: "Menlo",
+            fontSize: 13
+        )
+
+        XCTAssertFalse(
+            CodeViewRepresentableUpdatePolicy.shouldSkipRenderSync(
+                previousIdentity: previousIdentity,
+                nextIdentity: nextIdentity
+            )
+        )
+    }
+
+    func test_pdfPreviewUpdatePolicy_doesNotReloadDocumentForSameURLHoverRefresh() {
+        let url = URL(fileURLWithPath: "/tmp/current.pdf")
+
+        XCTAssertFalse(
+            PDFPreviewUpdatePolicy.shouldReloadDocument(
+                previousURL: url,
+                nextURL: url
+            )
+        )
+    }
+
+    func test_pdfPreviewUpdatePolicy_reloadsDocumentWhenURLChanges() {
+        XCTAssertTrue(
+            PDFPreviewUpdatePolicy.shouldReloadDocument(
+                previousURL: URL(fileURLWithPath: "/tmp/old.pdf"),
+                nextURL: URL(fileURLWithPath: "/tmp/new.pdf")
             )
         )
     }

@@ -35,6 +35,15 @@ enum CodeViewAsyncRenderPolicy {
     }
 }
 
+enum CodeViewRepresentableUpdatePolicy {
+    static func shouldSkipRenderSync(
+        previousIdentity: CodeViewRenderIdentity?,
+        nextIdentity: CodeViewRenderIdentity
+    ) -> Bool {
+        previousIdentity == nextIdentity
+    }
+}
+
 enum CodeViewHighlightFallbackPolicy {
     static func attributedText(
         highlighted: NSAttributedString?,
@@ -225,10 +234,19 @@ struct CodeView: NSViewRepresentable {
 
     func updateNSView(_ scrollView: NSScrollView, context: Context) {
         guard let textView = scrollView.documentView as? NSTextView else { return }
+        let previousIdentity = context.coordinator.currentRenderIdentity
+        let nextIdentity = renderIdentity
 
         // 传递最新的回调与状态引用给 Coordinator
         context.coordinator.loadState = loadState
         context.coordinator.onLoadMore = onLoadMore
+
+        guard !CodeViewRepresentableUpdatePolicy.shouldSkipRenderSync(
+            previousIdentity: previousIdentity,
+            nextIdentity: nextIdentity
+        ) else {
+            return
+        }
 
         let isSameFile = context.coordinator.lastFilePath == filePath
         let contentChanged = context.coordinator.lastRenderedContent != content
@@ -246,7 +264,7 @@ struct CodeView: NSViewRepresentable {
         context.coordinator.lastFontName = fontName
         context.coordinator.lastFontSize = fontSize
         context.coordinator.lastFilePath = filePath
-        context.coordinator.currentRenderIdentity = renderIdentity
+        context.coordinator.currentRenderIdentity = nextIdentity
 
         // 动态更新字体变体缓存
         if fontChanged || context.coordinator.fontCache == nil {

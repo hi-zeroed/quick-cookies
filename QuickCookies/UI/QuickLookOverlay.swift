@@ -1,6 +1,7 @@
 import SwiftUI
 import AppKit
 import Combine
+import Anima
 
 /// 自定义 NSPanel 子类，允许 borderless 无标题栏窗口接收键盘焦点和快捷键事件
 class QuickLookPanel: NSPanel {
@@ -12,6 +13,21 @@ class QuickLookPanel: NSPanel {
     
     override var canBecomeMain: Bool {
         return canBecomeKeyProvider()
+    }
+}
+
+/// 自定义 NSHostingView，拦截点击事件以支持外层安全光影缓冲区点击穿透
+final class QuickLookHostingView<Content: View>: NSHostingView<Content> {
+    var cardOuterPadding: CGFloat = 0
+
+    override func hitTest(_ point: NSPoint) -> NSView? {
+        if cardOuterPadding > 0 {
+            let cardBounds = bounds.insetBy(dx: cardOuterPadding, dy: cardOuterPadding)
+            if !cardBounds.contains(point) {
+                return nil
+            }
+        }
+        return super.hitTest(point)
     }
 }
 
@@ -135,7 +151,66 @@ enum PreviewOverlayFinderInteractionPolicy {
 }
 
 enum PreviewOverlayWindowChromePolicy {
-    static let usesSystemWindowShadow = false
+    static let usesSystemWindowShadow = true
+}
+
+enum PreviewOverlayOpenAnimationPolicy {
+    static let masksRoundedContentAfterOpening = true
+    static let animatesRealPreviewWindowFrame = false
+    static let usesSpringAnimation = true
+    static let springDamping: CGFloat = 26
+    static let springStiffness: CGFloat = 300
+    static let springMass: CGFloat = 0.8
+    static let frameDuration: TimeInterval = 0.24
+    static let fadeInDuration: TimeInterval = 0.12
+    static let maximumStartScale: CGFloat = 0.28
+    static let resizesHostingViewDuringFrameAnimation = false
+
+    static func sourceCenteredStartFrame(
+        sourceRect: CGRect,
+        targetRect: CGRect
+    ) -> CGRect {
+        let targetAspectRatio = max(targetRect.width, 1) / max(targetRect.height, 1)
+        let sourceWidth = max(sourceRect.width, 1)
+        let sourceHeight = max(sourceRect.height, 1)
+        let sourceAspectRatio = sourceWidth / sourceHeight
+
+        let unclampedStartSize: CGSize
+        if sourceAspectRatio > targetAspectRatio {
+            unclampedStartSize = CGSize(width: sourceWidth, height: sourceWidth / targetAspectRatio)
+        } else {
+            unclampedStartSize = CGSize(width: sourceHeight * targetAspectRatio, height: sourceHeight)
+        }
+
+        let maximumStartSize = CGSize(
+            width: max(targetRect.width * maximumStartScale, 1),
+            height: max(targetRect.height * maximumStartScale, 1)
+        )
+        let clampScale = min(
+            1,
+            maximumStartSize.width / max(unclampedStartSize.width, 1),
+            maximumStartSize.height / max(unclampedStartSize.height, 1)
+        )
+        let startSize = CGSize(
+            width: unclampedStartSize.width * clampScale,
+            height: unclampedStartSize.height * clampScale
+        )
+
+        let sourceCenter = CGPoint(x: sourceRect.midX, y: sourceRect.midY)
+        return CGRect(
+            x: sourceCenter.x - startSize.width / 2,
+            y: sourceCenter.y - startSize.height / 2,
+            width: startSize.width,
+            height: startSize.height
+        )
+    }
+}
+
+enum PreviewOverlayCloseAnimationPolicy {
+    static let duration: TimeInterval = 0.18
+    static let controlPoint1 = CGPoint(x: 0.35, y: 0.0)
+    static let controlPoint2 = CGPoint(x: 0.15, y: 1.0)
+    static let animatesWindowAlpha = true
 }
 
 enum PreviewOverlayPresentationPolicy {
@@ -381,7 +456,7 @@ enum PreviewOverlaySizingPolicy {
         isExpanded: Bool
     ) -> CGFloat {
         guard renderType == .office else {
-            return isExpanded ? 0.68 : 0.38
+            return isExpanded ? 0.68 : 0.48
         }
 
         switch fileExtension {
@@ -729,11 +804,14 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         switch PreviewOverlayFrameAnimationPolicy.plan(animated: animated) {
         case .immediate:
             window.setFrame(newFrame, display: true, animate: false)
+            window.invalidateShadow()
         case .explicit(let duration):
             NSAnimationContext.runAnimationGroup { context in
                 context.duration = duration
                 context.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
                 window.animator().setFrame(newFrame, display: true)
+            } completionHandler: {
+                window.invalidateShadow()
             }
         }
     }
@@ -741,13 +819,14 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
     private func targetWindowFrame(for window: NSWindow) -> NSRect {
         let screenVisibleFrame = NSScreen.main?.visibleFrame ?? NSRect(x: 0, y: 0, width: 1920, height: 1080)
         let contentRect = targetContentRect(for: screenVisibleFrame)
-        let frameRect = window.frameRect(forContentRect: contentRect)
+        let windowWidth = contentRect.width + stableCardOuterPadding * 2
+        let windowHeight = contentRect.height + stableCardOuterPadding * 2
 
         return NSRect(
-            x: screenVisibleFrame.midX - frameRect.width / 2,
-            y: screenVisibleFrame.midY - frameRect.height / 2,
-            width: frameRect.width,
-            height: frameRect.height
+            x: screenVisibleFrame.midX - windowWidth / 2,
+            y: screenVisibleFrame.midY - windowHeight / 2,
+            width: windowWidth,
+            height: windowHeight
         )
     }
 
@@ -903,7 +982,8 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         if plan.shouldCreateWindow {
             showOverlay(session: session)
         } else if plan.shouldReplaceRootView,
-                  let hostingView = previewWindow?.contentView as? NSHostingView<ContentView> {
+                  let hostingView = previewWindow?.contentView as? QuickLookHostingView<ContentView> {
+            hostingView.cardOuterPadding = stableCardOuterPadding
             hostingView.rootView = ContentView(
                 session: session,
                 loadState: loadState,
@@ -912,7 +992,9 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
             )
         }
 
-        resizeWindowIfNeeded(animated: false)
+        if !plan.shouldCreateWindow {
+            resizeWindowIfNeeded(animated: false)
+        }
         updateWindowTitle()
         focusWindowForInteractivePreviewIfNeeded()
     }
@@ -935,6 +1017,15 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
             defer: false
         )
         let targetRect = targetWindowFrame(for: previewPanel)
+        let initialSourceRect = self.sourceRectBackup ?? self.getMouseOrCenterSourceRect(targetRect: targetRect)
+        let paddedSourceRect = PreviewOverlaySizingPolicy.animationSourceRect(
+            initialSourceRect,
+            outset: animationOutset
+        )
+        let startFrame = PreviewOverlayOpenAnimationPolicy.sourceCenteredStartFrame(
+            sourceRect: paddedSourceRect,
+            targetRect: targetRect
+        )
         previewPanel.setFrame(targetRect, display: false)
         
         previewPanel.isMovableByWindowBackground = true
@@ -954,7 +1045,6 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         previewPanel.backgroundColor = .clear
         previewPanel.isOpaque = false
         previewPanel.hasShadow = PreviewOverlayWindowChromePolicy.usesSystemWindowShadow
-        previewPanel.isReleasedWhenClosed = false
         previewPanel.delegate = self
         previewPanel.canBecomeKeyProvider = { [weak self] in
             self?.canBecomeKeyDynamic ?? false
@@ -967,7 +1057,8 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
             windowActions: windowActions,
             cardOuterPadding: stableCardOuterPadding
         )
-        let hostingView = NSHostingView(rootView: contentView)
+        let hostingView = QuickLookHostingView(rootView: contentView)
+        hostingView.cardOuterPadding = stableCardOuterPadding
         hostingView.frame = NSRect(origin: .zero, size: targetRect.size)
         previewPanel.contentView = hostingView
         previewPanel.contentView?.wantsLayer = true
@@ -976,12 +1067,11 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         hostingView.wantsLayer = true
         if let layer = hostingView.layer {
             layer.anchorPoint = CGPoint(x: 0.5, y: 0.5)
-            layer.position = CGPoint(x: targetRect.width / 2, y: targetRect.height / 2)
-            // 外层只负责透明圆角裁切，具体玻璃/描边/阴影仍由 SwiftUI 卡片绘制。
             layer.backgroundColor = NSColor.clear.cgColor
             layer.cornerRadius = 20
-            layer.masksToBounds = true
+            layer.masksToBounds = PreviewOverlayOpenAnimationPolicy.masksRoundedContentAfterOpening
         }
+        hostingView.alphaValue = 1.0
 
         // 先以透明状态挂载，随后由 presentation focus policy 决定是否成为 key window。
         previewPanel.alphaValue = 0.0
@@ -1032,10 +1122,9 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         }
 
         // 3. 0ms 瞬间起跳：优先使用轮询预取的文件图标物理位置，若无缓存再降级到鼠标位置，保证零局限与零阻塞
-        let initialSourceRect = self.sourceRectBackup ?? self.getMouseOrCenterSourceRect(targetRect: targetRect)
         self.performQuickLookAnimation(
             previewPanel: previewPanel,
-            sourceRect: initialSourceRect,
+            sourceFrame: startFrame,
             targetRect: targetRect
         )
         self.transitionGate.markOpen()
@@ -1060,87 +1149,70 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         )
     }
 
-    /// 模拟 macOS 原生 Space (Quick Look) 的满帧 GPU 仿射变换弹簧动画 (CASpringAnimation)
-    private func performQuickLookAnimation(previewPanel: NSPanel, sourceRect: CGRect, targetRect: CGRect) {
-        guard let contentView = previewPanel.contentView, let layer = contentView.layer else { return }
-        
-        // 动画开始前先将系统红绿灯控制按钮隐藏，防止其在动画播放前突兀亮在既定位置
-        previewPanel.standardWindowButton(.closeButton)?.alphaValue = 0.0
-        previewPanel.standardWindowButton(.miniaturizeButton)?.alphaValue = 0.0
-        previewPanel.standardWindowButton(.zoomButton)?.alphaValue = 0.0
-        
-        // 再次校准 anchorPoint & position，以防挂载后被 AppKit 布局重置
-        layer.anchorPoint = CGPoint(x: 0.5, y: 0.5)
-        layer.position = CGPoint(x: targetRect.width / 2, y: targetRect.height / 2)
+    /// 使用单图层物理弹簧动画从 Finder 图标位置展开，真实 SwiftUI 预览窗口保持最终尺寸，避免约束循环与 Handoff 顿挫。
+    private func performQuickLookAnimation(
+        previewPanel: NSPanel,
+        sourceFrame: CGRect,
+        targetRect: CGRect
+    ) {
+        guard let hostingView = previewPanel.contentView,
+              let layer = hostingView.layer else { return }
 
-        // 扩展 sourceRect 加上 padding 缓冲，保持仿射变换中心与起跳大小 100% 精确匹配
-        let paddedSourceRect = PreviewOverlaySizingPolicy.animationSourceRect(
-            sourceRect,
-            outset: animationOutset
-        )
-        
-        let scaleX = paddedSourceRect.width / targetRect.width
-        let scaleY = paddedSourceRect.height / targetRect.height
-        
+        // 计算初始缩放与平移变换
+        let scaleX = max(sourceFrame.width / targetRect.width, 0.05)
+        let scaleY = max(sourceFrame.height / targetRect.height, 0.05)
+        let sourceCenter = CGPoint(x: sourceFrame.midX, y: sourceFrame.midY)
         let targetCenter = CGPoint(x: targetRect.midX, y: targetRect.midY)
-        let sourceCenter = CGPoint(x: paddedSourceRect.midX, y: paddedSourceRect.midY)
         let translationX = sourceCenter.x - targetCenter.x
         let translationY = sourceCenter.y - targetCenter.y
-        
-        // 拼接初始的变换矩阵 (先 Scale 后 Translation)
-        let initialTransform = CATransform3DConcat(
+
+        let startTransform = CATransform3DConcat(
             CATransform3DMakeScale(scaleX, scaleY, 1.0),
             CATransform3DMakeTranslation(translationX, translationY, 0)
         )
-        
-        // ==========================================
-        // 【核心修复】：利用原子化 CATransaction 事务保护
-        //    先 add(group) 动画使呈现图层首帧即刻被动画（透明+极小）接管，
-        //    并在同一个事务中将窗口透明度恢复为 1.0 呈现，由于 commit 前系统绝不重绘，
-        //    因此彻底屏蔽了起跑瞬间的大卡车闪烁；同时 Model 真实值始终保持最终态，
-        //    在动画播完自动移除时能够完美无缝贴合在最终态上，杜绝消失并闪现
-        // ==========================================
-        CATransaction.begin()
-        
-        // 使用物理公式驱动的 CASpringAnimation 弹簧动画 (开启过冲回弹，释放极致的原生“空气/膨胀果冻感”)
-        let springTransform = CASpringAnimation(keyPath: "transform")
-        springTransform.damping = 15
-        springTransform.stiffness = 240
-        springTransform.mass = 0.4
-        springTransform.fromValue = NSValue(caTransform3D: initialTransform)
-        springTransform.toValue = NSValue(caTransform3D: CATransform3DIdentity)
-        springTransform.duration = 0.38 // 0.38s 稍微拉长，呈现更饱满流畅的膨胀弹性
-        
-        // 透明度淡入动画
+
+        // 保证锚点为 (0.5, 0.5) 且 position 在中心
+        layer.anchorPoint = CGPoint(x: 0.5, y: 0.5)
+        layer.position = CGPoint(x: targetRect.width / 2, y: targetRect.height / 2)
+
+        // 1. 设置真实窗口可见
+        previewPanel.alphaValue = 1.0
+
+        // 2. 物理流体弹簧动画：Transform 从 startTransform 平滑膨胀至 Identity
+        let springAnim = CASpringAnimation(keyPath: "transform")
+        springAnim.damping = PreviewOverlayOpenAnimationPolicy.springDamping
+        springAnim.stiffness = PreviewOverlayOpenAnimationPolicy.springStiffness
+        springAnim.mass = PreviewOverlayOpenAnimationPolicy.springMass
+        springAnim.fromValue = NSValue(caTransform3D: startTransform)
+        springAnim.toValue = NSValue(caTransform3D: CATransform3DIdentity)
+        springAnim.duration = springAnim.settlingDuration
+        springAnim.isRemovedOnCompletion = true
+        springAnim.fillMode = .removed
+
+        // 3. 柔和快速淡入动画
         let fadeAnim = CABasicAnimation(keyPath: "opacity")
         fadeAnim.fromValue = 0.0
         fadeAnim.toValue = 1.0
-        fadeAnim.duration = 0.16
-        
-        let group = CAAnimationGroup()
-        group.animations = [springTransform, fadeAnim]
-        group.duration = 0.38
-        group.isRemovedOnCompletion = true // 动画播完自动从层级移除
-        group.fillMode = .removed           // 移除后直接采用 Model 图层的最终态（即 1.0 和 identity），实现无缝对齐
-        
-        // A. 先添加动画，使其呈现图层首帧直接开始渐入与物理膨胀
-        layer.add(group, forKey: "quickLookShow")
-        
-        // B. 此时将窗口透明度置为 1.0 呈现，由于处在同一 CA 事务中，在此 commit 前屏幕绝不重绘，因此绝不瞬闪大卡片
-        previewPanel.alphaValue = 1.0
-        
-        CATransaction.commit()
-        // ==========================================
-        
-        // 动画中后期渐显系统红绿灯按钮，达成呼吸感
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.16) {
-            NSAnimationContext.runAnimationGroup({ context in
-                context.duration = 0.12
-                previewPanel.standardWindowButton(.closeButton)?.animator().alphaValue = 1.0
-                previewPanel.standardWindowButton(.miniaturizeButton)?.animator().alphaValue = 1.0
-                previewPanel.standardWindowButton(.zoomButton)?.animator().alphaValue = 1.0
-            }, completionHandler: nil)
+        fadeAnim.duration = PreviewOverlayOpenAnimationPolicy.fadeInDuration
+        fadeAnim.timingFunction = CAMediaTimingFunction(name: .easeOut)
+        fadeAnim.isRemovedOnCompletion = true
+        fadeAnim.fillMode = .removed
+
+        CATransaction.begin()
+        CATransaction.setCompletionBlock { [weak self, weak previewPanel] in
+            guard let self, let previewPanel, self.previewWindow === previewPanel else { return }
+            layer.transform = CATransform3DIdentity
+            layer.opacity = 1.0
+            previewPanel.invalidateShadow()
         }
+
+        CATransaction.setDisableActions(true)
+        layer.transform = CATransform3DIdentity
+        layer.opacity = 1.0
+
+        layer.add(springAnim, forKey: "openSpringTransform")
+        layer.add(fadeAnim, forKey: "openFadeIn")
+        CATransaction.commit()
     }
 
     /// 高精度获取 Finder 中当前选中项的视觉物理坐标 (AXUIElement API)
@@ -1365,7 +1437,7 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
     }
 
     private func performClose() {
-        // 1. 注销本地/全局键盘监视器并销毁定时器
+        // 1. 注销本地/全局键盘监视器
         if let monitor = localEventMonitor {
             NSEvent.removeMonitor(monitor)
             localEventMonitor = nil
@@ -1441,7 +1513,7 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         window.standardWindowButton(.miniaturizeButton)?.alphaValue = 0.0
         window.standardWindowButton(.zoomButton)?.alphaValue = 0.0
 
-        // 立即注销键盘事件监视器并销毁定时器，防止动画期间误触发
+        // 立即注销键盘事件监视器，防止关闭动画期间误触发
         if let monitor = localEventMonitor {
             NSEvent.removeMonitor(monitor)
             localEventMonitor = nil
@@ -1475,8 +1547,8 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
             outset: animationOutset
         )
         
-        let scaleX = paddedSourceRect.width / targetRect.width
-        let scaleY = paddedSourceRect.height / targetRect.height
+        let scaleX = max(paddedSourceRect.width / targetRect.width, 0.05)
+        let scaleY = max(paddedSourceRect.height / targetRect.height, 0.05)
         
         let targetCenter = CGPoint(x: targetRect.midX, y: targetRect.midY)
         let sourceCenter = CGPoint(x: paddedSourceRect.midX, y: paddedSourceRect.midY)
@@ -1492,24 +1564,40 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         layer.anchorPoint = CGPoint(x: 0.5, y: 0.5)
         layer.position = CGPoint(x: targetRect.width / 2, y: targetRect.height / 2)
 
-        // 使用非常平稳的缩放与淡出动画 (适当拉长到 0.20s/0.16s 提升过渡顺滑度)
+        let duration = PreviewOverlayCloseAnimationPolicy.duration
+        let fluidTiming = CAMediaTimingFunction(
+            controlPoints: Float(PreviewOverlayCloseAnimationPolicy.controlPoint1.x),
+            Float(PreviewOverlayCloseAnimationPolicy.controlPoint1.y),
+            Float(PreviewOverlayCloseAnimationPolicy.controlPoint2.x),
+            Float(PreviewOverlayCloseAnimationPolicy.controlPoint2.y)
+        )
+
         let shrinkAnim = CABasicAnimation(keyPath: "transform")
         shrinkAnim.fromValue = NSValue(caTransform3D: CATransform3DIdentity)
         shrinkAnim.toValue = NSValue(caTransform3D: finalTransform)
-        shrinkAnim.duration = 0.20
-        shrinkAnim.timingFunction = CAMediaTimingFunction(name: .easeIn)
+        shrinkAnim.duration = duration
+        shrinkAnim.timingFunction = fluidTiming
         
         let fadeAnim = CABasicAnimation(keyPath: "opacity")
         fadeAnim.fromValue = 1.0
         fadeAnim.toValue = 0.0
-        fadeAnim.duration = 0.16
-        fadeAnim.timingFunction = CAMediaTimingFunction(name: .easeIn)
+        fadeAnim.duration = duration
+        fadeAnim.timingFunction = fluidTiming
         
         let group = CAAnimationGroup()
         group.animations = [shrinkAnim, fadeAnim]
-        group.duration = 0.20
+        group.duration = duration
         group.isRemovedOnCompletion = true
         group.fillMode = .removed
+
+        // 同步让窗口整体 alphaValue 渐变为 0.0，使系统阴影与卡片同时平滑隐去，杜绝阴影滞留原地
+        if PreviewOverlayCloseAnimationPolicy.animatesWindowAlpha {
+            NSAnimationContext.runAnimationGroup { context in
+                context.duration = duration
+                context.timingFunction = fluidTiming
+                window.animator().alphaValue = 0.0
+            }
+        }
         
         CATransaction.begin()
         CATransaction.setCompletionBlock {

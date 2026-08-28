@@ -18,6 +18,7 @@
 		71D913A0ECB64193A25A4044 /* MarkdownTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 460FA400CC4F4F828DB39EFA /* MarkdownTextView.swift */; };
 		835FB6102FCA94E800D2395C /* MarkdownUI in Frameworks */ = {isa = PBXBuildFile; productRef = 835FB60F2FCA94E800D2395C /* MarkdownUI */; };
 		835FB6132FCA950400D2395C /* Highlightr in Frameworks */ = {isa = PBXBuildFile; productRef = 835FB6122FCA950400D2395C /* Highlightr */; };
+		ANIMA0000000000000000003 /* Anima in Frameworks */ = {isa = PBXBuildFile; productRef = ANIMA0000000000000000002 /* Anima */; };
 		835FB6162FCA950400D2395D /* HighlightCache.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835FB6152FCA950400D2395D /* HighlightCache.swift */; };
 		835FB6182FCA950400D2395E /* HighlightrCodeSyntaxHighlighter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835FB6172FCA950400D2395E /* HighlightrCodeSyntaxHighlighter.swift */; };
 		835FB69A2FCA950400D23999 /* FileChunkReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835FB6992FCA950400D23999 /* FileChunkReader.swift */; };
@@ -44,7 +45,6 @@
 		A1B2C3010000000000000035 /* PreviewTargetResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3010000000000000036 /* PreviewTargetResolver.swift */; };
 		A1B2C3010000000000000037 /* PreviewSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3010000000000000038 /* PreviewSession.swift */; };
 		A1B2C3010000000000000042 /* PreviewContentLoadCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3010000000000000043 /* PreviewContentLoadCoordinator.swift */; };
-		A1B2C3010000000000000044 /* PreviewContentIdentity.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3010000000000000045 /* PreviewContentIdentity.swift */; };
 		A1B2C301000000000000003D /* PreviewCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C301000000000000003E /* PreviewCoordinator.swift */; };
 		A1B2C3010000000000000040 /* FinderSelectionRefresh.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3010000000000000041 /* FinderSelectionRefresh.swift */; };
 		A1B2C3010000000000000046 /* PreviewNavigationContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3010000000000000047 /* PreviewNavigationContext.swift */; };
@@ -80,7 +80,6 @@
 		TSTBLD000000000000000013 /* PreviewSessionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF000000000000000013 /* PreviewSessionTests.swift */; };
 		TSTBLD000000000000000014 /* PreviewCoordinatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF000000000000000014 /* PreviewCoordinatorTests.swift */; };
 		TSTBLD000000000000000015 /* PreviewContentLoadCoordinatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF000000000000000015 /* PreviewContentLoadCoordinatorTests.swift */; };
-		TSTBLD000000000000000016 /* PreviewContentIdentityTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF000000000000000016 /* PreviewContentIdentityTests.swift */; };
 		TSTBLD000000000000000017 /* PreviewLoadStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF000000000000000017 /* PreviewLoadStateTests.swift */; };
 		TSTBLD000000000000000018 /* PreviewDisplayStateResolverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF000000000000000018 /* PreviewDisplayStateResolverTests.swift */; };
 		TSTBLD000000000000000019 /* PreviewNavigationContextTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF000000000000000019 /* PreviewNavigationContextTests.swift */; };
@@ -160,7 +159,6 @@
 		A1B2C3010000000000000036 /* PreviewTargetResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewTargetResolver.swift; sourceTree = "<group>"; };
 		A1B2C3010000000000000038 /* PreviewSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewSession.swift; sourceTree = "<group>"; };
 		A1B2C3010000000000000043 /* PreviewContentLoadCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewContentLoadCoordinator.swift; sourceTree = "<group>"; };
-		A1B2C3010000000000000045 /* PreviewContentIdentity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewContentIdentity.swift; sourceTree = "<group>"; };
 		A1B2C301000000000000003E /* PreviewCoordinator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewCoordinator.swift; sourceTree = "<group>"; };
 		A1B2C3010000000000000041 /* FinderSelectionRefresh.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinderSelectionRefresh.swift; sourceTree = "<group>"; };
 		A1B2C3010000000000000047 /* PreviewNavigationContext.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewNavigationContext.swift; sourceTree = "<group>"; };
@@ -200,7 +198,6 @@
 		TSTREF000000000000000013 /* PreviewSessionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewSessionTests.swift; sourceTree = "<group>"; };
 		TSTREF000000000000000014 /* PreviewCoordinatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewCoordinatorTests.swift; sourceTree = "<group>"; };
 		TSTREF000000000000000015 /* PreviewContentLoadCoordinatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewContentLoadCoordinatorTests.swift; sourceTree = "<group>"; };
-		TSTREF000000000000000016 /* PreviewContentIdentityTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewContentIdentityTests.swift; sourceTree = "<group>"; };
 		TSTREF000000000000000017 /* PreviewLoadStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewLoadStateTests.swift; sourceTree = "<group>"; };
 		TSTREF000000000000000018 /* PreviewDisplayStateResolverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewDisplayStateResolverTests.swift; sourceTree = "<group>"; };
 		TSTREF000000000000000019 /* PreviewNavigationContextTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewNavigationContextTests.swift; sourceTree = "<group>"; };
@@ -229,6 +226,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				ANIMA0000000000000000003 /* Anima in Frameworks */,
 				835FB6132FCA950400D2395C /* Highlightr in Frameworks */,
 				835FB6102FCA94E800D2395C /* MarkdownUI in Frameworks */,
 			);
@@ -317,7 +315,6 @@
 				A1B2C3010000000000000036 /* PreviewTargetResolver.swift */,
 				A1B2C3010000000000000038 /* PreviewSession.swift */,
 				A1B2C3010000000000000043 /* PreviewContentLoadCoordinator.swift */,
-				A1B2C3010000000000000045 /* PreviewContentIdentity.swift */,
 				A1B2C301000000000000003E /* PreviewCoordinator.swift */,
 				A1B2C3010000000000000041 /* FinderSelectionRefresh.swift */,
 				A1B2C3010000000000000047 /* PreviewNavigationContext.swift */,
@@ -431,7 +428,6 @@
 				TSTREF000000000000000013 /* PreviewSessionTests.swift */,
 				TSTREF000000000000000014 /* PreviewCoordinatorTests.swift */,
 				TSTREF000000000000000015 /* PreviewContentLoadCoordinatorTests.swift */,
-				TSTREF000000000000000016 /* PreviewContentIdentityTests.swift */,
 				TSTREF000000000000000017 /* PreviewLoadStateTests.swift */,
 				TSTREF000000000000000018 /* PreviewDisplayStateResolverTests.swift */,
 				TSTREF000000000000000019 /* PreviewNavigationContextTests.swift */,
@@ -475,6 +471,11 @@
 				DEP171717171717171717171 /* PBXTargetDependency */,
 			);
 			name = QuickCookies;
+			packageProductDependencies = (
+				835FB60F2FCA94E800D2395C /* MarkdownUI */,
+				835FB6122FCA950400D2395C /* Highlightr */,
+				ANIMA0000000000000000002 /* Anima */,
+			);
 			productName = QuickCookies;
 			productReference = EEE555555555555555555555 /* QuickCookies.app */;
 			productType = "com.apple.product-type.application";
@@ -528,6 +529,7 @@
 			packageReferences = (
 				835FB60E2FCA94E800D2395C /* XCRemoteSwiftPackageReference "swift-markdown-ui" */,
 				835FB6112FCA950400D2395C /* XCRemoteSwiftPackageReference "Highlightr" */,
+				ANIMA0000000000000000001 /* XCRemoteSwiftPackageReference "Anima" */,
 			);
 			productRefGroup = PPP161616161616161616161 /* Products */;
 			projectDirPath = "";
@@ -598,7 +600,6 @@
 				A1B2C3010000000000000035 /* PreviewTargetResolver.swift in Sources */,
 				A1B2C3010000000000000037 /* PreviewSession.swift in Sources */,
 				A1B2C3010000000000000042 /* PreviewContentLoadCoordinator.swift in Sources */,
-				A1B2C3010000000000000044 /* PreviewContentIdentity.swift in Sources */,
 				A1B2C301000000000000003D /* PreviewCoordinator.swift in Sources */,
 				A1B2C3010000000000000040 /* FinderSelectionRefresh.swift in Sources */,
 				A1B2C3010000000000000046 /* PreviewNavigationContext.swift in Sources */,
@@ -644,7 +645,6 @@
 				TSTBLD000000000000000013 /* PreviewSessionTests.swift in Sources */,
 				TSTBLD000000000000000014 /* PreviewCoordinatorTests.swift in Sources */,
 				TSTBLD000000000000000015 /* PreviewContentLoadCoordinatorTests.swift in Sources */,
-				TSTBLD000000000000000016 /* PreviewContentIdentityTests.swift in Sources */,
 				TSTBLD000000000000000017 /* PreviewLoadStateTests.swift in Sources */,
 				TSTBLD000000000000000018 /* PreviewDisplayStateResolverTests.swift in Sources */,
 				TSTBLD000000000000000019 /* PreviewNavigationContextTests.swift in Sources */,
@@ -1125,6 +1125,14 @@
 				minimumVersion = 2.1.0;
 			};
 		};
+		ANIMA0000000000000000001 /* XCRemoteSwiftPackageReference "Anima" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/flocked/Anima";
+				requirement = {
+					kind = revision;
+					revision = edbde6596317db6ccd9618ea1846be699f3e6cc0;
+				};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -1137,6 +1145,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 835FB6112FCA950400D2395C /* XCRemoteSwiftPackageReference "Highlightr" */;
 			productName = Highlightr;
+		};
+		ANIMA0000000000000000002 /* Anima */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = ANIMA0000000000000000001 /* XCRemoteSwiftPackageReference "Anima" */;
+			productName = Anima;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

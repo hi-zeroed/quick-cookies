@@ -18,6 +18,7 @@ xcuserdata/
 *.o
 build/
 DerivedData/
+buildTest-*/
 
 # Local development tracking files
 PROGRESS.md
@@ -29,4 +30,4 @@ TEST_PLAN.md
 buildClean
 release_dist
 CLAUDE.md
-AGENT.md
+AGENTS.md
