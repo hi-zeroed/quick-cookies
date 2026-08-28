@@ -876,7 +876,7 @@
         <div class="brew-terminal">
           <span class="brew-prompt">$</span>
           <span class="brew-code"
-            >brew tap hi-zeroed/tap && brew install --cask quick-cookies</span
+            >brew tap hi-zeroed/tap && brew trust hi-zeroed/tap && brew install --cask quick-cookies</span
           >
         </div>
         <div class="brew-copy-btn" id="brewCopyBtn">
@@ -997,7 +997,7 @@
 
       function copyBrewCommand() {
         const command =
-          "brew tap hi-zeroed/tap && brew install --cask quick-cookies";
+          "brew tap hi-zeroed/tap && brew trust hi-zeroed/tap && brew install --cask quick-cookies";
         navigator.clipboard
           .writeText(command)
           .then(() => {

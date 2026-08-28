@@ -130,6 +130,7 @@ QuickCookies/
 
 ```bash
 brew tap hi-zeroed/tap
+brew trust hi-zeroed/tap
 brew install --cask quick-cookies
 ```
 

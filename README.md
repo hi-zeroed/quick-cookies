@@ -132,6 +132,7 @@ This is the most convenient way to install and keep the application updated auto
 
 ```bash
 brew tap hi-zeroed/tap
+brew trust hi-zeroed/tap
 brew install --cask quick-cookies
 ```
 
