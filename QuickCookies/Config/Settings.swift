@@ -284,7 +284,7 @@ struct Localization {
             "Three simple steps to start": [.en: "Three simple steps to start", .zhHans: "简单三步，开启效率之旅"],
             "1. Select any code or Markdown file in Finder": [.en: "1. Select any code or Markdown file in Finder", .zhHans: "1. 在 Finder 中选中任意代码或 Markdown 文件"],
             "2. Double-press Option key (or right-click to preview)": [.en: "2. Double-press Command key (or right-click to preview)", .zhHans: "2. 在键盘上快速双击 Command 键（或右键选择预览）"],
-            "3. The preview panel flies out with line numbers & live edit!": [.en: "3. The preview panel flies out with line numbers & live edit!", .zhHans: "3. 预览窗口瞬间飞出，支持行号与即时编辑！"],
+            "3. The preview panel flies out with instant render & external app relay!": [.en: "3. The preview panel flies out with instant render & external app relay!", .zhHans: "3. 预览窗口瞬间飞出，支持秒开渲染与外部编辑器接力！"],
             "Preferences": [.en: "Preferences", .zhHans: "偏好配置"],
             "You can customize basic settings before we start:": [.en: "You can customize basic settings before we start:", .zhHans: "在正式使用前，您可以进行一些基础的个性化定制："],
             "Default Hotkey": [.en: "Default Hotkey", .zhHans: "默认触发快捷键"],
@@ -299,7 +299,7 @@ struct Localization {
             // New Onboarding Additions
             "Instant Preview": [.en: "Instant Preview", .zhHans: "极速唤起预览"],
             "2. Quickly double-press": [.en: "2. Quickly double-press", .zhHans: "2. 键盘上快速双击"],
-            "3. The preview window flies out instantly, supporting live edit & save": [.en: "3. The preview window flies out instantly, supporting live edit & save", .zhHans: "3. 预览窗口瞬间飞出，支持即时修改与保存"],
+            "3. The preview window flies out instantly, supporting external editor relay": [.en: "3. The preview window flies out instantly, supporting external editor relay", .zhHans: "3. 预览窗口瞬间飞出，支持外部编辑器一键接力打开"],
             "Personalized Settings": [.en: "Personalized Settings", .zhHans: "个性化定制"],
             "Before getting started, you can customize some core preferences:": [.en: "Before getting started, you can customize some core preferences:", .zhHans: "正式使用前，您可以进行一些核心的偏好设定："],
             "Adapt to your system appearance": [.en: "Adapt to your system appearance", .zhHans: "自适应匹配您的系统外观"],
@@ -339,8 +339,8 @@ struct Localization {
             
             // Typography
             "TYPOGRAPHY": [.en: "TYPOGRAPHY", .zhHans: "排版"],
-            "Editor Font": [.en: "Editor Font", .zhHans: "编辑器字体"],
-            "Monospace font for previewing and editing": [.en: "Monospace font for previewing and editing", .zhHans: "预览和编辑 Markdown 与代码时采用的等宽字体"],
+            "Editor Font": [.en: "Editor Font", .zhHans: "代码等宽字体"],
+            "Monospace font for previewing and editing": [.en: "Monospace font for previewing code and documents", .zhHans: "预览 Markdown 与代码时采用的等宽字体"],
             "Font Size": [.en: "Font Size", .zhHans: "字体大小"],
             "System Default (Inter)": [.en: "System Default (Inter)", .zhHans: "系统默认 (Inter)"],
             
@@ -349,8 +349,13 @@ struct Localization {
             "Global Preview": [.en: "Global Preview", .zhHans: "全局快捷键预览"],
             "Click keys on the right to record custom hotkey": [.en: "Click keys on the right to record custom hotkey", .zhHans: "点击右侧键帽录制自定义组合快捷键"],
             "Press new shortcut keys...": [.en: "Press new shortcut keys...", .zhHans: "请在键盘上按下新快捷键..."],
-            "Enter Edit Mode": [.en: "Enter Edit Mode", .zhHans: "进入编辑模式"],
-            "Save File Changes": [.en: "Save File Changes", .zhHans: "保存文件修改"],
+            "Open with External App": [.en: "Open with External App", .zhHans: "外部应用打开"],
+            "Open with %@": [.en: "Open with %@", .zhHans: "用 %@ 打开"],
+            "Open with...": [.en: "Open with...", .zhHans: "用其他应用打开..."],
+            "Default": [.en: "Default", .zhHans: "默认"],
+            "Reveal in Finder": [.en: "Reveal in Finder", .zhHans: "在访达中显示"],
+            "Copy File Path": [.en: "Copy File Path", .zhHans: "复制文件路径"],
+            "Path Copied": [.en: "Path Copied", .zhHans: "已复制文件路径"],
             
             // System
             "SYSTEM": [.en: "SYSTEM", .zhHans: "系统"],

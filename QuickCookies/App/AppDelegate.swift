@@ -27,12 +27,11 @@ enum PreviewCommandRouter {
         presenter: PreviewUIPresenter
     ) {
         HotkeyManager.shared.registerWithSettings {
-            Task { @MainActor in
-                triggerFinderToggle(
-                    requestController: requestController,
-                    presenter: presenter
-                )
-            }
+            AppRelayMenuTarget.shared.cancelActiveMenu()
+            triggerFinderToggle(
+                requestController: requestController,
+                presenter: presenter
+            )
         }
     }
 }

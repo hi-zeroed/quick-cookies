@@ -33,14 +33,14 @@ class HotkeyManager {
             }
         }
 
-        // 2. 本地监听（当 QuickCookies 本身处于前台时，比如预览窗口已聚焦）
+        // 2. 本地监听（当 QuickCookies 本身处于前台时）
         localEventMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
             guard let self = self else { return event }
             if self.matchEvent(event, modifiers: modifiers, keyCode: keyCode) {
                 DispatchQueue.main.async {
                     handler()
                 }
-                return nil // 消耗事件，不继续向上传播
+                return nil
             }
             return event
         }
@@ -74,7 +74,6 @@ class HotkeyManager {
         let coreFlags: NSEvent.ModifierFlags = [.command, .option, .shift, .control]
         let eventModifiers = event.modifierFlags.intersection(coreFlags)
         
-        // 精确判定目标修饰键是否被按下
         let modifierPressed = eventModifiers == modifier
 
         if modifierPressed && !self.isModifierPressed {

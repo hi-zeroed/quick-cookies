@@ -13,7 +13,6 @@ final class PreviewDisplayStateResolverTests: XCTestCase {
         let sessionState = PreviewSessionState(
             target: sessionTarget,
             runtimeKind: .web,
-            mode: .edit,
             readiness: .loading,
             isExpanded: true
         )
@@ -23,7 +22,6 @@ final class PreviewDisplayStateResolverTests: XCTestCase {
         XCTAssertEqual(resolved.filePath, "/tmp/new.md")
         XCTAssertEqual(resolved.renderType, .markdown)
         XCTAssertEqual(resolved.language, "Markdown")
-        XCTAssertEqual(resolved.mode, .edit)
         XCTAssertTrue(resolved.isLoadingPath)
         XCTAssertTrue(resolved.isExpanded)
         XCTAssertNil(resolved.errorMessage)
@@ -40,7 +38,6 @@ final class PreviewDisplayStateResolverTests: XCTestCase {
         let sessionState = PreviewSessionState(
             target: sessionTarget,
             runtimeKind: .text,
-            mode: .preview,
             readiness: .failed(.runtime(message: "Binary file")),
             isExpanded: false,
             renderTypeOverride: .unsupported
@@ -57,7 +54,6 @@ final class PreviewDisplayStateResolverTests: XCTestCase {
         let sessionState = PreviewSessionState(
             target: nil,
             runtimeKind: nil,
-            mode: .preview,
             readiness: .failed(.noFinderSelection),
             isExpanded: false
         )
@@ -67,7 +63,6 @@ final class PreviewDisplayStateResolverTests: XCTestCase {
         XCTAssertNil(resolved.filePath)
         XCTAssertEqual(resolved.renderType, .unsupported)
         XCTAssertEqual(resolved.errorMessage, PreviewTargetError.noFinderSelection.defaultMessage)
-        XCTAssertEqual(resolved.mode, .preview)
         XCTAssertFalse(resolved.isExpanded)
     }
 }

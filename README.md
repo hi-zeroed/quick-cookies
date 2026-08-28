@@ -42,8 +42,8 @@ The interface features a borderless frosted HUD card overlay with a golden-ratio
   The card's width/height ratio has been strictly tuned (width `38%` : height `88%`) to mimic single-column book pages, which is perfect for reading code blocks, text document edits, and Markdown files.
 - 🎨 **Modern HUD Glassmorphism**
   Enjoy a borderless frosted visual effect panel supporting click-and-drag from any empty workspace area. It dynamically adapts to Dark Mode, Light Mode, and system-adaptive schemes with crisp contrast.
-- 📝 **Code Highlight & On-the-Fly Editing**
-  Displays editor-grade line numbers and handles auto-wrapping. Press `Cmd + E` to transition into edit mode, modify text, and save changes using `Cmd + S`. Safe font fallback is active to safeguard layout sanity.
+- ⚡️ **Open In Relay (External Pro Editor Handoff)**
+  Say goodbye to barebones in-panel editing without LSP or contextual tools. Click the frosted pill button in the top right to open instantly in the system default app, or expand the menu to hand off to your preferred editor (VS Code, Cursor, Xcode, Typora, Zed, etc.). Supports `⌘O` / `⌘Return` for instant opening, `⌘R` for Finder reveal, and `⌥⌘C` for quick path copying.
 - 📊 **Office Documents & Rich Text Previews**
   Integrates a wrapped AppKit `QLPreviewView` to support 100% accurate format-rich preview of Word, Excel, PPT, iWork (Pages, Numbers, Keynote), PDF, RTF/RTFD, and CSV sheets. Applied 12px rounded corner cropping to avoid layered raw square borders.
 - 💾 **Markdown-to-PDF Export**
@@ -115,10 +115,10 @@ The codebase utilizes a modularized architectural pattern:
 ```
 QuickCookies/
 ├── App/           # Lifecycle entries (AppDelegate, Onboarding, Configuration)
-├── Core/          # Engine layers (Hotkey listening, ScriptingBridge hooks, FileWatcher changes)
-├── UI/            # Layout views (Spring animations, CodeView, MarkdownView, UnsupportedFileView)
-├── Renderer/      # Text engines (Highlightr wrappers, font caches, Markdown HTML preprocessing)
-├── Resources/     # Graphic resources (Bundled JetBrains Mono fonts, Menubar SVG files, Onboarding assets)
+├── Core/          # Engine layers (Hotkey listening, ExternalAppRelay handoff, Window management)
+├── UI/            # Layout views (Spring animations, AppRelayControlView, CodeView, MarkdownView)
+├── Renderer/      # Text engines (Highlightr wrappers, font caches, Markdown runtime)
+├── Resources/     # Graphic resources (Bundled JetBrains Mono fonts, Menubar SVG files)
 └── Support/       # Sandboxing entitlements, startup services, and Info.plist configs
 ```
 
@@ -150,9 +150,10 @@ Quick Cookies runs silently in the background. Use the following global keystrok
 
 | Action                       | Shortcut (Kbd)                          | Description                                                                                                                                               |
 | :--------------------------- | :-------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Instant Preview / Toggle** | <kbd>⌘ Command</kbd> <kbd>⌘ Command</kbd> | Double-click Command to open when a file is selected in Finder. Trigger again (or click background) to fade out and fly back. _(Configurable in Settings)_ |
-| **Edit Mode Switch**         | <kbd>⌘ Command</kbd> + <kbd>E</kbd>     | Toggle between reader preview mode and editor text mode.                                                                                                  |
-| **Save Modifications**       | <kbd>⌘ Command</kbd> + <kbd>S</kbd>     | Commit editor buffer changes back to the physical disk.                                                                                                   |
+| **Instant Preview / Toggle** | <kbd>⌘ Command</kbd> <kbd>⌘ Command</kbd> | Double-click Command to open when a file is selected in Finder. Trigger again to fade out and fly back. _(Configurable in Settings)_ |
+| **Open with Default (Relay)**| <kbd>⌘ Command</kbd> + <kbd>O</kbd> / <kbd>↩ Return</kbd> | Open the current file immediately in its default application or preferred external editor, dismissing the preview overlay. |
+| **Reveal in Finder**         | <kbd>⌘ Command</kbd> + <kbd>R</kbd>     | Highlight and select the previewed file in Finder.                                                                                                        |
+| **Copy File Path**           | <kbd>⌥ Option</kbd> + <kbd>⌘ Command</kbd> + <kbd>C</kbd> | Copy the full POSIX physical path of the previewed file to the clipboard.                                                                                 |
 | **Dismiss Window**           | <kbd>Esc</kbd>                          | Close the window safely and shrink it back to Finder file icon.                                                                                           |
 
 ---

@@ -41,8 +41,8 @@
   窗口宽高比经过多轮人机交互与排版美学调优（宽度 `38%` : 高度 `88%`），呈现拔挺的单栏高级书籍质感，完美契合长文本段落、Markdown 文档以及复杂代码的阅读与审阅。
 - 🎨 **卡片化现代美学设计**
   无边框毛玻璃面板（Visual Effect）背景，支持按住窗口任意空白处直接拖拽移动。完美适配 macOS 亮色、暗色主题以及自适应系统模式，提供极高对比度、呼吸感留白的排版版面。
-- 📝 **无缝代码预览与快捷编辑**
-  集成公用行号标尺，支持自动折行对齐。在预览状态下可通过 `Cmd + E` 一键进入编辑模式实时修改，`Cmd + S` 快捷保存，并配备了未安装字体的安全兜底降级渲染，高保真还原原生编辑器质感。
+- ⚡️ **外部专业编辑器接力打开 (Open In Relay)**
+  告别简陋且缺乏 LSP 上下文的内嵌轻量编辑，聚焦极致预览体验。顶栏右侧毛玻璃胶囊一键以系统默认应用打开；下拉菜单智能感知已安装的专业编辑器（VS Code, Cursor, Xcode, Typora, Zed 等），并支持 `⌘O` / `⌘Return` 快捷接力、`⌘R` 在访达中显示、`⌥⌘C` 复制文件路径。
 - 📊 **Office 文档与媒体格式支持**
   内置基于 `QLPreviewView` 原生框架的渲染容器，支持对 Word, Excel, PPT, iWork (Pages, Numbers, Keynote), PDF, RTF/RTFD 及 CSV 文件的无缝原生预览，保障 100% 格式不丢失，并对文档渲染区域进行 12px 圆角物理裁剪与防分层直角优化。
 - 💾 **Markdown 导出 PDF**
@@ -113,10 +113,10 @@
 ```
 QuickCookies/
 ├── App/           # 应用程序入口及生命周期 (AppDelegate, Onboarding, Configuration)
-├── Core/          # 核心底层引擎 (热键路由, ScriptingBridge 文件探测, FileWatcher 冲突监听)
-├── UI/            # 界面视图组件 (窗口动画, CodeView, MarkdownView, UnsupportedFileView)
-├── Renderer/      # 语法高亮与字体处理 (Highlightr 桥接, 字体缓存, Markdown HTML 预处理)
-├── Resources/     # 物理资源资产 (内置 JetBrains Mono 字体, 状态栏及工具栏 SVG 图标, Onboarding 动画素材)
+├── Core/          # 核心底层引擎 (热键路由, 外部接力打开 ExternalAppRelay, 物理窗口管理)
+├── UI/            # 界面视图组件 (窗口动画, AppRelayControlView, CodeView, MarkdownView)
+├── Renderer/      # 语法高亮与字体处理 (Highlightr 桥接, 字体缓存, Markdown 运行时)
+├── Resources/     # 物理资源资产 (内置 JetBrains Mono 字体, 状态栏及工具栏 SVG 图标)
 └── Support/       # 系统权限、自启动配置及 Info.plist 支持
 ```
 
@@ -148,10 +148,11 @@ brew install --cask quick-cookies
 
 | 动作                      | 物理快捷键 (Kbd)                        | 作用描述                                                                                                                   |
 | :------------------------ | :-------------------------------------- | :------------------------------------------------------------------------------------------------------------------------- |
-| **快捷预览 / Toggle关闭** | <kbd>⌘ Command</kbd> <kbd>⌘ Command</kbd> | 在 Finder 中选中文件，**双击 Command** 瞬间呼出预览；再次双击或在窗口聚焦时按任意键即可关闭。_(支持在设置中自定义组合热键)_ |
-| **切换编辑 / 预览模式**   | <kbd>⌘ Command</kbd> + <kbd>E</kbd>     | 在预览窗口打开时，一键进入编辑模式修改内容；再次按下返回预览模式。                                                         |
-| **实时保存修改**          | <kbd>⌘ Command</kbd> + <kbd>S</kbd>     | 在编辑模式且内容有改动时，保存当前修改到物理文件中。                                                                       |
-| **安全退出窗口**          | <kbd>Esc</kbd>                          | 在预览/编辑窗口中按下，安全关闭并使窗口缩小飞回 Finder 原位置。                                                            |
+| **快捷预览 / Toggle关闭** | <kbd>⌘ Command</kbd> <kbd>⌘ Command</kbd> | 在 Finder 中选中文件，**双击 Command** 瞬间呼出预览；再次双击即可关闭。_(支持在设置中自定义组合热键)_ |
+| **用默认应用打开 (接力)** | <kbd>⌘ Command</kbd> + <kbd>O</kbd> / <kbd>↩ Return</kbd> | 立即使用系统默认应用/首选编辑器打开当前文件，并自动关闭预览浮层。                                                         |
+| **在访达中显示**          | <kbd>⌘ Command</kbd> + <kbd>R</kbd>     | 在 Finder 中定位并高亮选中当前文件。                                                                                       |
+| **复制文件路径**          | <kbd>⌥ Option</kbd> + <kbd>⌘ Command</kbd> + <kbd>C</kbd> | 快速复制当前文件的完整 POSIX 物理路径到剪贴板。                                                                           |
+| **安全退出窗口**          | <kbd>Esc</kbd>                          | 在预览窗口中按下，安全关闭并使窗口缩小飞回 Finder 原位置。                                                                 |
 
 ---
 

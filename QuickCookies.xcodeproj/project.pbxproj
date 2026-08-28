@@ -48,7 +48,8 @@
 		A1B2C301000000000000003D /* PreviewCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C301000000000000003E /* PreviewCoordinator.swift */; };
 		A1B2C3010000000000000040 /* FinderSelectionRefresh.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3010000000000000041 /* FinderSelectionRefresh.swift */; };
 		A1B2C3010000000000000046 /* PreviewNavigationContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3010000000000000047 /* PreviewNavigationContext.swift */; };
-		8EA7E2FA49A52C6CB2AE5A5E /* EditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 391364AE6149F12AED4BFFFC /* EditorView.swift */; };
+		EXTRELAYBLD00000000000001 /* ExternalAppRelay.swift in Sources */ = {isa = PBXBuildFile; fileRef = EXTRELAYREF00000000000001 /* ExternalAppRelay.swift */; };
+		APPRELAYBLD00000000000001 /* AppRelayControlView.swift in Sources */ = {isa = PBXBuildFile; fileRef = APPRELAYREF00000000000001 /* AppRelayControlView.swift */; };
 		835FB7022FCA950400D23AAB /* UnsupportedFileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835FB7012FCA950400D23AAA /* UnsupportedFileView.swift */; };
 		962C8A503D0B4CA6963E2B94 /* QuickLookOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = B76F46CEB24C42779E84EBBE /* QuickLookOverlay.swift */; };
 		A23C977659B0910F9D58A41B /* FileUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CB74C8B4C3A792598259E87 /* FileUtils.swift */; };
@@ -61,7 +62,6 @@
 		D89BC4645FD2337D32C9072C /* EncodingDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2724C2DCD3C66C24CC15D6E7 /* EncodingDetector.swift */; };
 		DA83EA46F6AB177473BC0393 /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = D643EEA9D20E7A954D49ED4C /* Settings.swift */; };
 		FC17D463B0B7C2B8817DCA5B /* SyntaxHighlighter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4282BAE5CE686021AF7F3F5C /* SyntaxHighlighter.swift */; };
-		FILWATCHBLD00000000000001 /* FileWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = FILWATCHREF00000000000001 /* FileWatcher.swift */; };
 		FMI000000000000000000001 /* FinderMenuIntegration.swift in Sources */ = {isa = PBXBuildFile; fileRef = FMI000000000000000000002 /* FinderMenuIntegration.swift */; };
 		FSB000000000000000000001 /* QuickCookiesFinderSync.swift in Sources */ = {isa = PBXBuildFile; fileRef = FSS000000000000000000001 /* QuickCookiesFinderSync.swift */; };
 		FSB000000000000000000002 /* QuickCookiesFinderSync.appex in CopyFiles */ = {isa = PBXBuildFile; fileRef = FSE555555555555555555555 /* QuickCookiesFinderSync.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -86,6 +86,7 @@
 		TSTBLD00000000000000001A /* PreviewVisualBaselineCaptureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF00000000000000001A /* PreviewVisualBaselineCaptureTests.swift */; };
 		TSTBLD00000000000000001B /* FinderSelectionPathProviderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF00000000000000001B /* FinderSelectionPathProviderTests.swift */; };
 		TSTBLD00000000000000001C /* FinderMenuIntegrationTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF00000000000000001C /* FinderMenuIntegrationTests.swift */; };
+		TSTBLD00000000000000001D /* ExternalAppRelayTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF00000000000000001D /* ExternalAppRelayTests.swift */; };
 		MEDPREVBLD00000000000001 /* MediaPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = MEDPREVREF00000000000001 /* MediaPreviewView.swift */; };
 		ONBOARDBLD00000000000001 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ONBOARDREF00000000000001 /* OnboardingView.swift */; };
 		FNT141414141414141414141 /* Fonts in Resources */ = {isa = PBXBuildFile; fileRef = FNT141414141414141414142 /* Fonts */; };
@@ -128,7 +129,8 @@
 		0C0D0E0F1011121314151607 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = System/Library/Frameworks/XCTest.framework; sourceTree = SDKROOT; };
 		031B5AD657BAE17A14E65A87 /* HotkeyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotkeyManager.swift; sourceTree = "<group>"; };
 		2724C2DCD3C66C24CC15D6E7 /* EncodingDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EncodingDetector.swift; sourceTree = "<group>"; };
-		391364AE6149F12AED4BFFFC /* EditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditorView.swift; sourceTree = "<group>"; };
+		EXTRELAYREF00000000000001 /* ExternalAppRelay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExternalAppRelay.swift; sourceTree = "<group>"; };
+		APPRELAYREF00000000000001 /* AppRelayControlView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRelayControlView.swift; sourceTree = "<group>"; };
 		4282BAE5CE686021AF7F3F5C /* SyntaxHighlighter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyntaxHighlighter.swift; sourceTree = "<group>"; };
 		460FA400CC4F4F828DB39EFA /* MarkdownTextView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownTextView.swift; sourceTree = "<group>"; };
 		55E3A065B775ACFE729BDE15 /* CodeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeView.swift; sourceTree = "<group>"; };
@@ -177,7 +179,6 @@
 		D643EEA9D20E7A954D49ED4C /* Settings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
 		DDD444444444444444444444 /* QuickCookies.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = QuickCookies.entitlements; sourceTree = "<group>"; };
 		EEE555555555555555555555 /* QuickCookies.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = QuickCookies.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		FILWATCHREF00000000000001 /* FileWatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileWatcher.swift; sourceTree = "<group>"; };
 		FMI000000000000000000002 /* FinderMenuIntegration.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinderMenuIntegration.swift; sourceTree = "<group>"; };
 		FSE555555555555555555555 /* QuickCookiesFinderSync.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = QuickCookiesFinderSync.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		FSP000000000000000000001 /* QuickCookiesFinderSync-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "QuickCookiesFinderSync-Info.plist"; sourceTree = "<group>"; };
@@ -204,6 +205,7 @@
 		TSTREF00000000000000001A /* PreviewVisualBaselineCaptureTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewVisualBaselineCaptureTests.swift; sourceTree = "<group>"; };
 		TSTREF00000000000000001B /* FinderSelectionPathProviderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinderSelectionPathProviderTests.swift; sourceTree = "<group>"; };
 		TSTREF00000000000000001C /* FinderMenuIntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinderMenuIntegrationTests.swift; sourceTree = "<group>"; };
+		TSTREF00000000000000001D /* ExternalAppRelayTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExternalAppRelayTests.swift; sourceTree = "<group>"; };
 		MEDPREVREF00000000000001 /* MediaPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaPreviewView.swift; sourceTree = "<group>"; };
 		ONBOARDREF00000000000001 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		835FB7012FCA950400D23AAA /* UnsupportedFileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnsupportedFileView.swift; sourceTree = "<group>"; };
@@ -276,6 +278,7 @@
 				A7AA2E8A55B09BC0FF2E83A0 /* FileTypeClassifier.swift */,
 				835FB6992FCA950400D23999 /* FileChunkReader.swift */,
 				031B5AD657BAE17A14E65A87 /* HotkeyManager.swift */,
+				EXTRELAYREF00000000000001 /* ExternalAppRelay.swift */,
 				FMI000000000000000000002 /* FinderMenuIntegration.swift */,
 				835FBA032FCA950400D23A03 /* MarkedJS.swift */,
 				A1B2C3010000000000000021 /* Markdown */,
@@ -336,10 +339,10 @@
 			isa = PBXGroup;
 			children = (
 				860647CBF168ADB4692AFB63 /* ContentView.swift */,
+				APPRELAYREF00000000000001 /* AppRelayControlView.swift */,
 				6240A15DD8E31603B40D6CC6 /* MarkdownView.swift */,
 				55E3A065B775ACFE729BDE15 /* CodeView.swift */,
 				460FA400CC4F4F828DB39EFA /* MarkdownTextView.swift */,
-				391364AE6149F12AED4BFFFC /* EditorView.swift */,
 				B76F46CEB24C42779E84EBBE /* QuickLookOverlay.swift */,
 				B87D7CAF1B4B8FAFF363B543 /* SettingsWindow.swift */,
 				CC8B9C87C1019A1BEC529314 /* ToastView.swift */,
@@ -367,7 +370,6 @@
 			children = (
 				2724C2DCD3C66C24CC15D6E7 /* EncodingDetector.swift */,
 				8CB74C8B4C3A792598259E87 /* FileUtils.swift */,
-				FILWATCHREF00000000000001 /* FileWatcher.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -434,6 +436,7 @@
 				TSTREF00000000000000001A /* PreviewVisualBaselineCaptureTests.swift */,
 				TSTREF00000000000000001B /* FinderSelectionPathProviderTests.swift */,
 				TSTREF00000000000000001C /* FinderMenuIntegrationTests.swift */,
+				TSTREF00000000000000001D /* ExternalAppRelayTests.swift */,
 			);
 			path = QuickCookiesTests;
 			sourceTree = "<group>";
@@ -609,7 +612,8 @@
 				D02C04567F8A13B8EE46D927 /* CustomAlert.swift in Sources */,
 				CC3B6172EFBB3884582E6DB9 /* MarkdownView.swift in Sources */,
 				21D2DE1178C6759287E735C5 /* CodeView.swift in Sources */,
-				8EA7E2FA49A52C6CB2AE5A5E /* EditorView.swift in Sources */,
+				EXTRELAYBLD00000000000001 /* ExternalAppRelay.swift in Sources */,
+				APPRELAYBLD00000000000001 /* AppRelayControlView.swift in Sources */,
 				04C42AD9B8657A3924158DE2 /* ContentView.swift in Sources */,
 				C2B47F163AC772A6BD9CD6B5 /* SettingsWindow.swift in Sources */,
 				D89BC4645FD2337D32C9072C /* EncodingDetector.swift in Sources */,
@@ -617,7 +621,6 @@
 				A23C977659B0910F9D58A41B /* FileUtils.swift in Sources */,
 				962C8A503D0B4CA6963E2B94 /* QuickLookOverlay.swift in Sources */,
 				MEDPREVBLD00000000000001 /* MediaPreviewView.swift in Sources */,
-				FILWATCHBLD00000000000001 /* FileWatcher.swift in Sources */,
 				ONBOARDBLD00000000000001 /* OnboardingView.swift in Sources */,
 				835FB7022FCA950400D23AAB /* UnsupportedFileView.swift in Sources */,
 				835FBA022FCA950400D23A02 /* OfficePreviewView.swift in Sources */,
@@ -651,6 +654,7 @@
 				TSTBLD00000000000000001A /* PreviewVisualBaselineCaptureTests.swift in Sources */,
 				TSTBLD00000000000000001B /* FinderSelectionPathProviderTests.swift in Sources */,
 				TSTBLD00000000000000001C /* FinderMenuIntegrationTests.swift in Sources */,
+				TSTBLD00000000000000001D /* ExternalAppRelayTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

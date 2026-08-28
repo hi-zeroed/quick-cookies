@@ -1,11 +1,6 @@
 import Combine
 import Foundation
 
-enum PreviewSessionMode: Equatable {
-    case preview
-    case edit
-}
-
 enum PreviewReadiness: Equatable {
     case idle
     case loading
@@ -17,7 +12,6 @@ struct PreviewSessionState: Equatable {
     var target: PreviewTarget?
     var source: PreviewLaunchSource?
     var runtimeKind: PreviewRuntimeKind?
-    var mode: PreviewSessionMode
     var readiness: PreviewReadiness
     var isExpanded: Bool
     var renderTypeOverride: FileRenderType? = nil
@@ -37,7 +31,6 @@ struct PreviewSessionState: Equatable {
         target: nil,
         source: nil,
         runtimeKind: nil,
-        mode: .preview,
         readiness: .idle,
         isExpanded: false,
         renderTypeOverride: nil
@@ -55,7 +48,6 @@ final class PreviewSession: ObservableObject {
             target: target,
             source: source,
             runtimeKind: PreviewRuntimeKind.forRenderType(target.renderType),
-            mode: .preview,
             readiness: .loading,
             isExpanded: false,
             renderTypeOverride: nil
@@ -69,7 +61,6 @@ final class PreviewSession: ObservableObject {
 
     func markFailed(_ error: PreviewTargetError) {
         state.readiness = .failed(error)
-        state.mode = .preview
         state.isExpanded = false
         state.renderTypeOverride = nil
 
@@ -83,7 +74,6 @@ final class PreviewSession: ObservableObject {
             target: nil,
             source: nil,
             runtimeKind: nil,
-            mode: .preview,
             readiness: .failed(error),
             isExpanded: false,
             renderTypeOverride: nil
@@ -93,16 +83,7 @@ final class PreviewSession: ObservableObject {
     func applyRuntimeFailure(message: String, renderTypeOverride: FileRenderType? = nil) {
         state.readiness = .failed(.runtime(message: message))
         state.renderTypeOverride = renderTypeOverride
-        state.mode = .preview
         state.isExpanded = false
-    }
-
-    func enterEditMode() {
-        state.mode = .edit
-    }
-
-    func returnToPreviewMode() {
-        state.mode = .preview
     }
 
     func toggleExpanded() {

@@ -1,16 +1,8 @@
 import SwiftUI
 import UniformTypeIdentifiers
 
-enum ContentMode {
-    case preview    // 预览模式
-    case edit       // 编辑模式
-}
-
 struct PreviewWindowActions {
     let closeOverlay: () -> Void
-    let focusWindowForEdit: () -> Void
-    let focusWindowForPreview: () -> Void
-    let unfocusWindowToFinder: () -> Void
     let showToast: (_ message: String, _ icon: String?) -> Void
     let currentWindow: () -> NSWindow?
 }
@@ -20,7 +12,6 @@ struct PreviewDisplayState: Equatable {
     let displayName: String?
     let renderType: FileRenderType?
     let language: String?
-    let mode: ContentMode
     let errorMessage: String?
     let isLoadingPath: Bool
     let isExpanded: Bool
@@ -70,7 +61,6 @@ enum PreviewCardChromePolicy {
 }
 
 struct ContentRenderCapability {
-    let allowsEditing: Bool
     let allowsPDFExport: Bool
     let usesTextContentLoader: Bool
     let showsGenericLoading: Bool
@@ -81,21 +71,18 @@ enum ContentRenderCapabilityRegistry {
         switch renderType {
         case .markdown:
             return ContentRenderCapability(
-                allowsEditing: true,
                 allowsPDFExport: true,
                 usesTextContentLoader: true,
                 showsGenericLoading: false
             )
         case .code, .plainText:
             return ContentRenderCapability(
-                allowsEditing: true,
                 allowsPDFExport: false,
                 usesTextContentLoader: true,
                 showsGenericLoading: true
             )
         case .pdf, .image, .office, .unsupported, .none:
             return ContentRenderCapability(
-                allowsEditing: false,
                 allowsPDFExport: false,
                 usesTextContentLoader: false,
                 showsGenericLoading: false
@@ -103,12 +90,8 @@ enum ContentRenderCapabilityRegistry {
         }
     }
 
-    static func allowsEditing(for renderType: FileRenderType?) -> Bool {
-        capability(for: renderType).allowsEditing
-    }
-
-    static func allowsPDFExport(for renderType: FileRenderType?, mode: ContentMode) -> Bool {
-        mode == .preview && capability(for: renderType).allowsPDFExport
+    static func allowsPDFExport(for renderType: FileRenderType?) -> Bool {
+        capability(for: renderType).allowsPDFExport
     }
 
     static func usesTextContentLoader(for renderType: FileRenderType?) -> Bool {
@@ -193,29 +176,12 @@ enum PreviewIncrementalContentLoadPolicy {
     }
 }
 
-enum PreviewEditPreparationPolicy {
-    static func shouldApplyRemainingText(
-        request: PreviewContentLoadRequest,
-        activeRequest: PreviewContentLoadRequest?,
-        activePath: String?,
-        loadedContentPath: String?
-    ) -> Bool {
-        request == activeRequest && request.path == activePath && request.path == loadedContentPath
-    }
-}
-
 enum PreviewAsyncRequestCleanupPolicy {
     static func shouldClearLoadingForRejectedResult(
         request: PreviewContentLoadRequest,
         activeRequest: PreviewContentLoadRequest?
     ) -> Bool {
         request == activeRequest
-    }
-}
-
-enum ContentEditingPolicy {
-    static func allowsEditing(for renderType: FileRenderType?) -> Bool {
-        ContentRenderCapabilityRegistry.allowsEditing(for: renderType)
     }
 }
 
@@ -229,7 +195,6 @@ enum PreviewDisplayStateResolver {
             displayName: sessionState.target?.displayName,
             renderType: renderType,
             language: sessionState.target?.language,
-            mode: sessionState.mode == .edit ? .edit : .preview,
             errorMessage: errorMessage,
             isLoadingPath: sessionState.readiness == .loading,
             isExpanded: sessionState.isExpanded
@@ -291,16 +256,10 @@ struct ContentView: View {
     @State private var loadedContentPath: String? = nil
     @State private var isLoading: Bool = true
     @State private var isTruncated: Bool = false
-    @State private var isModified: Bool = false
-    @State private var showErrorAlert: Bool = false
-    @State private var saveErrorMessage: String = ""
-    @State private var fileWatcher: FileWatcher? = nil
-    @State private var showReloadAlert: Bool = false
-    @State private var isSaving: Bool = false
-    
     // Markdown 导出 PDF 状态与本地 Toast 提示
     @State private var isExportingPDFActive: Bool = false
     @State private var isExportingPDF: Bool = false
+    @State private var isPDFHovered: Bool = false
     @State private var showLocalToast: Bool = false
     @State private var localToastMessage: String = ""
     @State private var localToastIcon: String? = nil
@@ -318,7 +277,7 @@ struct ContentView: View {
 
     // NOTE: 不在 ContentView 根节点订阅 Settings.shared，
     //       避免任意设置变化触发整个视图树 invalidate + CodeView.updateNSView 冒餐调用。
-    //       fontSize / editorFont 只在 previewView / editView 子节点内读取，训练范围最小化。
+    //       fontSize / editorFont 只在 previewView 子节点内读取，训练范围最小化。
 
     init(
         session: PreviewSession,
@@ -356,16 +315,8 @@ struct ContentView: View {
         displayState.language
     }
 
-    private var activeMode: ContentMode {
-        displayState.mode
-    }
-
     private var activeErrorMessage: String? {
         displayState.errorMessage
-    }
-
-    private var allowsEditing: Bool {
-        ContentEditingPolicy.allowsEditing(for: activeRenderType)
     }
 
     private var isLocatingSelection: Bool {
@@ -390,29 +341,6 @@ struct ContentView: View {
             contentArea
                 .zIndex(0)
         }
-        .customAlert(
-            isPresented: $showReloadAlert,
-            title: "File Updated Externally".localized(),
-            message: "This file has been modified by another editor. Reload the latest changes?".localized(),
-            primaryButton: .primary("Reload".localized()) {
-                if let path = activePath {
-                    isLoading = true
-                    Task {
-                        let didApply = await loadFileAsync(path: path)
-                        if didApply {
-                            startWatchingFile(path: path)
-                        }
-                    }
-                }
-            },
-            secondaryButton: .secondary("Ignore".localized())
-        )
-        .customAlert(
-            isPresented: $showErrorAlert,
-            title: "Save Failed".localized(),
-            message: saveErrorMessage.localized(),
-            primaryButton: .primary("OK".localized())
-        )
         .ignoresSafeArea(edges: .top)
         .background(
             VisualEffectView(material: .hudWindow, blendingMode: .behindWindow)
@@ -423,8 +351,6 @@ struct ContentView: View {
         .background(Color.clear) // 根容器背景必须是透明 clear，保持留白边缘穿透
         .toast(isShowing: $showLocalToast, message: localToastMessage, icon: localToastIcon)
         .onDisappear {
-            fileWatcher?.stop()
-            fileWatcher = nil
             chunkReader?.close()
             chunkReader = nil
             markdownPreviewTimeline = nil
@@ -447,14 +373,10 @@ struct ContentView: View {
             } else {
                 loadCoordinator.reset()
                 inflightLoadPath = nil
-                fileWatcher?.stop()
-                fileWatcher = nil
                 chunkReader?.close()
                 chunkReader = nil
                 content = ""
                 loadedContentPath = nil
-                isModified = false
-                showReloadAlert = false
                 markdownPreviewTimeline = nil
                 markdownHasLoadedInitialContent = false
                 previewReadinessState = PreviewReadinessGate.resetState(for: nil)
@@ -569,67 +491,54 @@ struct ContentView: View {
                 
                 // 状态修饰点
                 Circle()
-                    .fill(isModified ? Color.orange : (activePath == nil ? Color.gray.opacity(0.5) : Color.blue.opacity(0.8)))
+                    .fill(activePath == nil ? Color.gray.opacity(0.5) : Color.blue.opacity(0.8))
                     .frame(width: 6, height: 6)
             }
 
             Spacer()
 
-            // 右侧控制区域（模式切换与保存，右对齐固定 72px）
-            HStack(spacing: 12) {
-                if activePath != nil && activeErrorMessage == nil {
-                    if ContentRenderCapabilityRegistry.allowsPDFExport(
-                        for: activeRenderType,
-                        mode: activeMode
-                    ) {
+            // 右侧控制区域（外部接力打开与 PDF 导出）
+            HStack(spacing: 8) {
+                if let path = activePath, activeErrorMessage == nil {
+                    if ContentRenderCapabilityRegistry.allowsPDFExport(for: activeRenderType) {
                         Group {
                             if isExportingPDF {
                                 ProgressView()
                                     .progressViewStyle(LinearProgressViewStyle(tint: Color.appText.opacity(0.6)))
-                                    .frame(width: 60)
+                                    .frame(width: 50)
                             } else {
                                 Button(action: exportMarkdownToPDF) {
-                                    Image("ToolbarExport")
-                                        .renderingMode(.template)
-                                        .resizable()
-                                        .frame(width: 16, height: 16)
-                                        .foregroundColor(Color.appText.opacity(0.8))
+                                    Image(systemName: "square.and.arrow.up")
+                                        .font(.system(size: 13, weight: .medium))
+                                        .foregroundColor(Color.appText.opacity(isPDFHovered ? 0.95 : 0.8))
+                                        .frame(width: 22, height: 22)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 5)
+                                                .fill(Color.appText.opacity(isPDFHovered ? 0.12 : 0.06))
+                                        )
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 5)
+                                                .stroke(Color.appText.opacity(isPDFHovered ? 0.18 : (colorScheme == .dark ? 0.12 : 0.08)), lineWidth: 0.5)
+                                        )
+                                        .contentShape(Rectangle())
                                 }
                                 .buttonStyle(.plain)
                                 .help("Export PDF".localized())
+                                .onHover { hovering in
+                                    isPDFHovered = hovering
+                                }
                             }
                         }
                         .animation(.easeInOut(duration: 0.2), value: isExportingPDF)
                     }
-                    
-                    if allowsEditing {
-                        // 模式切换按钮
-                        Button(action: toggleMode) {
-                            Image(activeMode == .preview ? "ToolbarEdit" : "ToolbarPreview")
-                                .renderingMode(.template)
-                                .resizable()
-                                .frame(width: 16, height: 16)
-                                .foregroundColor(Color.appText.opacity(0.8))
-                        }
-                        .buttonStyle(.plain)
-                        .help(activeMode == .preview ? "Enter Edit (Cmd+E)".localized() : "Back to Preview".localized())
 
-                        // 保存按钮
-                        if activeMode == .edit && isModified {
-                            Button(action: saveFile) {
-                                Image("ToolbarSave")
-                                   .renderingMode(.template)
-                                   .resizable()
-                                   .frame(width: 16, height: 16)
-                                   .foregroundColor(.orange)
-                            }
-                            .buttonStyle(.plain)
-                            .help("Save (Cmd+S)".localized())
-                        }
+                    // 外部应用接力打开控件
+                    AppRelayControlView(filePath: path) {
+                        windowActions.closeOverlay()
                     }
                 }
             }
-            .frame(width: 72, alignment: .trailing)
+            .frame(minWidth: 72, alignment: .trailing)
         }
         .padding(.horizontal, 16)
         .padding(.top, 8)
@@ -751,13 +660,8 @@ struct ContentView: View {
             .transition(.opacity)
         } else {
             Group {
-                switch activeMode {
-                case .preview:
-                    if shouldRenderPreviewView {
-                        previewView
-                    }
-                case .edit:
-                    editView
+                if shouldRenderPreviewView {
+                    previewView
                 }
             }
             .transition(.opacity)
@@ -863,117 +767,17 @@ struct ContentView: View {
         .animation(.easeOut(duration: 0.16), value: previewReadinessState.isReady)
     }
 
-    @ViewBuilder
-    private var editView: some View {
-        // NOTE: 将 settings 订阅下沉到 EditContentView 内部，训练范围最小化
-        EditContentView(
-            content: $content,
-            isModified: $isModified,
-            onSave: saveFile
-        )
-    }
-
-    private func toggleMode() {
-        if activeMode == .preview {
-            guard allowsEditing else { return }
-
-            // 准备进入编辑模式，确保后台一次性静默读完全文，以保证保存时内容的绝对完整性
-            if loadState.hasMoreChunks, let reader = chunkReader {
-                guard let request = loadCoordinator.activeRequest,
-                      PreviewEditPreparationPolicy.shouldApplyRemainingText(
-                        request: request,
-                        activeRequest: loadCoordinator.activeRequest,
-                        activePath: activePath,
-                        loadedContentPath: loadedContentPath
-                      ) else { return }
-
-                isLoading = true
-                Task {
-                    let result = await Task.detached(priority: .userInitiated) { () -> Result<String, FileUtils.FileError> in
-                        return reader.readRemaining()
-                    }.value
-                    
-                    await MainActor.run {
-                        guard PreviewEditPreparationPolicy.shouldApplyRemainingText(
-                            request: request,
-                            activeRequest: loadCoordinator.activeRequest,
-                            activePath: activePath,
-                            loadedContentPath: loadedContentPath
-                        ) else {
-                            if PreviewAsyncRequestCleanupPolicy.shouldClearLoadingForRejectedResult(
-                                request: request,
-                                activeRequest: loadCoordinator.activeRequest
-                            ) {
-                                self.isLoading = false
-                            }
-                            return
-                        }
-
-                        switch result {
-                        case .success(let remainingText):
-                            self.content += remainingText
-                            self.loadState.hasMoreChunks = false
-                            self.isLoading = false
-                            self.transitionToEditMode()
-                            // 模式改变后，使窗口获得焦点以便能够键盘打字输入
-                            windowActions.focusWindowForEdit()
-                        case .failure(let error):
-                            withAnimation(.spring(response: 0.28, dampingFraction: 0.8)) {
-                                self.saveErrorMessage = (error.errorDescription ?? "读取剩余文件失败").localized()
-                                self.isLoading = false
-                                self.showErrorAlert = true
-                            }
-                        }
-                    }
-                }
-            } else {
-                transitionToEditMode()
-                // 模式改变后，使窗口获得焦点以便能够键盘打字输入
-                windowActions.focusWindowForEdit()
-            }
-        } else {
-            transitionToPreviewMode()
-            // 返回预览模式后按来源策略决定焦点，保持 Finder 驱动预览不抢焦点。
-            windowActions.focusWindowForPreview()
-        }
-    }
-
-    private func saveFile() {
-        guard let path = activePath else { return }
-        isSaving = true
-        let result = FileUtils.writeFile(at: path, content: content)
-
-        switch result {
-        case .success:
-            isModified = false
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
-                self.isSaving = false
-            }
-        case .failure(let error):
-            withAnimation(.spring(response: 0.28, dampingFraction: 0.8)) {
-                saveErrorMessage = error.errorDescription ?? "未知错误"
-                showErrorAlert = true
-                isSaving = false
-            }
-        }
-    }
-
     /// 后台并发异步读取首段，保证窗口 0ms 秒开起跳弹出
     private func loadFileAsync(path: String) async -> Bool {
         let request = await MainActor.run { () -> PreviewContentLoadRequest in
             let previousPath = loadCoordinator.activeRequest?.path
             let isReloadingSamePath = previousPath == path
             let request = loadCoordinator.beginLoad(path: path)
-            showReloadAlert = false
-            fileWatcher?.stop()
-            fileWatcher = nil
             chunkReader?.close()
             chunkReader = nil
             if !isReloadingSamePath {
                 content = ""
             }
-            isModified = false
-            saveErrorMessage = ""
             loadState.hasMoreChunks = false
             loadState.isIncrementalLoading = false
             resetHeavyPreviewState(for: activeRenderType)
@@ -1121,21 +925,6 @@ struct ContentView: View {
         }
     }
 
-    private func startWatchingFile(path: String) {
-        fileWatcher?.stop()
-        fileWatcher = nil
-        
-        let watcher = FileWatcher(url: URL(fileURLWithPath: path))
-        watcher.onFileChanged = {
-            if self.isSaving { return }
-            withAnimation(.spring(response: 0.28, dampingFraction: 0.8)) {
-                self.showReloadAlert = true
-            }
-        }
-        watcher.start()
-        fileWatcher = watcher
-    }
-
     @MainActor
     private func triggerPathLoadIfNeeded(path: String) async {
         guard inflightLoadPath != path else { return }
@@ -1146,10 +935,7 @@ struct ContentView: View {
         resetHeavyPreviewState(for: activeRenderType)
         markdownBootstrapReady = false
 
-        let didApply = await loadFileAsync(path: path)
-        if didApply {
-            startWatchingFile(path: path)
-        }
+        _ = await loadFileAsync(path: path)
 
         if inflightLoadPath == path {
             inflightLoadPath = nil
@@ -1173,14 +959,6 @@ struct ContentView: View {
         previewReadinessState = PreviewReadinessGate.resetState(for: renderType)
     }
 
-    private func transitionToEditMode() {
-        session.enterEditMode()
-    }
-
-    private func transitionToPreviewMode() {
-        session.returnToPreviewMode()
-    }
-
     private func markHeavyPreviewReady(_ token: UUID) {
         guard let nextState = PreviewReadinessGate.acceptingReady(
             from: token,
@@ -1199,7 +977,7 @@ struct ContentView: View {
     }
 
     private var shouldShowLoadingOverlay: Bool {
-        guard activeRenderType == .markdown, activeMode == .preview, activePath != nil else { return false }
+        guard activeRenderType == .markdown, activePath != nil else { return false }
         guard isLoading || !canRenderLoadedContent else { return false }
         return !canRenderLoadedContent || !markdownBootstrapReady
     }
@@ -1219,10 +997,7 @@ struct ContentView: View {
 
     private func exportMarkdownToPDF() {
         guard let path = activePath,
-              ContentRenderCapabilityRegistry.allowsPDFExport(
-                for: activeRenderType,
-                mode: activeMode
-              ) else { return }
+              ContentRenderCapabilityRegistry.allowsPDFExport(for: activeRenderType) else { return }
         
         let savePanel = NSSavePanel()
         savePanel.allowedContentTypes = [.pdf]
@@ -1321,33 +1096,6 @@ private struct PreviewCodeView: View {
             isDark: isDark,
             loadState: loadState,
             onLoadMore: onLoadMore
-        )
-    }
-}
-
-/// 编辑器的 Settings 隔离包装视图
-/// NOTE: 同上，恢复 @ObservedObject 绑定
-private struct EditContentView: View {
-    @Binding var content: String
-    @Binding var isModified: Bool
-    let onSave: () -> Void
-
-    @ObservedObject private var settings = Settings.shared
-
-    init(content: Binding<String>, isModified: Binding<Bool>, onSave: @escaping () -> Void) {
-        self._content = content
-        self._isModified = isModified
-        self.onSave = onSave
-    }
-
-    var body: some View {
-        EditorView(
-            content: $content,
-            isModified: $isModified,
-            fontSize: settings.fontSize,
-            fontName: settings.editorFont,
-            showLineNumbers: settings.showLineNumbers,
-            onSave: onSave
         )
     }
 }

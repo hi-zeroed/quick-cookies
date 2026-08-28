@@ -28,6 +28,7 @@ TEST_PLAN.md
 
 
 buildClean
+buildRelease
 release_dist
 CLAUDE.md
 AGENTS.md

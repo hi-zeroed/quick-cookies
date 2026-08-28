@@ -321,22 +321,8 @@ struct SettingsView: View {
                                 .background(Color.appBorder)
                                 .padding(.horizontal, 16)
                             
-                            SettingsRow(title: "Enter Edit Mode".localized()) {
-                                HStack(spacing: 4) {
-                                    KbdKeyView(key: "⌘")
-                                    KbdKeyView(key: "E")
-                                }
-                            }
-                            
-                            Divider()
-                                .background(Color.appBorder)
-                                .padding(.horizontal, 16)
-                            
-                            SettingsRow(title: "Save File Changes".localized()) {
-                                HStack(spacing: 4) {
-                                    KbdKeyView(key: "⌘")
-                                    KbdKeyView(key: "S")
-                                }
+                            SettingsRow(title: "Dismiss Window".localized()) {
+                                KbdKeyView(key: "Esc")
                             }
                         }
                     }

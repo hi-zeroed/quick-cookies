@@ -18,12 +18,11 @@ final class PreviewSessionTests: XCTestCase {
         XCTAssertEqual(session.state.target, target)
         XCTAssertEqual(session.state.source, .service)
         XCTAssertEqual(session.state.runtimeKind, .web)
-        XCTAssertEqual(session.state.mode, .preview)
         XCTAssertEqual(session.state.readiness, .loading)
         XCTAssertFalse(session.state.isExpanded)
     }
 
-    func test_session_reset_clearsTargetAndReturnsToIdlePreviewMode() {
+    func test_session_reset_clearsTargetAndReturnsToIdleState() {
         let session = PreviewSession()
         let target = PreviewTarget(
             originalPath: "/tmp/demo.swift",
@@ -34,12 +33,10 @@ final class PreviewSessionTests: XCTestCase {
         )
 
         session.open(target: target, source: .service)
-        session.enterEditMode()
         session.reset()
 
         XCTAssertNil(session.state.target)
         XCTAssertNil(session.state.runtimeKind)
-        XCTAssertEqual(session.state.mode, .preview)
         XCTAssertEqual(session.state.readiness, .idle)
         XCTAssertFalse(session.state.isExpanded)
     }
@@ -58,23 +55,6 @@ final class PreviewSessionTests: XCTestCase {
         session.markReady()
 
         XCTAssertEqual(session.state.readiness, .ready)
-    }
-
-    func test_session_returnToPreviewMode_leavesSessionInPreview() {
-        let session = PreviewSession()
-        let target = PreviewTarget(
-            originalPath: "/tmp/demo.md",
-            resolvedPath: "/tmp/demo.md",
-            renderType: .markdown,
-            language: nil,
-            displayName: "demo.md"
-        )
-
-        session.open(target: target, source: .service)
-        session.enterEditMode()
-        session.returnToPreviewMode()
-
-        XCTAssertEqual(session.state.mode, .preview)
     }
 
     func test_session_toggleExpanded_updatesExpandedState() {
@@ -110,7 +90,6 @@ final class PreviewSessionTests: XCTestCase {
 
         XCTAssertEqual(session.state.target, target)
         XCTAssertEqual(session.state.runtimeKind, .web)
-        XCTAssertEqual(session.state.mode, .preview)
         XCTAssertEqual(session.state.readiness, .failed(.fileNotFound))
     }
 
@@ -121,7 +100,6 @@ final class PreviewSessionTests: XCTestCase {
 
         XCTAssertNil(session.state.target)
         XCTAssertNil(session.state.runtimeKind)
-        XCTAssertEqual(session.state.mode, .preview)
         XCTAssertEqual(session.state.readiness, .failed(.noFinderSelection))
     }
 
@@ -140,7 +118,6 @@ final class PreviewSessionTests: XCTestCase {
 
         XCTAssertNil(session.state.target)
         XCTAssertNil(session.state.runtimeKind)
-        XCTAssertEqual(session.state.mode, .preview)
         XCTAssertFalse(session.state.isExpanded)
         XCTAssertEqual(session.state.readiness, .failed(.noFinderSelection))
     }
@@ -182,7 +159,7 @@ final class PreviewSessionTests: XCTestCase {
         XCTAssertEqual(session.state.errorMessage, "Binary file")
     }
 
-    func test_session_applyRuntimeFailure_returnsToCollapsedPreviewMode() {
+    func test_session_applyRuntimeFailure_returnsToCollapsedState() {
         let session = PreviewSession()
         let target = PreviewTarget(
             originalPath: "/tmp/demo.md",
@@ -193,11 +170,9 @@ final class PreviewSessionTests: XCTestCase {
         )
 
         session.open(target: target, source: .service)
-        session.enterEditMode()
         session.toggleExpanded()
         session.applyRuntimeFailure(message: "Load failed")
 
-        XCTAssertEqual(session.state.mode, .preview)
         XCTAssertFalse(session.state.isExpanded)
         XCTAssertEqual(session.state.errorMessage, "Load failed")
     }

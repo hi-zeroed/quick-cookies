@@ -131,24 +131,12 @@ final class QuickLookOverlayStateTests: XCTestCase {
 
     func test_previewWindowActions_performInjectedCallbacks() {
         var didClose = false
-        var didFocus = false
-        var didFocusPreview = false
-        var didUnfocus = false
         var toastPayload: (String, String?)?
         let expectedWindow = NSWindow()
 
         let actions = PreviewWindowActions(
             closeOverlay: {
                 didClose = true
-            },
-            focusWindowForEdit: {
-                didFocus = true
-            },
-            focusWindowForPreview: {
-                didFocusPreview = true
-            },
-            unfocusWindowToFinder: {
-                didUnfocus = true
             },
             showToast: { message, icon in
                 toastPayload = (message, icon)
@@ -159,18 +147,12 @@ final class QuickLookOverlayStateTests: XCTestCase {
         )
 
         actions.closeOverlay()
-        actions.focusWindowForEdit()
-        actions.focusWindowForPreview()
-        actions.unfocusWindowToFinder()
-        actions.showToast("demo", "checkmark")
+        actions.showToast("Saved", "checkmark.circle.fill")
 
         XCTAssertTrue(didClose)
-        XCTAssertTrue(didFocus)
-        XCTAssertTrue(didFocusPreview)
-        XCTAssertTrue(didUnfocus)
-        XCTAssertEqual(toastPayload?.0, "demo")
-        XCTAssertEqual(toastPayload?.1, "checkmark")
-        XCTAssertTrue(actions.currentWindow() === expectedWindow)
+        XCTAssertEqual(toastPayload?.0, "Saved")
+        XCTAssertEqual(toastPayload?.1, "checkmark.circle.fill")
+        XCTAssertIdentical(actions.currentWindow(), expectedWindow)
     }
 
     func test_previewReadinessGate_resetsHeavyPreviewToPendingWithFreshToken() {
@@ -259,21 +241,18 @@ final class QuickLookOverlayStateTests: XCTestCase {
     func test_previewOverlayKeyWindowPolicy_keepsFinderDrivenPreviewNonKey() {
         XCTAssertFalse(
             PreviewOverlayKeyWindowPolicy.canBecomeKey(
-                mode: .preview,
                 renderType: .office,
                 source: .hotkey
             )
         )
         XCTAssertFalse(
             PreviewOverlayKeyWindowPolicy.canBecomeKey(
-                mode: .preview,
                 renderType: .markdown,
                 source: .finderSync
             )
         )
         XCTAssertFalse(
             PreviewOverlayKeyWindowPolicy.canBecomeKey(
-                mode: .preview,
                 renderType: .image,
                 source: .menuBar
             )
@@ -283,31 +262,27 @@ final class QuickLookOverlayStateTests: XCTestCase {
     func test_previewOverlayKeyWindowPolicy_allowsDirectPathPreviewInteraction() {
         XCTAssertTrue(
             PreviewOverlayKeyWindowPolicy.canBecomeKey(
-                mode: .preview,
                 renderType: .markdown,
                 source: .service
             )
         )
         XCTAssertTrue(
             PreviewOverlayKeyWindowPolicy.canBecomeKey(
-                mode: .preview,
                 renderType: .image,
                 source: .urlScheme
             )
         )
         XCTAssertFalse(
             PreviewOverlayKeyWindowPolicy.canBecomeKey(
-                mode: .preview,
                 renderType: nil,
                 source: .service
             )
         )
     }
 
-    func test_previewOverlayKeyWindowPolicy_allowsEditingForTextBackedFiles() {
-        XCTAssertTrue(
+    func test_previewOverlayKeyWindowPolicy_blocksFinderDrivenPreviews() {
+        XCTAssertFalse(
             PreviewOverlayKeyWindowPolicy.canBecomeKey(
-                mode: .edit,
                 renderType: .code,
                 source: .hotkey
             )
@@ -317,14 +292,12 @@ final class QuickLookOverlayStateTests: XCTestCase {
     func test_previewOverlayFocusActivationPolicy_keepsFinderDrivenPreviewInFinder() {
         XCTAssertFalse(
             PreviewOverlayFocusActivationPolicy.shouldFocusOnPresentation(
-                mode: .preview,
                 renderType: .office,
                 source: .hotkey
             )
         )
         XCTAssertFalse(
             PreviewOverlayFocusActivationPolicy.shouldFocusOnPresentation(
-                mode: .preview,
                 renderType: .markdown,
                 source: .finderSync
             )
@@ -334,14 +307,12 @@ final class QuickLookOverlayStateTests: XCTestCase {
     func test_previewOverlayFocusActivationPolicy_focusesDirectPathPreviewOnPresentation() {
         XCTAssertTrue(
             PreviewOverlayFocusActivationPolicy.shouldFocusOnPresentation(
-                mode: .preview,
                 renderType: .markdown,
                 source: .service
             )
         )
         XCTAssertFalse(
             PreviewOverlayFocusActivationPolicy.shouldFocusOnPresentation(
-                mode: .preview,
                 renderType: nil,
                 source: .service
             )
@@ -351,21 +322,18 @@ final class QuickLookOverlayStateTests: XCTestCase {
     func test_previewOverlayFocusActivationPolicy_doesNotActivateAppForFinderDrivenPreview() {
         XCTAssertFalse(
             PreviewOverlayFocusActivationPolicy.shouldActivateAppOnPresentation(
-                mode: .preview,
                 renderType: .markdown,
                 source: .hotkey
             )
         )
         XCTAssertTrue(
             PreviewOverlayFocusActivationPolicy.shouldActivateAppOnPresentation(
-                mode: .preview,
                 renderType: .image,
                 source: .service
             )
         )
         XCTAssertFalse(
             PreviewOverlayFocusActivationPolicy.shouldActivateAppOnPresentation(
-                mode: .preview,
                 renderType: nil,
                 source: .service
             )
@@ -376,7 +344,6 @@ final class QuickLookOverlayStateTests: XCTestCase {
         XCTAssertFalse(
             PreviewOverlayKeyboardRoutingPolicy.shouldForwardFinderNavigation(
                 isVisible: true,
-                isEditing: false,
                 followsFinderSelection: true,
                 frontmostBundleIdentifier: "com.apple.finder",
                 keyCode: 125
@@ -465,11 +432,10 @@ final class QuickLookOverlayStateTests: XCTestCase {
         )
     }
 
-    func test_previewOverlayKeyboardRoutingPolicy_forwardsFinderNavigationOnlyWhenExplicitlyEnabled() {
+    func test_previewOverlayKeyboardRoutingPolicy_requiresFrontmostFinderWhenForwardingEnabled() {
         XCTAssertTrue(
             PreviewOverlayKeyboardRoutingPolicy.shouldForwardFinderNavigation(
                 isVisible: true,
-                isEditing: false,
                 followsFinderSelection: true,
                 finderNavigationForwardingEnabled: true,
                 frontmostBundleIdentifier: "com.apple.finder",
@@ -479,7 +445,6 @@ final class QuickLookOverlayStateTests: XCTestCase {
         XCTAssertFalse(
             PreviewOverlayKeyboardRoutingPolicy.shouldForwardFinderNavigation(
                 isVisible: true,
-                isEditing: false,
                 followsFinderSelection: true,
                 finderNavigationForwardingEnabled: true,
                 frontmostBundleIdentifier: "com.quickcookies.app",
@@ -492,7 +457,6 @@ final class QuickLookOverlayStateTests: XCTestCase {
         XCTAssertFalse(
             PreviewOverlayKeyboardRoutingPolicy.shouldForwardFinderNavigation(
                 isVisible: true,
-                isEditing: false,
                 followsFinderSelection: true,
                 finderNavigationForwardingEnabled: true,
                 frontmostBundleIdentifier: "com.apple.finder",
@@ -505,7 +469,6 @@ final class QuickLookOverlayStateTests: XCTestCase {
         XCTAssertTrue(
             PreviewOverlayFinderNavigationRefreshPolicy.shouldRefreshAfterFinderNavigation(
                 isVisible: true,
-                isEditing: false,
                 followsFinderSelection: true,
                 frontmostBundleIdentifier: "com.apple.finder",
                 keyCode: 125
@@ -514,7 +477,6 @@ final class QuickLookOverlayStateTests: XCTestCase {
         XCTAssertFalse(
             PreviewOverlayFinderNavigationRefreshPolicy.shouldRefreshAfterFinderNavigation(
                 isVisible: true,
-                isEditing: false,
                 followsFinderSelection: true,
                 frontmostBundleIdentifier: "com.quickcookies.app",
                 keyCode: 125
@@ -526,7 +488,6 @@ final class QuickLookOverlayStateTests: XCTestCase {
         XCTAssertFalse(
             PreviewOverlayFinderNavigationRefreshPolicy.shouldRefreshAfterFinderNavigation(
                 isVisible: true,
-                isEditing: false,
                 followsFinderSelection: true,
                 frontmostBundleIdentifier: "com.apple.finder",
                 keyCode: 53
@@ -534,20 +495,10 @@ final class QuickLookOverlayStateTests: XCTestCase {
         )
     }
 
-    func test_previewOverlayKeyboardRoutingPolicy_doesNotForwardWhileEditingOrWithoutFinderFollow() {
+    func test_previewOverlayKeyboardRoutingPolicy_doesNotForwardWithoutFinderFollow() {
         XCTAssertFalse(
             PreviewOverlayKeyboardRoutingPolicy.shouldForwardFinderNavigation(
                 isVisible: true,
-                isEditing: true,
-                followsFinderSelection: true,
-                frontmostBundleIdentifier: "com.apple.finder",
-                keyCode: 125
-            )
-        )
-        XCTAssertFalse(
-            PreviewOverlayKeyboardRoutingPolicy.shouldForwardFinderNavigation(
-                isVisible: true,
-                isEditing: false,
                 followsFinderSelection: false,
                 frontmostBundleIdentifier: "com.apple.finder",
                 keyCode: 125
@@ -559,7 +510,6 @@ final class QuickLookOverlayStateTests: XCTestCase {
         XCTAssertEqual(
             PreviewOverlayInternalNavigationKeyPolicy.direction(
                 isVisible: true,
-                isEditing: false,
                 followsFinderSelection: false,
                 keyCode: 126,
                 modifierFlags: []
@@ -569,7 +519,6 @@ final class QuickLookOverlayStateTests: XCTestCase {
         XCTAssertEqual(
             PreviewOverlayInternalNavigationKeyPolicy.direction(
                 isVisible: true,
-                isEditing: false,
                 followsFinderSelection: false,
                 keyCode: 125,
                 modifierFlags: []
@@ -578,20 +527,10 @@ final class QuickLookOverlayStateTests: XCTestCase {
         )
     }
 
-    func test_previewOverlayInternalNavigationKeyPolicy_ignoresEditingModifiedHiddenOrNonNavigationKeys() {
+    func test_previewOverlayInternalNavigationKeyPolicy_ignoresModifiedHiddenOrNonNavigationKeys() {
         XCTAssertNil(
             PreviewOverlayInternalNavigationKeyPolicy.direction(
                 isVisible: true,
-                isEditing: true,
-                followsFinderSelection: false,
-                keyCode: 125,
-                modifierFlags: []
-            )
-        )
-        XCTAssertNil(
-            PreviewOverlayInternalNavigationKeyPolicy.direction(
-                isVisible: true,
-                isEditing: false,
                 followsFinderSelection: false,
                 keyCode: 125,
                 modifierFlags: [.command]
@@ -600,7 +539,6 @@ final class QuickLookOverlayStateTests: XCTestCase {
         XCTAssertNil(
             PreviewOverlayInternalNavigationKeyPolicy.direction(
                 isVisible: false,
-                isEditing: false,
                 followsFinderSelection: false,
                 keyCode: 125,
                 modifierFlags: []
@@ -609,7 +547,6 @@ final class QuickLookOverlayStateTests: XCTestCase {
         XCTAssertNil(
             PreviewOverlayInternalNavigationKeyPolicy.direction(
                 isVisible: true,
-                isEditing: false,
                 followsFinderSelection: false,
                 keyCode: 36,
                 modifierFlags: []
@@ -621,7 +558,6 @@ final class QuickLookOverlayStateTests: XCTestCase {
         XCTAssertNil(
             PreviewOverlayInternalNavigationKeyPolicy.direction(
                 isVisible: true,
-                isEditing: false,
                 followsFinderSelection: true,
                 keyCode: 125,
                 modifierFlags: []
@@ -861,7 +797,6 @@ final class QuickLookOverlayStateTests: XCTestCase {
             target: target,
             source: .hotkey,
             runtimeKind: .web,
-            mode: .preview,
             readiness: .ready,
             isExpanded: false
         )
@@ -869,7 +804,6 @@ final class QuickLookOverlayStateTests: XCTestCase {
             target: target,
             source: .hotkey,
             runtimeKind: .web,
-            mode: .preview,
             readiness: .ready,
             isExpanded: true
         )
@@ -884,7 +818,6 @@ final class QuickLookOverlayStateTests: XCTestCase {
             target: otherTarget,
             source: .finderSync,
             runtimeKind: .web,
-            mode: .preview,
             readiness: .loading,
             isExpanded: false
         )
@@ -1054,42 +987,21 @@ final class QuickLookOverlayStateTests: XCTestCase {
         XCTAssertFalse(ContentLoadingPresentationPolicy.shouldShowGenericLoading(isLoading: true, renderType: .image))
     }
 
-    func test_contentRenderCapabilityRegistry_allowsEditingForTextBackedTypesOnly() {
-        XCTAssertTrue(ContentRenderCapabilityRegistry.allowsEditing(for: .markdown))
-        XCTAssertTrue(ContentRenderCapabilityRegistry.allowsEditing(for: .code))
-        XCTAssertTrue(ContentRenderCapabilityRegistry.allowsEditing(for: .plainText))
-
-        XCTAssertFalse(ContentRenderCapabilityRegistry.allowsEditing(for: .office))
-        XCTAssertFalse(ContentRenderCapabilityRegistry.allowsEditing(for: .image))
-        XCTAssertFalse(ContentRenderCapabilityRegistry.allowsEditing(for: .pdf))
-        XCTAssertFalse(ContentRenderCapabilityRegistry.allowsEditing(for: .unsupported))
-        XCTAssertFalse(ContentRenderCapabilityRegistry.allowsEditing(for: nil))
-    }
-
     func test_contentRenderCapabilityRegistry_limitsPDFExportToMarkdownPreview() {
         XCTAssertTrue(
             ContentRenderCapabilityRegistry.allowsPDFExport(
-                for: .markdown,
-                mode: .preview
+                for: .markdown
             )
         )
 
         XCTAssertFalse(
             ContentRenderCapabilityRegistry.allowsPDFExport(
-                for: .markdown,
-                mode: .edit
+                for: .code
             )
         )
         XCTAssertFalse(
             ContentRenderCapabilityRegistry.allowsPDFExport(
-                for: .code,
-                mode: .preview
-            )
-        )
-        XCTAssertFalse(
-            ContentRenderCapabilityRegistry.allowsPDFExport(
-                for: nil,
-                mode: .preview
+                for: nil
             )
         )
     }
@@ -1179,16 +1091,6 @@ final class QuickLookOverlayStateTests: XCTestCase {
         )
     }
 
-    func test_contentEditingPolicy_allowsTextBackedTypesOnly() {
-        XCTAssertTrue(ContentEditingPolicy.allowsEditing(for: .markdown))
-        XCTAssertTrue(ContentEditingPolicy.allowsEditing(for: .code))
-        XCTAssertTrue(ContentEditingPolicy.allowsEditing(for: .plainText))
-
-        XCTAssertFalse(ContentEditingPolicy.allowsEditing(for: .office))
-        XCTAssertFalse(ContentEditingPolicy.allowsEditing(for: .unsupported))
-        XCTAssertFalse(ContentEditingPolicy.allowsEditing(for: nil))
-    }
-
     func test_previewOverlayFinderFollowPolicy_followsFinderDrivenSourcesOnly() {
         XCTAssertTrue(PreviewOverlayFinderFollowPolicy.shouldFollowFinderSelection(for: .hotkey))
         XCTAssertTrue(PreviewOverlayFinderFollowPolicy.shouldFollowFinderSelection(for: .finderSync))
@@ -1213,7 +1115,6 @@ final class QuickLookOverlayStateTests: XCTestCase {
         XCTAssertTrue(
             PreviewOverlayFinderSelectionEventRefreshPolicy.shouldRefreshAfterFinderSelectionEvent(
                 isVisible: true,
-                isEditing: false,
                 followsFinderSelection: true,
                 frontmostBundleIdentifier: "com.apple.finder",
                 eventType: .keyDown,
@@ -1223,7 +1124,6 @@ final class QuickLookOverlayStateTests: XCTestCase {
         XCTAssertTrue(
             PreviewOverlayFinderSelectionEventRefreshPolicy.shouldRefreshAfterFinderSelectionEvent(
                 isVisible: true,
-                isEditing: false,
                 followsFinderSelection: true,
                 frontmostBundleIdentifier: "com.apple.finder",
                 eventType: .leftMouseUp,
@@ -1233,7 +1133,6 @@ final class QuickLookOverlayStateTests: XCTestCase {
         XCTAssertFalse(
             PreviewOverlayFinderSelectionEventRefreshPolicy.shouldRefreshAfterFinderSelectionEvent(
                 isVisible: true,
-                isEditing: false,
                 followsFinderSelection: true,
                 frontmostBundleIdentifier: "com.apple.finder",
                 eventType: .keyDown,
@@ -1243,17 +1142,6 @@ final class QuickLookOverlayStateTests: XCTestCase {
         XCTAssertFalse(
             PreviewOverlayFinderSelectionEventRefreshPolicy.shouldRefreshAfterFinderSelectionEvent(
                 isVisible: true,
-                isEditing: true,
-                followsFinderSelection: true,
-                frontmostBundleIdentifier: "com.apple.finder",
-                eventType: .leftMouseUp,
-                keyCode: nil
-            )
-        )
-        XCTAssertFalse(
-            PreviewOverlayFinderSelectionEventRefreshPolicy.shouldRefreshAfterFinderSelectionEvent(
-                isVisible: true,
-                isEditing: false,
                 followsFinderSelection: false,
                 frontmostBundleIdentifier: "com.apple.finder",
                 eventType: .leftMouseUp,
@@ -1263,7 +1151,6 @@ final class QuickLookOverlayStateTests: XCTestCase {
         XCTAssertFalse(
             PreviewOverlayFinderSelectionEventRefreshPolicy.shouldRefreshAfterFinderSelectionEvent(
                 isVisible: true,
-                isEditing: false,
                 followsFinderSelection: true,
                 frontmostBundleIdentifier: "com.quickcookies.app",
                 eventType: .leftMouseUp,
@@ -1276,7 +1163,6 @@ final class QuickLookOverlayStateTests: XCTestCase {
         XCTAssertTrue(
             PreviewOverlayFinderSelectionEventRefreshPolicy.shouldRefreshAfterFinderSelectionEvent(
                 isVisible: true,
-                isEditing: false,
                 followsFinderSelection: true,
                 frontmostBundleIdentifier: nil,
                 eventType: .keyDown,
@@ -1286,7 +1172,6 @@ final class QuickLookOverlayStateTests: XCTestCase {
         XCTAssertTrue(
             PreviewOverlayFinderSelectionEventRefreshPolicy.shouldRefreshAfterFinderSelectionEvent(
                 isVisible: true,
-                isEditing: false,
                 followsFinderSelection: true,
                 frontmostBundleIdentifier: nil,
                 eventType: .leftMouseUp,
@@ -1299,7 +1184,6 @@ final class QuickLookOverlayStateTests: XCTestCase {
         XCTAssertTrue(
             PreviewOverlayFinderSelectionEventRefreshPolicy.shouldRefreshAfterFinderSelectionEvent(
                 isVisible: true,
-                isEditing: false,
                 followsFinderSelection: true,
                 frontmostBundleIdentifier: "com.quickcookies.app",
                 frontmostAppFallbackBundleIdentifier: "com.quickcookies.app",
@@ -1310,7 +1194,6 @@ final class QuickLookOverlayStateTests: XCTestCase {
         XCTAssertTrue(
             PreviewOverlayFinderSelectionEventRefreshPolicy.shouldRefreshAfterFinderSelectionEvent(
                 isVisible: true,
-                isEditing: false,
                 followsFinderSelection: true,
                 frontmostBundleIdentifier: "com.quickcookies.app",
                 frontmostAppFallbackBundleIdentifier: "com.quickcookies.app",
@@ -1321,7 +1204,6 @@ final class QuickLookOverlayStateTests: XCTestCase {
         XCTAssertFalse(
             PreviewOverlayFinderSelectionEventRefreshPolicy.shouldRefreshAfterFinderSelectionEvent(
                 isVisible: true,
-                isEditing: false,
                 followsFinderSelection: true,
                 frontmostBundleIdentifier: "com.other.app",
                 frontmostAppFallbackBundleIdentifier: "com.quickcookies.app",
@@ -1545,33 +1427,6 @@ final class QuickLookOverlayStateTests: XCTestCase {
                 activeRequest: currentRequest,
                 activePath: "/tmp/current.swift",
                 loadedContentPath: "/tmp/current.swift"
-            )
-        )
-    }
-
-    func test_previewEditPreparationPolicy_acceptsOnlyCurrentLoadedRequest() {
-        let request = PreviewContentLoadRequest(id: UUID(), path: "/tmp/current.swift")
-
-        XCTAssertTrue(
-            PreviewEditPreparationPolicy.shouldApplyRemainingText(
-                request: request,
-                activeRequest: request,
-                activePath: "/tmp/current.swift",
-                loadedContentPath: "/tmp/current.swift"
-            )
-        )
-    }
-
-    func test_previewEditPreparationPolicy_rejectsStaleRemainingTextAfterPathChanges() {
-        let staleRequest = PreviewContentLoadRequest(id: UUID(), path: "/tmp/old.swift")
-        let currentRequest = PreviewContentLoadRequest(id: UUID(), path: "/tmp/new.swift")
-
-        XCTAssertFalse(
-            PreviewEditPreparationPolicy.shouldApplyRemainingText(
-                request: staleRequest,
-                activeRequest: currentRequest,
-                activePath: "/tmp/new.swift",
-                loadedContentPath: "/tmp/new.swift"
             )
         )
     }
