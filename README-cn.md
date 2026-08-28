@@ -11,7 +11,7 @@
 <p align="center">
   <img src="https://img.shields.io/badge/Platform-macOS%2013.0%2B-blue?style=flat-square&logo=apple" alt="Platform">
   <img src="https://img.shields.io/badge/Language-Swift%205.9-orange?style=flat-square&logo=swift" alt="Language">
-  <img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="License">
+  <img src="https://img.shields.io/badge/License-GPL--3.0-blue?style=flat-square" alt="License">
   <img src="https://img.shields.io/badge/Icons-Remix%20Icon-blueviolet?style=flat-square&logo=remix-icon" alt="Icons">
 </p>
 
@@ -223,4 +223,4 @@ open Build/Build/Products/Debug/QuickCookies.app
 
 ## 📄 License
 
-本项目采用 [MIT License](LICENSE) 协议开源。
+本项目采用 [GNU General Public License v3.0 (GPL-3.0)](LICENSE) 协议开源。
