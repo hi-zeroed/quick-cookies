@@ -49,32 +49,32 @@ final class FileTypeClassifierTests: XCTestCase {
         XCTAssertEqual(FileTypeClassifier.classify(path: fileURL.path), .office)
     }
 
-    func testArchiveFileClassifiesAsUnsupported() throws {
+    func testArchiveFileClassifiesAsArchive() throws {
         let fileURL = tempDirURL.appendingPathComponent("bundle.zip")
         try Data([0x50, 0x4B, 0x03, 0x04]).write(to: fileURL)
 
-        XCTAssertEqual(FileTypeClassifier.classify(path: fileURL.path), .unsupported)
+        XCTAssertEqual(FileTypeClassifier.classify(path: fileURL.path), .archive)
     }
 
-    func testTarGzipFileClassifiesAsUnsupported() throws {
+    func testTarGzipFileClassifiesAsArchive() throws {
         let fileURL = tempDirURL.appendingPathComponent("bundle.tar.gz")
         try Data([0x1F, 0x8B, 0x08, 0x00]).write(to: fileURL)
 
-        XCTAssertEqual(FileTypeClassifier.classify(path: fileURL.path), .unsupported)
+        XCTAssertEqual(FileTypeClassifier.classify(path: fileURL.path), .archive)
     }
 
-    func testUnsupportedArchiveTypeWithoutSystemListingSupportClassifiesAsUnsupported() throws {
+    func testSevenZipClassifiesAsArchive() throws {
         let fileURL = tempDirURL.appendingPathComponent("bundle.7z")
         try Data([0x37, 0x7A, 0xBC, 0xAF, 0x27, 0x1C]).write(to: fileURL)
 
-        XCTAssertEqual(FileTypeClassifier.classify(path: fileURL.path), .unsupported)
+        XCTAssertEqual(FileTypeClassifier.classify(path: fileURL.path), .archive)
     }
 
-    func testStandaloneCompressedStreamClassifiesAsUnsupported() throws {
+    func testStandaloneCompressedStreamClassifiesAsArchive() throws {
         let fileURL = tempDirURL.appendingPathComponent("log.gz")
         try Data([0x1F, 0x8B, 0x08, 0x00]).write(to: fileURL)
 
-        XCTAssertEqual(FileTypeClassifier.classify(path: fileURL.path), .unsupported)
+        XCTAssertEqual(FileTypeClassifier.classify(path: fileURL.path), .archive)
     }
 
     func testSQLiteFileClassifiesAsUnsupported() throws {

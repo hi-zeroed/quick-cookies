@@ -5,6 +5,7 @@ enum PreviewRuntimeKind: Equatable {
     case text
     case document
     case media
+    case archive
 }
 
 @MainActor

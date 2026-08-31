@@ -31,7 +31,7 @@ final class PreviewRuntimeRegistry {
 
     func runtime(for kind: PreviewRuntimeKind) -> any PreviewRuntime {
         switch kind {
-        case .web, .text, .document, .media:
+        case .web, .text, .document, .media, .archive:
             return sharedWebKitRuntime
         }
     }

@@ -49,6 +49,10 @@
 		A1B2C3010000000000000040 /* FinderSelectionRefresh.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3010000000000000041 /* FinderSelectionRefresh.swift */; };
 		A1B2C3010000000000000046 /* PreviewNavigationContext.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3010000000000000047 /* PreviewNavigationContext.swift */; };
 		EXTRELAYBLD00000000000001 /* ExternalAppRelay.swift in Sources */ = {isa = PBXBuildFile; fileRef = EXTRELAYREF00000000000001 /* ExternalAppRelay.swift */; };
+		ARCHMDLBLD00000000000001 /* ArchiveModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = ARCHMDLREF00000000000001 /* ArchiveModels.swift */; };
+		ARCHTRBBLD00000000000001 /* ArchiveTreeBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = ARCHTRBREF00000000000001 /* ArchiveTreeBuilder.swift */; };
+		ARCHRDRBLD00000000000001 /* ArchiveReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = ARCHRDRREF00000000000001 /* ArchiveReader.swift */; };
+		ARCHPRVBLD00000000000001 /* ArchivePreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ARCHPRVREF00000000000001 /* ArchivePreviewView.swift */; };
 		APPRELAYBLD00000000000001 /* AppRelayControlView.swift in Sources */ = {isa = PBXBuildFile; fileRef = APPRELAYREF00000000000001 /* AppRelayControlView.swift */; };
 		835FB7022FCA950400D23AAB /* UnsupportedFileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835FB7012FCA950400D23AAA /* UnsupportedFileView.swift */; };
 		962C8A503D0B4CA6963E2B94 /* QuickLookOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = B76F46CEB24C42779E84EBBE /* QuickLookOverlay.swift */; };
@@ -58,29 +62,33 @@
 		C2B47F163AC772A6BD9CD6B5 /* SettingsWindow.swift in Sources */ = {isa = PBXBuildFile; fileRef = B87D7CAF1B4B8FAFF363B543 /* SettingsWindow.swift */; };
 		CC3B6172EFBB3884582E6DB9 /* MarkdownView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6240A15DD8E31603B40D6CC6 /* MarkdownView.swift */; };
 		D02C04567F8A13B8EE46D917 /* ToastView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC8B9C87C1019A1BEC529314 /* ToastView.swift */; };
-		D02C04567F8A13B8EE46D927 /* CustomAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC8B9C87C1019A1BEC529324 /* CustomAlert.swift */; };
+		D878DF9C0A74578E023FE0AE /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = 78377755BD5E3E7582D016B6 /* Constants.swift */; };
 		D89BC4645FD2337D32C9072C /* EncodingDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2724C2DCD3C66C24CC15D6E7 /* EncodingDetector.swift */; };
 		DA83EA46F6AB177473BC0393 /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = D643EEA9D20E7A954D49ED4C /* Settings.swift */; };
 		FC17D463B0B7C2B8817DCA5B /* SyntaxHighlighter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4282BAE5CE686021AF7F3F5C /* SyntaxHighlighter.swift */; };
 		FMI000000000000000000001 /* FinderMenuIntegration.swift in Sources */ = {isa = PBXBuildFile; fileRef = FMI000000000000000000002 /* FinderMenuIntegration.swift */; };
 		FSB000000000000000000001 /* QuickCookiesFinderSync.swift in Sources */ = {isa = PBXBuildFile; fileRef = FSS000000000000000000001 /* QuickCookiesFinderSync.swift */; };
 		FSB000000000000000000002 /* QuickCookiesFinderSync.appex in CopyFiles */ = {isa = PBXBuildFile; fileRef = FSE555555555555555555555 /* QuickCookiesFinderSync.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		F89BA3BA44A895F348CA62FF /* CustomAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = E8008892497FB0274EB9544D /* CustomAlert.swift */; };
+		FD137119C69493B2F509D698 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 74474776D38B500C1CA4F290 /* ContentView.swift */; };
+		FE13DEAE26806C17AF50529D /* MediaPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CF4C68853D4321A888636402 /* MediaPreviewView.swift */; };
+		FFAABBCC1122334455667788 /* OfficePreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FFAABBCC1122334455667799 /* OfficePreviewView.swift */; };
 		TSTBLD000000000000000001 /* EncodingDetectorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF000000000000000001 /* EncodingDetectorTests.swift */; };
 		TSTBLD000000000000000002 /* FileTypeClassifierTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF000000000000000002 /* FileTypeClassifierTests.swift */; };
 		TSTBLD000000000000000003 /* FileChunkReaderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF000000000000000003 /* FileChunkReaderTests.swift */; };
 		TSTBLD000000000000000004 /* FileUtilsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF000000000000000004 /* FileUtilsTests.swift */; };
-		TSTBLD000000000000000005 /* MarkdownViewportPlannerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF000000000000000005 /* MarkdownViewportPlannerTests.swift */; };
-		TSTBLD000000000000000006 /* MarkdownRenderSnapshotTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF000000000000000006 /* MarkdownRenderSnapshotTests.swift */; };
-		TSTBLD000000000000000007 /* MarkdownPreviewSessionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF000000000000000007 /* MarkdownPreviewSessionTests.swift */; };
-		TSTBLD000000000000000008 /* WebKitRuntimeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF000000000000000008 /* WebKitRuntimeTests.swift */; };
-		TSTBLD000000000000000009 /* MarkdownPreviewControllerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF000000000000000009 /* MarkdownPreviewControllerTests.swift */; };
+		TSTBLD000000000000000005 /* CodeHighlightTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF000000000000000005 /* CodeHighlightTests.swift */; };
+		TSTBLD000000000000000006 /* MarkdownRenderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF000000000000000006 /* MarkdownRenderTests.swift */; };
+		TSTBLD000000000000000007 /* SettingsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF000000000000000007 /* SettingsTests.swift */; };
+		TSTBLD000000000000000008 /* FinderSelectionPollingPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF000000000000000008 /* FinderSelectionPollingPolicyTests.swift */; };
+		TSTBLD000000000000000009 /* MarkdownPDFExporterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF000000000000000009 /* MarkdownPDFExporterTests.swift */; };
+		TSTBLD00000000000000000A /* MarkedJSTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF00000000000000000A /* MarkedJSTests.swift */; };
+		TSTBLD00000000000000000B /* WebKitRuntimeTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF00000000000000000B /* WebKitRuntimeTests.swift */; };
+		TSTBLD00000000000000000C /* PreviewCoordinatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF00000000000000000C /* PreviewCoordinatorTests.swift */; };
+		TSTBLD00000000000000000D /* PreviewSessionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF00000000000000000D /* PreviewSessionTests.swift */; };
+		TSTBLD00000000000000000E /* PreviewTargetResolverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF00000000000000000E /* PreviewTargetResolverTests.swift */; };
+		TSTBLD00000000000000000F /* PreviewDisplayStateResolverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF00000000000000000F /* PreviewDisplayStateResolverTests.swift */; };
 		TSTBLD000000000000000010 /* QuickLookOverlayStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF000000000000000010 /* QuickLookOverlayStateTests.swift */; };
-		TSTBLD000000000000000011 /* PreviewLaunchRequestTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF000000000000000011 /* PreviewLaunchRequestTests.swift */; };
-		TSTBLD000000000000000012 /* PreviewTargetTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF000000000000000012 /* PreviewTargetTests.swift */; };
-		TSTBLD000000000000000013 /* PreviewSessionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF000000000000000013 /* PreviewSessionTests.swift */; };
-		TSTBLD000000000000000014 /* PreviewCoordinatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF000000000000000014 /* PreviewCoordinatorTests.swift */; };
-		TSTBLD000000000000000015 /* PreviewContentLoadCoordinatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF000000000000000015 /* PreviewContentLoadCoordinatorTests.swift */; };
-		TSTBLD000000000000000017 /* PreviewLoadStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF000000000000000017 /* PreviewLoadStateTests.swift */; };
 		TSTBLD000000000000000018 /* PreviewDisplayStateResolverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF000000000000000018 /* PreviewDisplayStateResolverTests.swift */; };
 		TSTBLD000000000000000019 /* PreviewNavigationContextTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF000000000000000019 /* PreviewNavigationContextTests.swift */; };
 		TSTBLD00000000000000001A /* PreviewVisualBaselineCaptureTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF00000000000000001A /* PreviewVisualBaselineCaptureTests.swift */; };
@@ -206,6 +214,12 @@
 		TSTREF00000000000000001B /* FinderSelectionPathProviderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinderSelectionPathProviderTests.swift; sourceTree = "<group>"; };
 		TSTREF00000000000000001C /* FinderMenuIntegrationTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinderMenuIntegrationTests.swift; sourceTree = "<group>"; };
 		TSTREF00000000000000001D /* ExternalAppRelayTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExternalAppRelayTests.swift; sourceTree = "<group>"; };
+		TSTREF00000000000000001E /* ArchiveTreeBuilderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchiveTreeBuilderTests.swift; sourceTree = "<group>"; };
+		TSTREF00000000000000001F /* ArchiveReaderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchiveReaderTests.swift; sourceTree = "<group>"; };
+		ARCHMDLREF00000000000001 /* ArchiveModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchiveModels.swift; sourceTree = "<group>"; };
+		ARCHTRBREF00000000000001 /* ArchiveTreeBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchiveTreeBuilder.swift; sourceTree = "<group>"; };
+		ARCHRDRREF00000000000001 /* ArchiveReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchiveReader.swift; sourceTree = "<group>"; };
+		ARCHPRVREF00000000000001 /* ArchivePreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchivePreviewView.swift; sourceTree = "<group>"; };
 		MEDPREVREF00000000000001 /* MediaPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaPreviewView.swift; sourceTree = "<group>"; };
 		ONBOARDREF00000000000001 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		835FB7012FCA950400D23AAA /* UnsupportedFileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnsupportedFileView.swift; sourceTree = "<group>"; };
@@ -279,6 +293,9 @@
 				835FB6992FCA950400D23999 /* FileChunkReader.swift */,
 				031B5AD657BAE17A14E65A87 /* HotkeyManager.swift */,
 				EXTRELAYREF00000000000001 /* ExternalAppRelay.swift */,
+				ARCHMDLREF00000000000001 /* ArchiveModels.swift */,
+				ARCHTRBREF00000000000001 /* ArchiveTreeBuilder.swift */,
+				ARCHRDRREF00000000000001 /* ArchiveReader.swift */,
 				FMI000000000000000000002 /* FinderMenuIntegration.swift */,
 				835FBA032FCA950400D23A03 /* MarkedJS.swift */,
 				A1B2C3010000000000000021 /* Markdown */,
@@ -351,6 +368,7 @@
 				ONBOARDREF00000000000001 /* OnboardingView.swift */,
 				835FB7012FCA950400D23AAA /* UnsupportedFileView.swift */,
 				835FBA012FCA950400D23A01 /* OfficePreviewView.swift */,
+				ARCHPRVREF00000000000001 /* ArchivePreviewView.swift */,
 			);
 			path = UI;
 			sourceTree = "<group>";
@@ -437,6 +455,8 @@
 				TSTREF00000000000000001B /* FinderSelectionPathProviderTests.swift */,
 				TSTREF00000000000000001C /* FinderMenuIntegrationTests.swift */,
 				TSTREF00000000000000001D /* ExternalAppRelayTests.swift */,
+				TSTREF00000000000000001E /* ArchiveTreeBuilderTests.swift */,
+				TSTREF00000000000000001F /* ArchiveReaderTests.swift */,
 			);
 			path = QuickCookiesTests;
 			sourceTree = "<group>";
@@ -613,6 +633,9 @@
 				CC3B6172EFBB3884582E6DB9 /* MarkdownView.swift in Sources */,
 				21D2DE1178C6759287E735C5 /* CodeView.swift in Sources */,
 				EXTRELAYBLD00000000000001 /* ExternalAppRelay.swift in Sources */,
+				ARCHMDLBLD00000000000001 /* ArchiveModels.swift in Sources */,
+				ARCHTRBBLD00000000000001 /* ArchiveTreeBuilder.swift in Sources */,
+				ARCHRDRBLD00000000000001 /* ArchiveReader.swift in Sources */,
 				APPRELAYBLD00000000000001 /* AppRelayControlView.swift in Sources */,
 				04C42AD9B8657A3924158DE2 /* ContentView.swift in Sources */,
 				C2B47F163AC772A6BD9CD6B5 /* SettingsWindow.swift in Sources */,
@@ -626,6 +649,7 @@
 				835FBA022FCA950400D23A02 /* OfficePreviewView.swift in Sources */,
 				835FBA042FCA950400D23A04 /* MarkedJS.swift in Sources */,
 				835FBA062FCA950400D23A06 /* MarkdownPDFExporter.swift in Sources */,
+				ARCHPRVBLD00000000000001 /* ArchivePreviewView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -655,6 +679,8 @@
 				TSTBLD00000000000000001B /* FinderSelectionPathProviderTests.swift in Sources */,
 				TSTBLD00000000000000001C /* FinderMenuIntegrationTests.swift in Sources */,
 				TSTBLD00000000000000001D /* ExternalAppRelayTests.swift in Sources */,
+				TSTBLD00000000000000001E /* ArchiveTreeBuilderTests.swift in Sources */,
+				TSTBLD00000000000000001F /* ArchiveReaderTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

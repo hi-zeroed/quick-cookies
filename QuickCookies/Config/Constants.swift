@@ -26,13 +26,18 @@ enum Constants {
     // Markdown 文件类型
     static let markdownExtensions: Set<String> = ["md", "markdown", "mdown", "mdwn", "mkd", "mkdn"]
 
+    // 压缩包与归档文件类型
+    static let archiveExtensions: Set<String> = [
+        "zip", "tar", "gz", "tgz", "bz2", "tbz2", "xz", "txz", "7z", "rar", "jar", "war", "ear"
+    ]
+
     // 二进制文件扩展名黑名单（遇到此类文件直接阻断，不作文本预览）
     static let binaryBlacklistExtensions: Set<String> = [
-        "zip", "tar", "gz", "7z", "rar", "dmg", "pkg", "exe", "dll", "so", "dylib",
+        "dmg", "pkg", "exe", "dll", "so", "dylib",
         "mp3", "mp4", "avi", "mov", "wav", "flac", "m4a", "ogg", "webm", "mkv", "flv", "swf",
         "doc", "docx", "xls", "xlsx", "ppt", "pptx", "epub", "crx", "db", "sqlite", "localstorage",
         "class", "pyc", "o", "a", "bin", "dat", "iso", "img", "ttf", "otf", "woff", "woff2", "eot",
-        "png", "jpg", "jpeg", "gif", "bmp", "tiff", "webp", "pdf" // 媒体和PDF由专门的渲染器处理，故从文本黑名单拦截
+        "png", "jpg", "jpeg", "gif", "bmp", "tiff", "webp", "pdf" // 媒体、PDF和压缩包由专门的渲染器处理，故从文本黑名单拦截
     ]
 
     // 代码文件 → Highlightr 语言名映射

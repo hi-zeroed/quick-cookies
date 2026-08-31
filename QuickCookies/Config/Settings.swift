@@ -415,8 +415,31 @@ struct Localization {
             "Failed to read remaining file": [.en: "Failed to read remaining file", .zhHans: "读取剩余文件失败"],
             "Finder Extension": [.en: "Finder Extension", .zhHans: "Finder 扩展"],
             "Integrate right-click menu and seamless preview. Zero privacy risk.": [.en: "Integrate right-click menu and seamless preview. Zero privacy risk.", .zhHans: "集成右键菜单与无感预览。零隐私风险。"],
-            "Allow flying from file position with smooth spring physics animations.": [.en: "Allow flying from file position with smooth spring physics animations.", .zhHans: "允许从文件原位起跳，享受物理弹簧质感动画。"],
-            "macOS version too low, PDF generation is not supported": [.en: "macOS version too low, PDF generation is not supported", .zhHans: "macOS 版本过低，不支持生成 PDF"]
+            "macOS version too low, PDF generation is not supported": [.en: "macOS version too low, PDF generation is not supported", .zhHans: "macOS 版本过低，不支持生成 PDF"],
+            
+            // Archive X-Ray Localization
+            "Analyzing archive contents...": [.en: "Analyzing archive contents...", .zhHans: "正在解析压缩包内容..."],
+            "Empty Archive": [.en: "Empty Archive", .zhHans: "空压缩包"],
+            "No matching files": [.en: "No matching files", .zhHans: "无匹配文件"],
+            "files": [.en: "files", .zhHans: "个文件"],
+            "folders": [.en: "folders", .zhHans: "个文件夹"],
+            "Archive Tree": [.en: "Archive Tree", .zhHans: "返回压缩包"],
+            "Extracting into memory...": [.en: "Extracting into memory...", .zhHans: "正在载入内存..."],
+            "Binary Content (Preview Unavailable)": [.en: "Binary Content (Preview Unavailable)", .zhHans: "二进制内容（暂不支持直接预览）"],
+            "Archive file not found": [.en: "Archive file not found", .zhHans: "未找到压缩包文件"],
+            "Unsupported archive format": [.en: "Unsupported archive format", .zhHans: "不支持的压缩包格式"],
+            "Encrypted or corrupted archive": [.en: "Encrypted or corrupted archive", .zhHans: "压缩包受密码保护或文件已损坏"],
+            "Subfile too large (%@)": [.en: "Subfile too large (%@)", .zhHans: "子文件过大（%@）"],
+            "File '%@' not found in archive": [.en: "File '%@' not found in archive", .zhHans: "在压缩包中未找到文件 '%@'"],
+            "Code": [.en: "Code", .zhHans: "代码"],
+            "Documents": [.en: "Documents", .zhHans: "文档"],
+            "Images": [.en: "Images", .zhHans: "图片"],
+            "Config": [.en: "Config", .zhHans: "配置"],
+            "Other": [.en: "Other", .zhHans: "其他"],
+            "Compression Ratio": [.en: "Compression Ratio", .zhHans: "压缩率"],
+            "%@ %d%% (%@ → %@)": [.en: "%@ %d%% (%@ → %@)", .zhHans: "%@ %d%% (%@ → %@)"],
+            "Search files or directories...": [.en: "Search files or directories...", .zhHans: "搜索文件或目录..."],
+            "Name": [.en: "Name", .zhHans: "名称"]
         ]
         return dict[key]?[lang] ?? key
     }

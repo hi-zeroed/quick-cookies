@@ -81,7 +81,7 @@ enum ContentRenderCapabilityRegistry {
                 usesTextContentLoader: true,
                 showsGenericLoading: true
             )
-        case .pdf, .image, .office, .unsupported, .none:
+        case .pdf, .image, .office, .archive, .unsupported, .none:
             return ContentRenderCapability(
                 allowsPDFExport: false,
                 usesTextContentLoader: false,
@@ -128,7 +128,7 @@ enum PreviewContentAreaChrome {
         switch renderType {
         case .image, .unsupported:
             return .transparent
-        case .markdown, .code, .plainText, .pdf, .office, .none:
+        case .markdown, .code, .plainText, .pdf, .office, .archive, .none:
             return .appBackground
         }
     }
@@ -137,7 +137,7 @@ enum PreviewContentAreaChrome {
         switch renderType {
         case .image, .unsupported:
             return .none
-        case .markdown, .code, .plainText, .pdf, .office, .none:
+        case .markdown, .code, .plainText, .pdf, .office, .archive, .none:
             return .appBorder
         }
     }
@@ -739,6 +739,8 @@ struct ContentView: View {
                             .stroke(Color.appBorder.opacity(0.3), lineWidth: 1)
                     )
                 }
+            case .archive:
+                ArchivePreviewView(archivePath: path)
             case .unsupported:
                 UnsupportedFileView(filePath: path, errorMessage: activeErrorMessage)
             }

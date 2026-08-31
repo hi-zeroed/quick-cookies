@@ -7,7 +7,8 @@ enum FileRenderType {
     case pdf            // PDF 预览
     case image          // 图片预览
     case unsupported    // 不支持预览的文件
-    case office         // [NEW] Word, Excel, PPT, RTF, RTFD, Pages, Numbers, Keynote, CSV 等
+    case office         // Word, Excel, PPT, RTF, RTFD, Pages, Numbers, Keynote, CSV 等
+    case archive        // Zip, Tar, Gz, 7z, Rar 等压缩包与归档文件
 }
 
 struct FileTypeClassifier {
@@ -31,14 +32,19 @@ struct FileTypeClassifier {
             return .image
         }
 
-        // [NEW] 优先匹配并分类办公文档和富文本类型，防止后续被 fast binary 误杀
+        // 优先匹配办公文档与富文本
         let officeExtensions: Set<String> = ["rtf", "rtfd", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "key", "pages", "numbers", "csv"]
         if officeExtensions.contains(ext) {
             return .office
         }
 
+        // 优先匹配压缩包与归档文件
+        if Constants.archiveExtensions.contains(ext) {
+            return .archive
+        }
+
         // 快速进行物理二进制检测 (只读取最前 1KB 字节检查 null 字节)
-        // 必须在排除已知支持的图片和 PDF 等二进制格式之后检测，防误杀
+        // 必须在排除已知支持的图片、PDF 和压缩包等二进制格式之后检测，防误杀
         if isBinaryFileFastCheck(path: resolvedPath) {
             return .unsupported
         }
@@ -88,9 +94,14 @@ struct FileTypeClassifier {
             return true
         }
 
-        // [NEW] 直接放行支持的办公文档和富文本格式
+        // 直接放行支持的办公文档和富文本格式
         let officeExtensions: Set<String> = ["rtf", "rtfd", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "key", "pages", "numbers", "csv"]
         if officeExtensions.contains(ext) {
+            return true
+        }
+
+        // 直接放行支持的压缩包与归档文件
+        if Constants.archiveExtensions.contains(ext) {
             return true
         }
 
