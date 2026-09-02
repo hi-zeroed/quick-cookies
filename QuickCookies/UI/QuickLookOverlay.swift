@@ -635,6 +635,9 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
     }
 
     private func handleInternalNavigationIfNeeded(for event: NSEvent) -> Bool {
+        guard event.type == .keyDown || event.type == .keyUp else {
+            return false
+        }
         let followsFinderSelection = PreviewOverlayFinderFollowPolicy.shouldFollowFinderSelection(
             for: activeSessionState?.source
         )
@@ -1371,6 +1374,10 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
     }
 
     static func forwardedFinderNavigationKeyCode(for event: NSEvent) -> UInt16? {
+        guard event.type == .keyDown || event.type == .keyUp else {
+            return nil
+        }
+
         guard event.modifierFlags.intersection([.command, .option, .control]).isEmpty else {
             return nil
         }

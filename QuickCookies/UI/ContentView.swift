@@ -81,7 +81,7 @@ enum ContentRenderCapabilityRegistry {
                 usesTextContentLoader: true,
                 showsGenericLoading: true
             )
-        case .pdf, .image, .office, .archive, .unsupported, .none:
+        case .pdf, .image, .office, .archive, .folder, .unsupported, .none:
             return ContentRenderCapability(
                 allowsPDFExport: false,
                 usesTextContentLoader: false,
@@ -128,7 +128,7 @@ enum PreviewContentAreaChrome {
         switch renderType {
         case .image, .unsupported:
             return .transparent
-        case .markdown, .code, .plainText, .pdf, .office, .archive, .none:
+        case .markdown, .code, .plainText, .pdf, .office, .archive, .folder, .none:
             return .appBackground
         }
     }
@@ -137,7 +137,7 @@ enum PreviewContentAreaChrome {
         switch renderType {
         case .image, .unsupported:
             return .none
-        case .markdown, .code, .plainText, .pdf, .office, .archive, .none:
+        case .markdown, .code, .plainText, .pdf, .office, .archive, .folder, .none:
             return .appBorder
         }
     }
@@ -687,18 +687,32 @@ struct ContentView: View {
                     }
                 )
             case .code:
-                // NOTE: 将 settings 订阅下沉到 PreviewCodeView 内部，
-                //       防止 Settings 变化导致 ContentView 根节点重绘触发 CodeView.updateNSView
-                PreviewCodeView(
-                    path: path,
-                    content: content,
-                    language: activeLanguage,
-                    isDark: isDark,
-                    loadState: loadState,
-                    onLoadMore: {
-                        Task { await loadNextChunkAsync(for: path) }
-                    }
-                )
+                if StructuredDataCategoryRegistry.isStructuredData(path: path) {
+                    let ext = (path as NSString).pathExtension.lowercased()
+                    StructuredDataView(
+                        path: path,
+                        content: content,
+                        language: activeLanguage ?? ext,
+                        isDark: isDark,
+                        loadState: loadState,
+                        onLoadMore: {
+                            Task { await loadNextChunkAsync(for: path) }
+                        }
+                    )
+                } else {
+                    // NOTE: 将 settings 订阅下沉到 PreviewCodeView 内部，
+                    //       防止 Settings 变化导致 ContentView 根节点重绘触发 CodeView.updateNSView
+                    PreviewCodeView(
+                        path: path,
+                        content: content,
+                        language: activeLanguage,
+                        isDark: isDark,
+                        loadState: loadState,
+                        onLoadMore: {
+                            Task { await loadNextChunkAsync(for: path) }
+                        }
+                    )
+                }
             case .plainText:
                 PreviewCodeView(
                     path: path,
@@ -739,8 +753,9 @@ struct ContentView: View {
                             .stroke(Color.appBorder.opacity(0.3), lineWidth: 1)
                     )
                 }
-            case .archive:
+            case .archive, .folder:
                 ArchivePreviewView(archivePath: path)
+                    .id(path)
             case .unsupported:
                 UnsupportedFileView(filePath: path, errorMessage: activeErrorMessage)
             }
@@ -1068,7 +1083,7 @@ struct ContentView: View {
 /// NOTE: 将 Settings.shared 订阅下沉到此独立结构体，
 ///       避免 Settings 任意属性变化（如主题/语言切换）触发 ContentView 根节点重绘，
 ///       进而避免 CodeView.updateNSView 被冗余调用导致滚动卡顿
-private struct PreviewCodeView: View {
+struct PreviewCodeView: View {
     let path: String
     let content: String
     let language: String?

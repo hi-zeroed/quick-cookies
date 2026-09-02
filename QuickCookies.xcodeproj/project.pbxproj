@@ -52,6 +52,11 @@
 		ARCHMDLBLD00000000000001 /* ArchiveModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = ARCHMDLREF00000000000001 /* ArchiveModels.swift */; };
 		ARCHTRBBLD00000000000001 /* ArchiveTreeBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = ARCHTRBREF00000000000001 /* ArchiveTreeBuilder.swift */; };
 		ARCHRDRBLD00000000000001 /* ArchiveReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = ARCHRDRREF00000000000001 /* ArchiveReader.swift */; };
+		FOLDRDRBLD00000000000001 /* FolderReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = FOLDRDRREF00000000000001 /* FolderReader.swift */; };
+		STRDATAPARSERBLD0000001 /* StructuredDataParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = STRDATAPARSERREF0000001 /* StructuredDataParser.swift */; };
+		STRDATAVIEWBLD000000001 /* StructuredDataView.swift in Sources */ = {isa = PBXBuildFile; fileRef = STRDATAVIEWREF000000001 /* StructuredDataView.swift */; };
+		TSTBLD000000000000000021 /* FolderReaderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF000000000000000021 /* FolderReaderTests.swift */; };
+		TSTBLD000000000000000022 /* StructuredDataParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF000000000000000022 /* StructuredDataParserTests.swift */; };
 		ARCHPRVBLD00000000000001 /* ArchivePreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ARCHPRVREF00000000000001 /* ArchivePreviewView.swift */; };
 		APPRELAYBLD00000000000001 /* AppRelayControlView.swift in Sources */ = {isa = PBXBuildFile; fileRef = APPRELAYREF00000000000001 /* AppRelayControlView.swift */; };
 		835FB7022FCA950400D23AAB /* UnsupportedFileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835FB7012FCA950400D23AAA /* UnsupportedFileView.swift */; };
@@ -219,6 +224,11 @@
 		ARCHMDLREF00000000000001 /* ArchiveModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchiveModels.swift; sourceTree = "<group>"; };
 		ARCHTRBREF00000000000001 /* ArchiveTreeBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchiveTreeBuilder.swift; sourceTree = "<group>"; };
 		ARCHRDRREF00000000000001 /* ArchiveReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchiveReader.swift; sourceTree = "<group>"; };
+		FOLDRDRREF00000000000001 /* FolderReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FolderReader.swift; sourceTree = "<group>"; };
+		STRDATAPARSERREF0000001 /* StructuredDataParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StructuredDataParser.swift; sourceTree = "<group>"; };
+		STRDATAVIEWREF000000001 /* StructuredDataView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StructuredDataView.swift; sourceTree = "<group>"; };
+		TSTREF000000000000000021 /* FolderReaderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FolderReaderTests.swift; sourceTree = "<group>"; };
+		TSTREF000000000000000022 /* StructuredDataParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StructuredDataParserTests.swift; sourceTree = "<group>"; };
 		ARCHPRVREF00000000000001 /* ArchivePreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchivePreviewView.swift; sourceTree = "<group>"; };
 		MEDPREVREF00000000000001 /* MediaPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaPreviewView.swift; sourceTree = "<group>"; };
 		ONBOARDREF00000000000001 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
@@ -296,6 +306,8 @@
 				ARCHMDLREF00000000000001 /* ArchiveModels.swift */,
 				ARCHTRBREF00000000000001 /* ArchiveTreeBuilder.swift */,
 				ARCHRDRREF00000000000001 /* ArchiveReader.swift */,
+				FOLDRDRREF00000000000001 /* FolderReader.swift */,
+				STRDATAPARSERREF0000001 /* StructuredDataParser.swift */,
 				FMI000000000000000000002 /* FinderMenuIntegration.swift */,
 				835FBA032FCA950400D23A03 /* MarkedJS.swift */,
 				A1B2C3010000000000000021 /* Markdown */,
@@ -369,6 +381,7 @@
 				835FB7012FCA950400D23AAA /* UnsupportedFileView.swift */,
 				835FBA012FCA950400D23A01 /* OfficePreviewView.swift */,
 				ARCHPRVREF00000000000001 /* ArchivePreviewView.swift */,
+				STRDATAVIEWREF000000001 /* StructuredDataView.swift */,
 			);
 			path = UI;
 			sourceTree = "<group>";
@@ -457,6 +470,8 @@
 				TSTREF00000000000000001D /* ExternalAppRelayTests.swift */,
 				TSTREF00000000000000001E /* ArchiveTreeBuilderTests.swift */,
 				TSTREF00000000000000001F /* ArchiveReaderTests.swift */,
+				TSTREF000000000000000021 /* FolderReaderTests.swift */,
+				TSTREF000000000000000022 /* StructuredDataParserTests.swift */,
 			);
 			path = QuickCookiesTests;
 			sourceTree = "<group>";
@@ -636,6 +651,9 @@
 				ARCHMDLBLD00000000000001 /* ArchiveModels.swift in Sources */,
 				ARCHTRBBLD00000000000001 /* ArchiveTreeBuilder.swift in Sources */,
 				ARCHRDRBLD00000000000001 /* ArchiveReader.swift in Sources */,
+				FOLDRDRBLD00000000000001 /* FolderReader.swift in Sources */,
+				STRDATAPARSERBLD0000001 /* StructuredDataParser.swift in Sources */,
+				STRDATAVIEWBLD000000001 /* StructuredDataView.swift in Sources */,
 				APPRELAYBLD00000000000001 /* AppRelayControlView.swift in Sources */,
 				04C42AD9B8657A3924158DE2 /* ContentView.swift in Sources */,
 				C2B47F163AC772A6BD9CD6B5 /* SettingsWindow.swift in Sources */,
@@ -681,6 +699,8 @@
 				TSTBLD00000000000000001D /* ExternalAppRelayTests.swift in Sources */,
 				TSTBLD00000000000000001E /* ArchiveTreeBuilderTests.swift in Sources */,
 				TSTBLD00000000000000001F /* ArchiveReaderTests.swift in Sources */,
+				TSTBLD000000000000000021 /* FolderReaderTests.swift in Sources */,
+				TSTBLD000000000000000022 /* StructuredDataParserTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

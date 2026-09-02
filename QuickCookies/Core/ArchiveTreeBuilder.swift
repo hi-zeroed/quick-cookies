@@ -50,7 +50,7 @@ struct ArchiveTreeBuilder {
                     compressedSize: compressedSize,
                     modificationDate: date,
                     children: sortedChildren,
-                    isExpanded: true
+                    isExpanded: false
                 )
             }
         }
@@ -114,5 +114,43 @@ struct ArchiveTreeBuilder {
             }
 
         return topNodes
+    }
+
+    /// 将树结构中当前可见的节点展平为一维线性列表，供 LazyVStack 100% 虚拟化复用
+    static func flattenVisibleNodes(from nodes: [ArchiveTreeNode], depth: Int = 0) -> [FlattenedArchiveRow] {
+        var result: [FlattenedArchiveRow] = []
+        for node in nodes {
+            let row = FlattenedArchiveRow(
+                id: node.id,
+                node: node,
+                depth: depth,
+                isDirectory: node.isDirectory,
+                isExpanded: node.isExpanded,
+                hasChildren: !node.children.isEmpty
+            )
+            result.append(row)
+            if node.isDirectory && node.isExpanded && !node.children.isEmpty {
+                result.append(contentsOf: flattenVisibleNodes(from: node.children, depth: depth + 1))
+            }
+        }
+        return result
+    }
+}
+
+/// 扁平化渲染行模型（纯结构体，轻量无状态，100% 激活 LazyVStack 虚拟化复用）
+struct FlattenedArchiveRow: Identifiable, Equatable {
+    let id: String
+    let node: ArchiveTreeNode
+    let depth: Int
+    let isDirectory: Bool
+    let isExpanded: Bool
+    let hasChildren: Bool
+
+    static func == (lhs: FlattenedArchiveRow, rhs: FlattenedArchiveRow) -> Bool {
+        lhs.id == rhs.id &&
+        lhs.depth == rhs.depth &&
+        lhs.isDirectory == rhs.isDirectory &&
+        lhs.isExpanded == rhs.isExpanded &&
+        lhs.hasChildren == rhs.hasChildren
     }
 }

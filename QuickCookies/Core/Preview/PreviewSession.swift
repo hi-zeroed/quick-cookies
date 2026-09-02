@@ -110,7 +110,7 @@ private extension PreviewRuntimeKind {
             return .document
         case .image, .pdf:
             return .media
-        case .archive:
+        case .archive, .folder:
             return .archive
         }
     }

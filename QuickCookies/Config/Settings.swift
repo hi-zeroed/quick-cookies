@@ -439,7 +439,17 @@ struct Localization {
             "Compression Ratio": [.en: "Compression Ratio", .zhHans: "压缩率"],
             "%@ %d%% (%@ → %@)": [.en: "%@ %d%% (%@ → %@)", .zhHans: "%@ %d%% (%@ → %@)"],
             "Search files or directories...": [.en: "Search files or directories...", .zhHans: "搜索文件或目录..."],
-            "Name": [.en: "Name", .zhHans: "名称"]
+            "Name": [.en: "Name", .zhHans: "名称"],
+            "Structure": [.en: "Structure", .zhHans: "结构"],
+            "Tree": [.en: "Tree", .zhHans: "树形"],
+            "Copy Value": [.en: "Copy Value", .zhHans: "复制值"],
+            "Copy Key": [.en: "Copy Key", .zhHans: "复制键"],
+            "Folder": [.en: "Folder", .zhHans: "文件夹"],
+            "Scanning folder contents...": [.en: "Scanning folder contents...", .zhHans: "正在扫描文件夹内容..."],
+            "Open in Terminal": [.en: "Open in Terminal", .zhHans: "在终端中打开"],
+            "Open": [.en: "Open", .zhHans: "打开"],
+            "Copy Path": [.en: "Copy Path", .zhHans: "复制路径"],
+            "Copy Relative Path": [.en: "Copy Relative Path", .zhHans: "复制相对路径"]
         ]
         return dict[key]?[lang] ?? key
     }

@@ -31,16 +31,6 @@ struct PreviewTargetResolver {
             throw PreviewTargetError.fileNotFound
         }
 
-        if isDirectory.boolValue {
-            return PreviewTarget(
-                originalPath: originalPath,
-                resolvedPath: resolvedPath,
-                renderType: .unsupported,
-                language: nil,
-                displayName: URL(fileURLWithPath: resolvedPath).lastPathComponent
-            )
-        }
-
         let renderType = FileTypeClassifier.classify(path: resolvedPath)
 
         return PreviewTarget(

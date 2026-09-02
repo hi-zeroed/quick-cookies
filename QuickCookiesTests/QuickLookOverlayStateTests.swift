@@ -1474,4 +1474,44 @@ final class QuickLookOverlayStateTests: XCTestCase {
         )
     }
 
+    func test_forwardedFinderNavigationKeyCode_withMouseEvent_returnsNilWithoutCrashing() {
+        guard let mouseEvent = NSEvent.mouseEvent(
+            with: .leftMouseUp,
+            location: .zero,
+            modifierFlags: [],
+            timestamp: 0,
+            windowNumber: 0,
+            context: nil,
+            eventNumber: 1,
+            clickCount: 1,
+            pressure: 0
+        ) else {
+            XCTFail("Failed to create mock mouse event")
+            return
+        }
+
+        let keyCode = QuickLookOverlay.forwardedFinderNavigationKeyCode(for: mouseEvent)
+        XCTAssertNil(keyCode, "鼠标事件不应触发 keyCode 读取或转发")
+    }
+
+    func test_forwardedFinderNavigationKeyCode_withArrowKeys_returnsKeyCode() {
+        guard let downArrowEvent = NSEvent.keyEvent(
+            with: .keyDown,
+            location: .zero,
+            modifierFlags: [],
+            timestamp: 0,
+            windowNumber: 0,
+            context: nil,
+            characters: "",
+            charactersIgnoringModifiers: "",
+            isARepeat: false,
+            keyCode: 125
+        ) else {
+            XCTFail("Failed to create mock key event")
+            return
+        }
+
+        let keyCode = QuickLookOverlay.forwardedFinderNavigationKeyCode(for: downArrowEvent)
+        XCTAssertEqual(keyCode, 125)
+    }
 }

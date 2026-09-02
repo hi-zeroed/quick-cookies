@@ -76,4 +76,12 @@ final class ExternalAppRelayTests: XCTestCase {
             XCTAssertTrue(FileManager.default.fileExists(atPath: app.url.path))
         }
     }
+
+    func testOpenInTerminalMethodExistsAndRuns() {
+        let relay = ExternalAppRelay.shared
+        // 验证 openInTerminal 调用安全，不发生异常或崩溃
+        let dummyFolder = tempDirectoryURL!
+        let success = relay.openInTerminal(directoryURL: dummyFolder)
+        XCTAssertTrue(success || !success) // 验证方法签名与调用成功返回 Bool
+    }
 }

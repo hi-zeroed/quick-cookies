@@ -133,8 +133,7 @@ final class FileTypeClassifierTests: XCTestCase {
         XCTAssertEqual(FileTypeClassifier.classify(path: path), .unsupported)
     }
 
-    func testDirectoryPathIsUnsupported() {
-        XCTAssertEqual(FileTypeClassifier.classify(path: tempDirURL.path), .unsupported)
+    func testDirectoryPathClassifiesAsFolder() {
+        XCTAssertEqual(FileTypeClassifier.classify(path: tempDirURL.path), .folder)
     }
-
 }

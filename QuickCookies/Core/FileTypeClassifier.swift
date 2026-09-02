@@ -9,6 +9,7 @@ enum FileRenderType {
     case unsupported    // 不支持预览的文件
     case office         // Word, Excel, PPT, RTF, RTFD, Pages, Numbers, Keynote, CSV 等
     case archive        // Zip, Tar, Gz, 7z, Rar 等压缩包与归档文件
+    case folder         // 本地普通文件夹与目录
 }
 
 struct FileTypeClassifier {
@@ -17,6 +18,11 @@ struct FileTypeClassifier {
         let resolvedPath = FileUtils.resolveSymlink(at: path)
         if !isSupported(path: resolvedPath) {
             return .unsupported
+        }
+
+        var isDir: ObjCBool = false
+        if FileManager.default.fileExists(atPath: resolvedPath, isDirectory: &isDir), isDir.boolValue {
+            return .folder
         }
 
         let ext = URL(fileURLWithPath: resolvedPath)
@@ -71,11 +77,11 @@ struct FileTypeClassifier {
 
     /// 判断文件是否支持
     static func isSupported(path: String) -> Bool {
-        // 1. 过滤文件夹目录类型
+        // 1. 本地文件夹目录类型
         var isDir: ObjCBool = false
         if FileManager.default.fileExists(atPath: path, isDirectory: &isDir) {
             if isDir.boolValue {
-                return false
+                return true
             }
         } else {
             return false

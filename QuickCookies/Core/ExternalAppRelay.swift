@@ -171,6 +171,25 @@ public final class ExternalAppRelay {
         NSWorkspace.shared.activateFileViewerSelecting([fileURL])
     }
 
+    /// 在终端（Terminal / iTerm2）中打开指定目录
+    @discardableResult
+    public func openInTerminal(directoryURL: URL) -> Bool {
+        let configuration = NSWorkspace.OpenConfiguration()
+        configuration.activates = true
+
+        if let itermURL = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.googlecode.iterm2") {
+            NSWorkspace.shared.open([directoryURL], withApplicationAt: itermURL, configuration: configuration, completionHandler: nil)
+            return true
+        }
+
+        if let terminalURL = NSWorkspace.shared.urlForApplication(withBundleIdentifier: "com.apple.Terminal") {
+            NSWorkspace.shared.open([directoryURL], withApplicationAt: terminalURL, configuration: configuration, completionHandler: nil)
+            return true
+        }
+
+        return NSWorkspace.shared.open(directoryURL)
+    }
+
     /// 复制文件路径至剪贴板
     public func copyPathToClipboard(fileURL: URL) {
         let pasteboard = NSPasteboard.general

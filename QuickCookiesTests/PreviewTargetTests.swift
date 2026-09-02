@@ -85,7 +85,7 @@ final class PreviewTargetTests: XCTestCase {
         }
     }
 
-    func test_resolver_directoryPath_returnsUnsupportedPresentationTarget() throws {
+    func test_resolver_directoryPath_returnsFolderPresentationTarget() throws {
         let directoryURL = tempDirectoryURL.appendingPathComponent("Folder", isDirectory: true)
         try FileManager.default.createDirectory(
             at: directoryURL,
@@ -104,7 +104,7 @@ final class PreviewTargetTests: XCTestCase {
 
         XCTAssertEqual(target.originalPath, directoryURL.path)
         XCTAssertEqual(target.resolvedPath, directoryURL.path)
-        XCTAssertEqual(target.renderType, .unsupported)
+        XCTAssertEqual(target.renderType, .folder)
         XCTAssertNil(target.language)
         XCTAssertEqual(target.displayName, "Folder")
     }

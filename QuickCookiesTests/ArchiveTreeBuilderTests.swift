@@ -79,4 +79,36 @@ final class ArchiveTreeBuilderTests: XCTestCase {
         XCTAssertFalse(file.isDirectory)
         XCTAssertEqual(file.uncompressedSize, 300)
     }
+
+    func testFlattenVisibleNodesFoldedAndExpanded() {
+        let entries = [
+            ArchiveEntry(path: "folder/sub/file.txt", uncompressedSize: 10, compressedSize: nil, isDirectory: false, modificationDate: nil),
+            ArchiveEntry(path: "root.txt", uncompressedSize: 5, compressedSize: nil, isDirectory: false, modificationDate: nil)
+        ]
+
+        let tree = ArchiveTreeBuilder.buildTree(from: entries)
+        XCTAssertEqual(tree.count, 2) // folder, root.txt
+
+        // 默认折叠状态下，只展平顶层 2 个可见行
+        let foldedRows = ArchiveTreeBuilder.flattenVisibleNodes(from: tree)
+        XCTAssertEqual(foldedRows.count, 2)
+        XCTAssertEqual(foldedRows[0].node.name, "folder")
+        XCTAssertEqual(foldedRows[0].depth, 0)
+        XCTAssertEqual(foldedRows[1].node.name, "root.txt")
+        XCTAssertEqual(foldedRows[1].depth, 0)
+
+        // 展开 folder
+        tree[0].isExpanded = true
+        let expandedFolderRows = ArchiveTreeBuilder.flattenVisibleNodes(from: tree)
+        XCTAssertEqual(expandedFolderRows.count, 3) // folder (depth 0), sub (depth 1), root.txt (depth 0)
+        XCTAssertEqual(expandedFolderRows[1].node.name, "sub")
+        XCTAssertEqual(expandedFolderRows[1].depth, 1)
+
+        // 展开 sub
+        tree[0].children[0].isExpanded = true
+        let fullyExpandedRows = ArchiveTreeBuilder.flattenVisibleNodes(from: tree)
+        XCTAssertEqual(fullyExpandedRows.count, 4) // folder, sub, file.txt, root.txt
+        XCTAssertEqual(fullyExpandedRows[2].node.name, "file.txt")
+        XCTAssertEqual(fullyExpandedRows[2].depth, 2)
+    }
 }
