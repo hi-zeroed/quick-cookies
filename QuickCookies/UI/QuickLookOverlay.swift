@@ -154,60 +154,37 @@ enum PreviewOverlayWindowChromePolicy {
     static let usesSystemWindowShadow = true
 }
 
+enum PreviewOverlayTransformMath {
+    /// 计算以窗口中心为锚点的优雅微缩变换矩阵（严格对应 NSHostingView isFlipped=true，anchorPoint=(0,0)）
+    static func centerScaleTransform(
+        scale: CGFloat,
+        targetSize: CGSize
+    ) -> CATransform3D {
+        let s = max(min(scale, 1.0), 0.05)
+        let dx = targetSize.width * (1.0 - s) / 2.0
+        let dy = targetSize.height * (1.0 - s) / 2.0
+
+        var transform = CATransform3DIdentity
+        transform = CATransform3DTranslate(transform, dx, dy, 0)
+        transform = CATransform3DScale(transform, s, s, 1.0)
+        return transform
+    }
+}
+
 enum PreviewOverlayOpenAnimationPolicy {
     static let masksRoundedContentAfterOpening = true
     static let animatesRealPreviewWindowFrame = false
     static let usesSpringAnimation = true
-    static let springDamping: CGFloat = 26
+    static let startScale: CGFloat = 0.92
+    static let springDamping: CGFloat = 24
     static let springStiffness: CGFloat = 300
     static let springMass: CGFloat = 0.8
-    static let frameDuration: TimeInterval = 0.24
-    static let fadeInDuration: TimeInterval = 0.12
-    static let maximumStartScale: CGFloat = 0.28
-    static let resizesHostingViewDuringFrameAnimation = false
-
-    static func sourceCenteredStartFrame(
-        sourceRect: CGRect,
-        targetRect: CGRect
-    ) -> CGRect {
-        let targetAspectRatio = max(targetRect.width, 1) / max(targetRect.height, 1)
-        let sourceWidth = max(sourceRect.width, 1)
-        let sourceHeight = max(sourceRect.height, 1)
-        let sourceAspectRatio = sourceWidth / sourceHeight
-
-        let unclampedStartSize: CGSize
-        if sourceAspectRatio > targetAspectRatio {
-            unclampedStartSize = CGSize(width: sourceWidth, height: sourceWidth / targetAspectRatio)
-        } else {
-            unclampedStartSize = CGSize(width: sourceHeight * targetAspectRatio, height: sourceHeight)
-        }
-
-        let maximumStartSize = CGSize(
-            width: max(targetRect.width * maximumStartScale, 1),
-            height: max(targetRect.height * maximumStartScale, 1)
-        )
-        let clampScale = min(
-            1,
-            maximumStartSize.width / max(unclampedStartSize.width, 1),
-            maximumStartSize.height / max(unclampedStartSize.height, 1)
-        )
-        let startSize = CGSize(
-            width: unclampedStartSize.width * clampScale,
-            height: unclampedStartSize.height * clampScale
-        )
-
-        let sourceCenter = CGPoint(x: sourceRect.midX, y: sourceRect.midY)
-        return CGRect(
-            x: sourceCenter.x - startSize.width / 2,
-            y: sourceCenter.y - startSize.height / 2,
-            width: startSize.width,
-            height: startSize.height
-        )
-    }
+    static let fadeInDuration: TimeInterval = 0.14
 }
 
 enum PreviewOverlayCloseAnimationPolicy {
-    static let duration: TimeInterval = 0.18
+    static let duration: TimeInterval = 0.13
+    static let endScale: CGFloat = 0.94
     static let controlPoint1 = CGPoint(x: 0.35, y: 0.0)
     static let controlPoint2 = CGPoint(x: 0.15, y: 1.0)
     static let animatesWindowAlpha = true
@@ -495,7 +472,6 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
     var onFinderSelectionRequest: ((PreviewLaunchRequest) -> Void)?
     private var previewWindow: NSWindow?
     var currentWindow: NSWindow? { previewWindow }
-    private var sourceRectBackup: CGRect?
     private var activeToastPanel: NSPanel?
     private var localEventMonitor: Any?
     private var globalEventMonitor: Any?
@@ -529,14 +505,12 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
                 ?? AppleScriptFinderSelectionPathProvider().selectedPath().mapError { $0 as any Error }
         },
         detectSourceRect: {
-            Self.getSourceRect()
+            .zero
         },
         onRequest: { [weak self] request in
             self?.dispatchFinderSelectionRequest(request)
         },
-        onSourceRectUpdate: { [weak self] rect in
-            self?.sourceRectBackup = rect
-        },
+        onSourceRectUpdate: { _ in },
         runAsync: { work in
             DispatchQueue.global(qos: .userInteractive).async(execute: work)
         },
@@ -905,7 +879,7 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
     }
 
     func captureFinderSourceRect() {
-        sourceRectBackup = Self.getSourceRect()
+        // 原生路线 A 采用以窗口中心为锚点的优雅微缩弹簧动效，无需预捕获坐标
     }
 
     @MainActor
@@ -927,7 +901,6 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
 
         bindActiveSession(session)
         finderSelectionPollingController.syncCurrentResolvedPath(session.state.target?.resolvedPath)
-        sourceRectBackup = Self.getSourceRect()
 
         if plan.shouldCreateWindow {
             showOverlay(session: session)
@@ -949,7 +922,7 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         focusWindowForInteractivePreviewIfNeeded()
     }
 
-    /// 创建预览面板并执行动画，不带任何黑色背景遮罩 - 极速响应版
+    /// 创建预览面板并执行动画，不带任何黑色背景遮罩 - 旗舰中心秒开动效
     @MainActor
     private func showOverlay(session: PreviewSession) {
         guard transitionGate.beginOpen() else {
@@ -959,7 +932,7 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         let target = session.state.target
         let filePath = target?.resolvedPath
 
-        // 2. 瞬间在主线程实例化窗口并展现 (borderless 极简自研控制按钮模式)
+        // 1. 瞬间在主线程实例化窗口并展现 (borderless 极简自研控制按钮模式)
         let previewPanel = QuickLookPanel(
             contentRect: .zero,
             styleMask: [.borderless, .resizable],
@@ -967,15 +940,6 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
             defer: false
         )
         let targetRect = targetWindowFrame(for: previewPanel)
-        let initialSourceRect = self.sourceRectBackup ?? self.getMouseOrCenterSourceRect(targetRect: targetRect)
-        let paddedSourceRect = PreviewOverlaySizingPolicy.animationSourceRect(
-            initialSourceRect,
-            outset: animationOutset
-        )
-        let startFrame = PreviewOverlayOpenAnimationPolicy.sourceCenteredStartFrame(
-            sourceRect: paddedSourceRect,
-            targetRect: targetRect
-        )
         previewPanel.setFrame(targetRect, display: false)
         
         previewPanel.isMovableByWindowBackground = true
@@ -1016,7 +980,6 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         
         hostingView.wantsLayer = true
         if let layer = hostingView.layer {
-            layer.anchorPoint = CGPoint(x: 0.5, y: 0.5)
             layer.backgroundColor = NSColor.clear.cgColor
             layer.cornerRadius = 20
             layer.masksToBounds = PreviewOverlayOpenAnimationPolicy.masksRoundedContentAfterOpening
@@ -1071,64 +1034,32 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
             )
         }
 
-        // 3. 0ms 瞬间起跳：优先使用轮询预取的文件图标物理位置，若无缓存再降级到鼠标位置，保证零局限与零阻塞
-        self.performQuickLookAnimation(
+        // 3. 0ms 瞬间起跳：原生旗舰中心弹性膨胀展开 (0.92 -> 1.0)
+        self.performCenterSpringOpenAnimation(
             previewPanel: previewPanel,
-            sourceFrame: startFrame,
-            targetRect: targetRect
+            targetSize: targetRect.size
         )
         self.transitionGate.markOpen()
-
-        // 4. 后台执行图标实际坐标的获取，用于关闭时精准飞回
-        DispatchQueue.global(qos: .userInteractive).async {
-            let realSourceRect = Self.getSourceRect()
-            Task { @MainActor in
-                QuickLookOverlay.shared.sourceRectBackup = realSourceRect
-            }
-        }
     }
 
-    /// 获取当前鼠标位置构建的起跳起始矩形，用于 0ms 秒开无阻塞动画起点
-    private func getMouseOrCenterSourceRect(targetRect: CGRect) -> CGRect {
-        let mouseLoc = NSEvent.mouseLocation
-        return CGRect(
-            x: mouseLoc.x - 5,
-            y: mouseLoc.y - 5,
-            width: 10,
-            height: 10
-        )
-    }
-
-    /// 使用单图层物理弹簧动画从 Finder 图标位置展开，真实 SwiftUI 预览窗口保持最终尺寸，避免约束循环与 Handoff 顿挫。
-    private func performQuickLookAnimation(
+    /// 使用物理弹簧与柔和淡入执行中心弹性微缩展开 (0.92 -> 1.0)
+    private func performCenterSpringOpenAnimation(
         previewPanel: NSPanel,
-        sourceFrame: CGRect,
-        targetRect: CGRect
+        targetSize: CGSize
     ) {
         guard let hostingView = previewPanel.contentView,
               let layer = hostingView.layer else { return }
 
-        // 计算初始缩放与平移变换
-        let scaleX = max(sourceFrame.width / targetRect.width, 0.05)
-        let scaleY = max(sourceFrame.height / targetRect.height, 0.05)
-        let sourceCenter = CGPoint(x: sourceFrame.midX, y: sourceFrame.midY)
-        let targetCenter = CGPoint(x: targetRect.midX, y: targetRect.midY)
-        let translationX = sourceCenter.x - targetCenter.x
-        let translationY = sourceCenter.y - targetCenter.y
-
-        let startTransform = CATransform3DConcat(
-            CATransform3DMakeScale(scaleX, scaleY, 1.0),
-            CATransform3DMakeTranslation(translationX, translationY, 0)
+        // 计算中心微缩起始变换矩阵 (Scale 0.92)
+        let startTransform = PreviewOverlayTransformMath.centerScaleTransform(
+            scale: PreviewOverlayOpenAnimationPolicy.startScale,
+            targetSize: targetSize
         )
-
-        // 保证锚点为 (0.5, 0.5) 且 position 在中心
-        layer.anchorPoint = CGPoint(x: 0.5, y: 0.5)
-        layer.position = CGPoint(x: targetRect.width / 2, y: targetRect.height / 2)
 
         // 1. 设置真实窗口可见
         previewPanel.alphaValue = 1.0
 
-        // 2. 物理流体弹簧动画：Transform 从 startTransform 平滑膨胀至 Identity
+        // 2. 物理流体弹簧动画：Transform 从 startTransform (0.92) 平滑膨胀至 Identity (1.0)
         let springAnim = CASpringAnimation(keyPath: "transform")
         springAnim.damping = PreviewOverlayOpenAnimationPolicy.springDamping
         springAnim.stiffness = PreviewOverlayOpenAnimationPolicy.springStiffness
@@ -1139,7 +1070,7 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         springAnim.isRemovedOnCompletion = true
         springAnim.fillMode = .removed
 
-        // 3. 柔和快速淡入动画
+        // 3. 柔和快速淡入动画 (0.0 -> 1.0, 0.14s)
         let fadeAnim = CABasicAnimation(keyPath: "opacity")
         fadeAnim.fromValue = 0.0
         fadeAnim.toValue = 1.0
@@ -1148,14 +1079,6 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         fadeAnim.isRemovedOnCompletion = true
         fadeAnim.fillMode = .removed
 
-        CATransaction.begin()
-        CATransaction.setCompletionBlock { [weak self, weak previewPanel] in
-            guard let self, let previewPanel, self.previewWindow === previewPanel else { return }
-            layer.transform = CATransform3DIdentity
-            layer.opacity = 1.0
-            previewPanel.invalidateShadow()
-        }
-
         CATransaction.setDisableActions(true)
         layer.transform = CATransform3DIdentity
         layer.opacity = 1.0
@@ -1163,203 +1086,6 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         layer.add(springAnim, forKey: "openSpringTransform")
         layer.add(fadeAnim, forKey: "openFadeIn")
         CATransaction.commit()
-    }
-
-    /// 高精度获取 Finder 中当前选中项的视觉物理坐标 (AXUIElement API)
-    private static func getSourceRect() -> CGRect {
-        // 1. 获取 Finder 的 PID
-        guard let finderApp = NSWorkspace.shared.runningApplications.first(where: { $0.bundleIdentifier == "com.apple.finder" }) else {
-            return getDefaultSourceRect()
-        }
-        let pid = finderApp.processIdentifier
-        
-        // 2. 创建 Finder 应用 of AXUIElement
-        let appElement = AXUIElementCreateApplication(pid)
-        
-        // 3. 寻找选中的 UI 元素：优先从键盘聚焦 focusedElement 获取，其次通过主窗口选中项列表 AXSelectedChildren 深度兜底遍历
-        var selectedElement: AXUIElement?
-        
-        var focusedElementRef: CFTypeRef?
-        if AXUIElementCopyAttributeValue(appElement, kAXFocusedUIElementAttribute as CFString, &focusedElementRef) == .success,
-           let element = focusedElementRef as! AXUIElement? {
-            // 校验 role 避免把 window 当作选中项
-            var roleRef: CFTypeRef?
-            if AXUIElementCopyAttributeValue(element, kAXRoleAttribute as CFString, &roleRef) == .success,
-               let role = roleRef as? String {
-                if role == "AXCell" || role == "AXRow" || role == "AXStaticText" || role == "AXImage" || role == "AXTextField" {
-                    selectedElement = element
-                }
-            }
-        }
-        
-        if selectedElement == nil {
-            if let found = getSelectedElementFromWindows(appElement: appElement) {
-                selectedElement = found
-            }
-        }
-        
-        guard let element = selectedElement else {
-            return getDefaultSourceRect()
-        }
-        
-        // 4. 从选中元素中读取其 Position 和 Size
-        var positionRef: CFTypeRef?
-        var sizeRef: CFTypeRef?
-        
-        let posResult = AXUIElementCopyAttributeValue(element, kAXPositionAttribute as CFString, &positionRef)
-        let sizeResult = AXUIElementCopyAttributeValue(element, kAXSizeAttribute as CFString, &sizeRef)
-        
-        guard posResult == .success, sizeResult == .success,
-              let positionVal = positionRef, let sizeVal = sizeRef else {
-            return getDefaultSourceRect()
-        }
-        
-        var point = CGPoint.zero
-        var size = CGSize.zero
-        
-        AXValueGetValue(positionVal as! AXValue, .cgPoint, &point)
-        AXValueGetValue(sizeVal as! AXValue, .cgSize, &size)
-        
-        // 5. 坐标系转换 (Accessibility 使用左上角为原点，NSScreen/AppKit 窗口使用左下角为原点)
-        if let screenHeight = NSScreen.main?.frame.height {
-            return CGRect(
-                x: point.x,
-                y: screenHeight - (point.y + size.height), // 转换 Y 轴
-                width: size.width,
-                height: size.height
-            )
-        }
-        
-        return CGRect(origin: point, size: size)
-    }
-
-    /// 安全读取 AXUIElement 的 Bool 属性，解决 Swift 中 CFBoolean 桥接为 Bool 时的不稳定问题
-    private static func getBoolAttribute(_ element: AXUIElement, attribute: String) -> Bool {
-        var valueRef: CFTypeRef?
-        guard AXUIElementCopyAttributeValue(element, attribute as CFString, &valueRef) == .success else {
-            return false
-        }
-        if let number = valueRef as? NSNumber {
-            return number.boolValue
-        }
-        if CFGetTypeID(valueRef!) == CFBooleanGetTypeID() {
-            return CFBooleanGetValue((valueRef as! CFBoolean))
-        }
-        return false
-    }
-
-    /// 从 Finder 的活动窗口检索当前被选中的 Cell 或 Row 元素
-    private static func getSelectedElementFromWindows(appElement: AXUIElement) -> AXUIElement? {
-        // 1. 优先使用 Finder 应用级别的 AXMainWindow 属性获取当前活跃的主窗口，避免无脑遍历所有窗口
-        var mainWindowRef: CFTypeRef?
-        if AXUIElementCopyAttributeValue(appElement, kAXMainWindowAttribute as CFString, &mainWindowRef) == .success,
-           let mainWindow = mainWindowRef as! AXUIElement? {
-            if let found = deepFindSelected(in: mainWindow) {
-                return found
-            }
-        }
-
-        // 2. 如果直接获取主窗口失败，获取所有窗口列表
-        var windowsRef: CFTypeRef?
-        guard AXUIElementCopyAttributeValue(appElement, kAXWindowsAttribute as CFString, &windowsRef) == .success,
-              let windows = windowsRef as? [AXUIElement], !windows.isEmpty else {
-            return nil
-        }
-        
-        // 3. 优先在 Main (主窗口) 状态的窗口中搜寻，确保精确定位前台操作的窗口
-        for window in windows {
-            if getBoolAttribute(window, attribute: kAXMainAttribute) {
-                if let found = deepFindSelected(in: window) {
-                    return found
-                }
-            }
-        }
-        
-        // 4. 其次在 Focused (聚焦) 状态的窗口中搜寻
-        for window in windows {
-            if getBoolAttribute(window, attribute: kAXFocusedAttribute) {
-                if let found = deepFindSelected(in: window) {
-                    return found
-                }
-            }
-        }
-        
-        // 5. 最后的兜底：如果前台没有处于 Main 或 Focused 状态的窗口（可能是桌面操作），遍历剩下的窗口
-        for window in windows {
-            let isMain = getBoolAttribute(window, attribute: kAXMainAttribute)
-            let isFocused = getBoolAttribute(window, attribute: kAXFocusedAttribute)
-            
-            // 获取窗口的 Title
-            var titleRef: CFTypeRef?
-            _ = AXUIElementCopyAttributeValue(window, kAXTitleAttribute as CFString, &titleRef) == .success
-            let title = titleRef as? String ?? ""
-            
-            // 排除明确不是主窗口且不是聚焦窗口的普通有标题 Finder 窗口，防止其残留的 AXSelectedChildren 状态污染
-            if !title.isEmpty && !isMain && !isFocused {
-                continue
-            }
-            
-            if let found = deepFindSelected(in: window) {
-                return found
-            }
-        }
-        return nil
-    }
-    
-    /// 限制 10 层深度递归检索指定节点下的 AXSelectedChildren 或 AXSelectedRows 属性
-    private static func deepFindSelected(in element: AXUIElement, depth: Int = 0) -> AXUIElement? {
-        if depth > 10 { return nil }
-        
-        // 1. 剪枝过滤：若是绝对不包含子文件项的叶子节点，立刻返回 nil 终止向下检索，剪掉 95%+ 无用 IPC，杜绝系统熔断
-        var roleRef: CFTypeRef?
-        if AXUIElementCopyAttributeValue(element, kAXRoleAttribute as CFString, &roleRef) == .success,
-           let role = roleRef as? String {
-            let leafRoles: Set<String> = [
-                "AXButton", "AXScrollBar",
-                "AXValueIndicator", "AXCheckBox", "AXRadioButton",
-                "AXPopUpButton", "AXProgressIndicator", "AXIncrementor",
-                "AXSlider", "AXHelpTag"
-            ]
-            if leafRoles.contains(role) {
-                return nil
-            }
-        }
-        
-        // 2. 检查当前节点是否存在选中子项
-        var selectedRef: CFTypeRef?
-        if AXUIElementCopyAttributeValue(element, "AXSelectedChildren" as CFString, &selectedRef) == .success,
-           let selected = selectedRef as? [AXUIElement], !selected.isEmpty {
-            return selected.first
-        }
-        
-        var selectedRowsRef: CFTypeRef?
-        if AXUIElementCopyAttributeValue(element, "AXSelectedRows" as CFString, &selectedRowsRef) == .success,
-           let selectedRows = selectedRowsRef as? [AXUIElement], !selectedRows.isEmpty {
-            return selectedRows.first
-        }
-        
-        // 3. 继续向下递归子节点
-        var childrenRef: CFTypeRef?
-        if AXUIElementCopyAttributeValue(element, kAXChildrenAttribute as CFString, &childrenRef) == .success,
-           let children = childrenRef as? [AXUIElement] {
-            for child in children {
-                if let found = deepFindSelected(in: child, depth: depth + 1) {
-                    return found
-                }
-            }
-        }
-        return nil
-    }
-
-    /// 默认源位置（屏幕中心）
-    private static func getDefaultSourceRect() -> CGRect {
-        let screenFrame = NSScreen.main?.visibleFrame ?? CGRect(x: 0, y: 0, width: 1920, height: 1080)
-        return CGRect(
-            x: screenFrame.midX - 50,
-            y: screenFrame.midY - 50,
-            width: 100,
-            height: 100
-        )
     }
 
     /// 关闭窗口
@@ -1441,7 +1167,7 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         }
     }
 
-    /// 关闭窗口并附带平滑缩小到图标位置的 GPU 变换动画
+    /// 关闭窗口并附带中心微缩收缩与平滑淡出的 GPU 动效
     func closeWithAnimation() {
         AppRelayMenuTarget.shared.cancelActiveMenu()
 
@@ -1466,7 +1192,7 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
             return
         }
 
-        // 关闭时立刻隐藏系统红绿灯按钮，使其随着窗口收缩缩回原位而完美消失
+        // 关闭时立刻隐藏系统红绿灯按钮
         window.standardWindowButton(.closeButton)?.alphaValue = 0.0
         window.standardWindowButton(.miniaturizeButton)?.alphaValue = 0.0
         window.standardWindowButton(.zoomButton)?.alphaValue = 0.0
@@ -1488,7 +1214,6 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         }
 
         // 立即解绑业务会话，避免动画期间继续消费旧 session；
-        // 但保留 previewWindow 到 completion，防止 toggle 在 closing 期间误判为已关闭而重开。
         activeSession = nil
         activeSessionState = nil
         activeSessionCancellable = nil
@@ -1496,31 +1221,11 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         navigationContextPath = nil
         finderSelectionPollingController.resetSelection()
 
-        let targetRect = window.frame
-        let sourceRect = sourceRectBackup ?? Self.getDefaultSourceRect()
-        
-        // 同样在关闭时也要将 sourceRect 进行 padding 扩展以精准反向对齐
-        let paddedSourceRect = PreviewOverlaySizingPolicy.animationSourceRect(
-            sourceRect,
-            outset: animationOutset
+        // 计算中心微缩收缩终止变换矩阵 (Scale 0.94)
+        let finalTransform = PreviewOverlayTransformMath.centerScaleTransform(
+            scale: PreviewOverlayCloseAnimationPolicy.endScale,
+            targetSize: window.frame.size
         )
-        
-        let scaleX = max(paddedSourceRect.width / targetRect.width, 0.05)
-        let scaleY = max(paddedSourceRect.height / targetRect.height, 0.05)
-        
-        let targetCenter = CGPoint(x: targetRect.midX, y: targetRect.midY)
-        let sourceCenter = CGPoint(x: paddedSourceRect.midX, y: paddedSourceRect.midY)
-        let translationX = sourceCenter.x - targetCenter.x
-        let translationY = sourceCenter.y - targetCenter.y
-        
-        let finalTransform = CATransform3DConcat(
-            CATransform3DMakeScale(scaleX, scaleY, 1.0),
-            CATransform3DMakeTranslation(translationX, translationY, 0)
-        )
-        
-        // 保证锚点为 (0.5, 0.5) 并且 position 居中，以进行高精度逆向收缩
-        layer.anchorPoint = CGPoint(x: 0.5, y: 0.5)
-        layer.position = CGPoint(x: targetRect.width / 2, y: targetRect.height / 2)
 
         let duration = PreviewOverlayCloseAnimationPolicy.duration
         let fluidTiming = CAMediaTimingFunction(
@@ -1548,7 +1253,7 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         group.isRemovedOnCompletion = true
         group.fillMode = .removed
 
-        // 同步让窗口整体 alphaValue 渐变为 0.0，使系统阴影与卡片同时平滑隐去，杜绝阴影滞留原地
+        // 同步让窗口整体 alphaValue 渐变为 0.0，使系统阴影与卡片同时平滑隐去
         if PreviewOverlayCloseAnimationPolicy.animatesWindowAlpha {
             NSAnimationContext.runAnimationGroup { context in
                 context.duration = duration
@@ -1570,8 +1275,6 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
             self.transitionGate.finishClose()
         }
 
-        // 先把 model layer 原子化地推进到最终关闭态，再由显式动画接管过渡，
-        // 避免动画结束瞬间回跳到未缩放的大窗口状态而产生最后一闪。
         CATransaction.setDisableActions(true)
         layer.transform = finalTransform
         layer.opacity = 0.0

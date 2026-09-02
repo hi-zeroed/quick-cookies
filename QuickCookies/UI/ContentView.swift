@@ -754,8 +754,16 @@ struct ContentView: View {
                     )
                 }
             case .archive, .folder:
-                ArchivePreviewView(archivePath: path)
-                    .id(path)
+                ArchivePreviewView(
+                    archivePath: path,
+                    onClose: {
+                        windowActions.closeOverlay()
+                    },
+                    onShowToast: { message, icon in
+                        windowActions.showToast(message, icon)
+                    }
+                )
+                .id(path)
             case .unsupported:
                 UnsupportedFileView(filePath: path, errorMessage: activeErrorMessage)
             }

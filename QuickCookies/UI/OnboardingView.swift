@@ -97,13 +97,11 @@ struct VisualEffectView: NSViewRepresentable {
 // MARK: - Onboarding View
 struct OnboardingView: View {
     @State private var currentPage = 0
-    @State private var isAccessibilityAuthorized = AXIsProcessTrusted()
     @State private var isFullDiskAccessAuthorized = {
         let path = NSHomeDirectory() + "/Library/Safari/Bookmarks.plist"
         return FileManager.default.isReadableFile(atPath: path)
     }()
     @State private var isFinderExtensionAttempted = false
-    @State private var isCheckingAccessibility = false
     @State private var isCheckingFDA = false
     @State private var isStartingApp = false
     @State private var showConfetti = false
@@ -184,7 +182,6 @@ struct OnboardingView: View {
         .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
             guard !isClosing else { return }
             checkPermissionState()
-            isCheckingAccessibility = false
             isCheckingFDA = false
         }
         .onReceive(animationTimer) { _ in
@@ -449,7 +446,7 @@ struct OnboardingView: View {
             }
             .padding(.bottom, 2)
             
-            HStack(spacing: 12) {
+            HStack(spacing: 16) {
                 // 1. Finder 扩展卡片
                 VStack(alignment: .leading, spacing: 8) {
                     HStack(spacing: 6) {
@@ -457,12 +454,12 @@ struct OnboardingView: View {
                             .foregroundColor(isFinderExtensionAttempted ? .green : .secondary)
                             .font(.system(size: 14))
                         Text("Finder Extension".localized())
-                            .font(.system(size: 12, weight: .bold))
+                            .font(.system(size: 13, weight: .bold))
                             .foregroundColor(Color.appText)
                     }
                     
                     Text("Integrate right-click menu and seamless preview. Zero privacy risk.".localized())
-                        .font(.system(size: 10.5))
+                        .font(.system(size: 11))
                         .foregroundColor(Color.appText.opacity(0.6))
                         .lineSpacing(2.5)
                         .frame(height: 52, alignment: .topLeading)
@@ -498,7 +495,7 @@ struct OnboardingView: View {
                         .controlSize(.regular)
                     }
                 }
-                .padding(12)
+                .padding(14)
                 .background(Color.cardBackground)
                 .cornerRadius(10)
                 .overlay(
@@ -506,80 +503,19 @@ struct OnboardingView: View {
                         .stroke(isFinderExtensionAttempted ? Color.green.opacity(0.3) : Color.appBorder, lineWidth: 1)
                 )
                 
-                // 2. 辅助功能卡片
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack(spacing: 6) {
-                        Image(systemName: isAccessibilityAuthorized ? "star.fill" : "star")
-                            .foregroundColor(isAccessibilityAuthorized ? .orange : .secondary)
-                            .font(.system(size: 14))
-                        Text("Advanced Animation Mode".localized())
-                            .font(.system(size: 12, weight: .bold))
-                            .foregroundColor(Color.appText)
-                    }
-                    
-                    Text("Allow flying from file position with smooth spring physics animations.".localized())
-                        .font(.system(size: 10.5))
-                        .foregroundColor(Color.appText.opacity(0.6))
-                        .lineSpacing(2.5)
-                        .frame(height: 52, alignment: .topLeading)
-                    
-                    Spacer()
-                    
-                    if isAccessibilityAuthorized {
-                        HStack {
-                            Image(systemName: "checkmark.circle.fill")
-                                .foregroundColor(.green)
-                            Text("Permission Granted".localized())
-                                .foregroundColor(.green)
-                                .font(.system(size: 11, weight: .semibold))
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 4)
-                    } else {
-                        Button(action: {
-                            isCheckingAccessibility = true
-                            HotkeyManager.shared.requestAccessibilityPermission()
-                        }) {
-                            HStack(spacing: 4) {
-                                if isCheckingAccessibility {
-                                    ProgressView()
-                                        .controlSize(.small)
-                                    Text("Checking...".localized())
-                                        .font(.system(size: 11))
-                                } else {
-                                    Image(systemName: "hand.raised.fill")
-                                    Text("Grant Accessibility".localized())
-                                        .font(.system(size: 11))
-                                }
-                            }
-                            .frame(maxWidth: .infinity)
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .controlSize(.regular)
-                        .disabled(isCheckingAccessibility)
-                    }
-                }
-                .padding(12)
-                .background(Color.cardBackground)
-                .cornerRadius(10)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 10)
-                        .stroke(isAccessibilityAuthorized ? Color.orange.opacity(0.4) : Color.appBorder, lineWidth: 1)
-                )
-                
-                // 3. 所有文件夹访问 (FDA) 卡片
+                // 2. 所有文件夹访问 (FDA) 卡片
                 VStack(alignment: .leading, spacing: 8) {
                     HStack(spacing: 6) {
                         Image(systemName: isFullDiskAccessAuthorized ? "folder.fill" : "folder")
                             .foregroundColor(isFullDiskAccessAuthorized ? .green : .secondary)
                             .font(.system(size: 14))
                         Text("Full Disk Access".localized())
-                            .font(.system(size: 12, weight: .bold))
+                            .font(.system(size: 13, weight: .bold))
                             .foregroundColor(Color.appText)
                     }
                     
                     Text("Grant Full Disk Access to avoid folder permission prompts.".localized())
-                        .font(.system(size: 10.5))
+                        .font(.system(size: 11))
                         .foregroundColor(Color.appText.opacity(0.6))
                         .lineSpacing(2.5)
                         .frame(height: 52, alignment: .topLeading)
@@ -622,7 +558,7 @@ struct OnboardingView: View {
                         .disabled(isCheckingFDA)
                     }
                 }
-                .padding(12)
+                .padding(14)
                 .background(Color.cardBackground)
                 .cornerRadius(10)
                 .overlay(
@@ -710,21 +646,11 @@ struct OnboardingView: View {
     
     // MARK: - Logic & Actions
     private func checkPermissionState() {
-        let auth = AXIsProcessTrusted()
         let fda = checkFullDiskAccess()
         
         var shouldShowConfetti = false
         
         DispatchQueue.main.async {
-            if auth != self.isAccessibilityAuthorized {
-                withAnimation(.spring()) {
-                    self.isAccessibilityAuthorized = auth
-                    if auth {
-                        shouldShowConfetti = true
-                    }
-                }
-            }
-            
             if fda != self.isFullDiskAccessAuthorized {
                 withAnimation(.spring()) {
                     self.isFullDiskAccessAuthorized = fda

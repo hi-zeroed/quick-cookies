@@ -377,59 +377,19 @@ final class QuickLookOverlayStateTests: XCTestCase {
         XCTAssertTrue(PreviewOverlayOpenAnimationPolicy.masksRoundedContentAfterOpening)
         XCTAssertTrue(PreviewOverlayOpenAnimationPolicy.usesSpringAnimation)
         XCTAssertFalse(PreviewOverlayOpenAnimationPolicy.animatesRealPreviewWindowFrame)
-        XCTAssertFalse(PreviewOverlayOpenAnimationPolicy.resizesHostingViewDuringFrameAnimation)
+        XCTAssertEqual(PreviewOverlayOpenAnimationPolicy.startScale, 0.92, accuracy: 0.001)
         XCTAssertGreaterThan(PreviewOverlayOpenAnimationPolicy.springDamping, 0)
         XCTAssertGreaterThan(PreviewOverlayOpenAnimationPolicy.springStiffness, 0)
         XCTAssertGreaterThan(PreviewOverlayOpenAnimationPolicy.springMass, 0)
-        XCTAssertLessThanOrEqual(PreviewOverlayOpenAnimationPolicy.frameDuration, 0.28)
-        XCTAssertLessThanOrEqual(PreviewOverlayOpenAnimationPolicy.fadeInDuration, PreviewOverlayOpenAnimationPolicy.frameDuration)
+        XCTAssertLessThanOrEqual(PreviewOverlayOpenAnimationPolicy.fadeInDuration, 0.20)
     }
 
     func test_previewOverlayCloseAnimationPolicy_usesFluidTimingAndSynchronousWindowAlpha() {
-        XCTAssertEqual(PreviewOverlayCloseAnimationPolicy.duration, 0.18, accuracy: 0.001)
+        XCTAssertEqual(PreviewOverlayCloseAnimationPolicy.duration, 0.13, accuracy: 0.001)
+        XCTAssertEqual(PreviewOverlayCloseAnimationPolicy.endScale, 0.94, accuracy: 0.001)
         XCTAssertTrue(PreviewOverlayCloseAnimationPolicy.animatesWindowAlpha)
         XCTAssertGreaterThan(PreviewOverlayCloseAnimationPolicy.controlPoint1.x, 0)
         XCTAssertGreaterThan(PreviewOverlayCloseAnimationPolicy.controlPoint2.y, 0)
-    }
-
-    func test_previewOverlayOpenAnimationPolicy_buildsSourceCenteredStartFrameWithTargetAspectRatio() {
-        let sourceRect = CGRect(x: 100, y: 120, width: 80, height: 80)
-        let targetRect = CGRect(x: 300, y: 200, width: 800, height: 500)
-
-        let startFrame = PreviewOverlayOpenAnimationPolicy.sourceCenteredStartFrame(
-            sourceRect: sourceRect,
-            targetRect: targetRect
-        )
-
-        XCTAssertEqual(startFrame.midX, sourceRect.midX, accuracy: 0.0001)
-        XCTAssertEqual(startFrame.midY, sourceRect.midY, accuracy: 0.0001)
-        XCTAssertEqual(
-            startFrame.width / startFrame.height,
-            targetRect.width / targetRect.height,
-            accuracy: 0.0001
-        )
-        XCTAssertGreaterThanOrEqual(startFrame.width, sourceRect.width)
-        XCTAssertGreaterThanOrEqual(startFrame.height, sourceRect.height)
-        XCTAssertLessThan(startFrame.width, targetRect.width)
-        XCTAssertLessThan(startFrame.height, targetRect.height)
-    }
-
-    func test_previewOverlayOpenAnimationPolicy_clampsAbnormallyLargeSourceFrame() {
-        let sourceRect = CGRect(x: 533, y: -19152, width: 19625, height: 20139)
-        let targetRect = CGRect(x: 300, y: 200, width: 800, height: 500)
-
-        let startFrame = PreviewOverlayOpenAnimationPolicy.sourceCenteredStartFrame(
-            sourceRect: sourceRect,
-            targetRect: targetRect
-        )
-
-        XCTAssertLessThanOrEqual(startFrame.width, targetRect.width * PreviewOverlayOpenAnimationPolicy.maximumStartScale)
-        XCTAssertLessThanOrEqual(startFrame.height, targetRect.height * PreviewOverlayOpenAnimationPolicy.maximumStartScale)
-        XCTAssertEqual(
-            startFrame.width / startFrame.height,
-            targetRect.width / targetRect.height,
-            accuracy: 0.0001
-        )
     }
 
     func test_previewOverlayKeyboardRoutingPolicy_requiresFrontmostFinderWhenForwardingEnabled() {
@@ -1513,5 +1473,53 @@ final class QuickLookOverlayStateTests: XCTestCase {
 
         let keyCode = QuickLookOverlay.forwardedFinderNavigationKeyCode(for: downArrowEvent)
         XCTAssertEqual(keyCode, 125)
+    }
+
+    func test_previewOverlayTransformMath_centerScaleTransform_keepsCenterInvariant() {
+        let targetSize = CGSize(width: 960, height: 640)
+        let scale = PreviewOverlayOpenAnimationPolicy.startScale // 0.92
+
+        let transform = PreviewOverlayTransformMath.centerScaleTransform(scale: scale, targetSize: targetSize)
+
+        let expectedDx = targetSize.width * (1.0 - scale) / 2.0 // 960 * 0.08 / 2 = 38.4
+        let expectedDy = targetSize.height * (1.0 - scale) / 2.0 // 640 * 0.08 / 2 = 25.6
+
+        XCTAssertEqual(transform.m41, expectedDx, accuracy: 0.001)
+        XCTAssertEqual(transform.m42, expectedDy, accuracy: 0.001)
+        XCTAssertEqual(transform.m11, scale, accuracy: 0.001)
+        XCTAssertEqual(transform.m22, scale, accuracy: 0.001)
+
+        // 验证中心点映射后保持严格不变
+        let centerX = targetSize.width / 2.0
+        let centerY = targetSize.height / 2.0
+        let mappedCenterX = centerX * transform.m11 + transform.m41
+        let mappedCenterY = centerY * transform.m22 + transform.m42
+
+        XCTAssertEqual(mappedCenterX, centerX, accuracy: 0.001)
+        XCTAssertEqual(mappedCenterY, centerY, accuracy: 0.001)
+    }
+
+    func test_previewOverlayOpenAnimationPolicy_nativeCenterSpringParametersAreStrictlyCalibrated() {
+        XCTAssertEqual(PreviewOverlayOpenAnimationPolicy.startScale, 0.92, accuracy: 0.001)
+        XCTAssertEqual(PreviewOverlayOpenAnimationPolicy.springDamping, 24.0, accuracy: 0.001)
+        XCTAssertEqual(PreviewOverlayOpenAnimationPolicy.springStiffness, 300.0, accuracy: 0.001)
+        XCTAssertEqual(PreviewOverlayOpenAnimationPolicy.springMass, 0.8, accuracy: 0.001)
+        XCTAssertEqual(PreviewOverlayOpenAnimationPolicy.fadeInDuration, 0.14, accuracy: 0.001)
+    }
+
+    func test_previewOverlayCloseAnimationPolicy_nativeCenterFluidParametersAreStrictlyCalibrated() {
+        XCTAssertEqual(PreviewOverlayCloseAnimationPolicy.endScale, 0.94, accuracy: 0.001)
+        XCTAssertEqual(PreviewOverlayCloseAnimationPolicy.duration, 0.13, accuracy: 0.001)
+        XCTAssertEqual(PreviewOverlayCloseAnimationPolicy.controlPoint1.x, 0.35, accuracy: 0.001)
+        XCTAssertEqual(PreviewOverlayCloseAnimationPolicy.controlPoint1.y, 0.0, accuracy: 0.001)
+        XCTAssertEqual(PreviewOverlayCloseAnimationPolicy.controlPoint2.x, 0.15, accuracy: 0.001)
+        XCTAssertEqual(PreviewOverlayCloseAnimationPolicy.controlPoint2.y, 1.0, accuracy: 0.001)
+    }
+
+    func test_hotkeyManager_cleansUpStateOnUnregister() {
+        let hotkeyManager = HotkeyManager.shared
+        hotkeyManager.unregister()
+        // 验证注销后幂等且不崩溃
+        hotkeyManager.unregister()
     }
 }

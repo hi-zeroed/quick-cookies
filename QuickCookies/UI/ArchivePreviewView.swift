@@ -3,6 +3,8 @@ import AppKit
 
 struct ArchivePreviewView: View {
     let archivePath: String
+    var onClose: (() -> Void)? = nil
+    var onShowToast: ((String, String?) -> Void)? = nil
 
     @State private var summary: ArchiveSummary?
     @State private var rootNodes: [ArchiveTreeNode] = []
@@ -118,7 +120,9 @@ struct ArchivePreviewView: View {
                             } else if hoveredNodeId == row.id {
                                 hoveredNodeId = nil
                             }
-                        }
+                        },
+                        onClose: onClose,
+                        onShowToast: onShowToast
                     )
                 }
             }
@@ -283,6 +287,8 @@ struct ArchiveTreeRowView: View {
     let onToggleExpand: () -> Void
     let onSelect: () -> Void
     let onHover: (Bool) -> Void
+    let onClose: (() -> Void)?
+    let onShowToast: ((String, String?) -> Void)?
 
     private var itemURL: URL? {
         guard isLocalFolder else { return nil }
@@ -358,6 +364,7 @@ struct ArchiveTreeRowView: View {
                     } else {
                         ExternalAppRelay.shared.openWithDefault(fileURL: subURL)
                     }
+                    onClose?()
                 }
             }
             .onTapGesture(count: 1) {
@@ -378,6 +385,7 @@ struct ArchiveTreeRowView: View {
             if let subURL = itemURL {
                 Button(action: {
                     ExternalAppRelay.shared.revealInFinder(fileURL: subURL)
+                    onClose?()
                 }) {
                     Label("Reveal in Finder".localized(), systemImage: "folder")
                 }
@@ -385,6 +393,7 @@ struct ArchiveTreeRowView: View {
                 if row.isDirectory {
                     Button(action: {
                         ExternalAppRelay.shared.openInTerminal(directoryURL: subURL)
+                        onClose?()
                     }) {
                         Label("Open in Terminal".localized(), systemImage: "terminal")
                     }
@@ -392,6 +401,7 @@ struct ArchiveTreeRowView: View {
 
                 Button(action: {
                     ExternalAppRelay.shared.openWithDefault(fileURL: subURL)
+                    onClose?()
                 }) {
                     Label("Open".localized(), systemImage: "arrow.up.forward.square")
                 }
@@ -400,6 +410,7 @@ struct ArchiveTreeRowView: View {
 
                 Button(action: {
                     ExternalAppRelay.shared.copyPathToClipboard(fileURL: subURL)
+                    onShowToast?("Path Copied".localized(), "doc.on.doc")
                 }) {
                     Label("Copy Path".localized(), systemImage: "doc.on.doc")
                 }
@@ -408,6 +419,7 @@ struct ArchiveTreeRowView: View {
                     let pasteboard = NSPasteboard.general
                     pasteboard.clearContents()
                     pasteboard.setString(row.node.fullPath, forType: .string)
+                    onShowToast?("Path Copied".localized(), "text.quote")
                 }) {
                     Label("Copy Relative Path".localized(), systemImage: "text.quote")
                 }
@@ -416,6 +428,7 @@ struct ArchiveTreeRowView: View {
                     let pasteboard = NSPasteboard.general
                     pasteboard.clearContents()
                     pasteboard.setString(row.node.fullPath, forType: .string)
+                    onShowToast?("Path Copied".localized(), "doc.on.doc")
                 }) {
                     Label("Copy Path".localized(), systemImage: "doc.on.doc")
                 }

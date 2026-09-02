@@ -176,7 +176,6 @@ struct SettingsView: View {
     @State private var lastRecordModifier: NSEvent.ModifierFlags? = nil
     @State private var lastRecordModifierTime: Date? = nil
     
-    @State private var isAccessibilityAuthorized = AXIsProcessTrusted()
     @State private var isFullDiskAccessAuthorized = {
         let path = NSHomeDirectory() + "/Library/Safari/Bookmarks.plist"
         return FileManager.default.isReadableFile(atPath: path)
@@ -343,31 +342,6 @@ struct SettingsView: View {
                                 .background(Color.appBorder)
                                 .padding(.horizontal, 16)
                             
-                            // 辅助功能权限
-                            SettingsRow(title: "Accessibility Permission".localized(), subtitle: "Used for global hotkeys & advanced animations".localized()) {
-                                if isAccessibilityAuthorized {
-                                    HStack(spacing: 4) {
-                                        Image(systemName: "checkmark.circle.fill")
-                                            .foregroundColor(.green)
-                                        Text("Authorized".localized())
-                                            .foregroundColor(.green)
-                                            .font(.system(size: 12, weight: .semibold))
-                                    }
-                                } else {
-                                    Button(action: {
-                                        HotkeyManager.shared.requestAccessibilityPermission()
-                                    }) {
-                                        Text("Grant Access".localized())
-                                    }
-                                    .buttonStyle(.bordered)
-                                    .controlSize(.small)
-                                }
-                            }
-                            
-                            Divider()
-                                .background(Color.appBorder)
-                                .padding(.horizontal, 16)
-                            
                             // 所有文件夹访问权限 (FDA)
                             SettingsRow(title: "Full Disk Access".localized(), subtitle: "Grant Full Disk Access to eliminate sandbox popups".localized()) {
                                 if isFullDiskAccessAuthorized {
@@ -430,10 +404,8 @@ struct SettingsView: View {
     }
     
     private func checkPermissions() {
-        let auth = AXIsProcessTrusted()
         let fda = checkFDA()
         DispatchQueue.main.async {
-            self.isAccessibilityAuthorized = auth
             self.isFullDiskAccessAuthorized = fda
         }
     }

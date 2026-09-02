@@ -147,18 +147,6 @@ class HotkeyManager {
         isModifierPressed = false
     }
 
-    /// 检查是否需要 Accessibility 权限
-    func checkAccessibilityPermission() -> Bool {
-        let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: false] as CFDictionary
-        return AXIsProcessTrustedWithOptions(options)
-    }
-
-    /// 请求 Accessibility 权限
-    func requestAccessibilityPermission() {
-        let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
-        AXIsProcessTrustedWithOptions(options)
-    }
-
     deinit {
         unregister()
     }

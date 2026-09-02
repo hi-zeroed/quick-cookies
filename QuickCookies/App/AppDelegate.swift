@@ -79,10 +79,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         _ = Settings.shared
 
         let hasCompletedOnboarding = UserDefaults.standard.bool(forKey: "hasCompletedOnboarding")
-        let isAccessibilityAuthorized = AXIsProcessTrusted()
 
-        if !hasCompletedOnboarding || !isAccessibilityAuthorized {
-            // 新手向导未完成或辅助功能权限缺失，强制前台展示 Onboarding 索要权限
+        if !hasCompletedOnboarding {
+            // 新手向导未完成，展示 Onboarding
             NSApp.setActivationPolicy(.regular)
             showOnboarding()
         } else {
@@ -221,16 +220,6 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     /// - 不允许静默回退到 Finder-selection 语义
     func application(_ application: NSApplication, open urls: [URL]) {
         guard let url = urls.first, url.scheme == "quickcookies", url.host == "preview" else { return }
-
-        // 检查辅助功能权限
-        if !AXIsProcessTrusted() {
-            // 若辅助功能权限缺失，强行拦截预览并显示 Onboarding 窗口引导用户授权
-            DispatchQueue.main.async {
-                NSApp.setActivationPolicy(.regular)
-                self.showOnboarding()
-            }
-            return
-        }
 
         let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
         if let pathItem = components?.queryItems?.first(where: { $0.name == "path" }),
