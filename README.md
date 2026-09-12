@@ -5,7 +5,7 @@
 <h1 align="center">Quick Cookies</h1>
 
 <p align="center">
-  <strong>An open-source, ultra-fast, card-style file preview and quick editing tool for macOS.</strong>
+  <strong>An open-source, ultra-fast, card-style file preview tool for macOS.</strong>
 </p>
 
 <p align="center">
@@ -28,22 +28,22 @@
 
 ---
 
-**Quick Cookies** is a lightweight, elegant card-style preview and editor utility designed specifically for macOS. It bypasses the tedious "double-click to open file" cycle by allowing users to instantly preview files with a global double <kbd>⌘ Command</kbd> hotkey and make quick edits directly inside the preview window.
+**Quick Cookies** is a lightweight, elegant card-style file preview utility designed specifically for macOS. It bypasses the tedious "double-click to open file" cycle by allowing users to instantly preview files with a global double <kbd>⌘ Command</kbd> hotkey, and open them in external professional editors (VS Code, Cursor, Xcode, etc.) whenever deeper editing is needed.
 
-The interface features a borderless frosted HUD card overlay with a golden-ratio reading width, accompanied by an `AXUIElement`-anchored physical spring fly-back animation. Seamlessly integrated with Finder, it brings an incredibly responsive, non-intrusive workspace boost to developers and writers.
+The interface features a borderless frosted HUD card overlay with a golden-ratio reading width, accompanied by a native center spring presentation animation (Center Spring). Seamlessly integrated with Finder with zero accessibility permission requirements, it brings an incredibly responsive, non-intrusive workspace boost to developers and writers.
 
 ---
 
 ## ✨ Features
 
 - 🚀 **0ms Instant Pop-up Response**
-  The overlay panel starts expanding instantly from your mouse position. Decryption, file loading, and code highlighting occur asynchronously in the background. The main thread is never blocked, eliminating visual hiccups.
+  The overlay panel expands instantly using native center physical springs. Decryption, file loading, and code highlighting occur asynchronously in the background. The main thread is never blocked, eliminating visual hiccups.
 - 📐 **Golden-Ratio Reading Layout**
-  The card's width/height ratio has been strictly tuned (width `38%` : height `88%`) to mimic single-column book pages, which is perfect for reading code blocks, text document edits, and Markdown files.
+  The card's width/height ratio has been strictly tuned (width `38%` : height `88%`) to mimic single-column book pages, which is perfect for reading code blocks, configuration files, and Markdown files.
 - 🎨 **Modern HUD Glassmorphism**
   Enjoy a borderless frosted visual effect panel supporting click-and-drag from any empty workspace area. It dynamically adapts to Dark Mode, Light Mode, and system-adaptive schemes with crisp contrast.
-- ⚡️ **Open In Relay (External Pro Editor Handoff)**
-  Say goodbye to barebones in-panel editing without LSP or contextual tools. Click the frosted pill button in the top right to open instantly in the system default app, or expand the menu to hand off to your preferred editor (VS Code, Cursor, Xcode, Typora, Zed, etc.). Supports `⌘O` / `⌘Return` for instant opening, `⌘R` for Finder reveal, and `⌥⌘C` for quick path copying.
+- ⚡️ **Open in External Editors**
+  Say goodbye to barebones in-panel editing without LSP or contextual tools. Click the frosted pill button in the top right to open instantly in the system default app, or expand the menu to launch your preferred editor (VS Code, Cursor, Xcode, Typora, Zed, etc.). Supports `⌘O` / `⌘Return` for instant opening, `⌘R` for Finder reveal, and `⌥⌘C` for quick path copying.
 - 📊 **Office Documents & Rich Text Previews**
   Integrates a wrapped AppKit `QLPreviewView` to support 100% accurate format-rich preview of Word, Excel, PPT, iWork (Pages, Numbers, Keynote), PDF, RTF/RTFD, and CSV sheets. Applied 12px rounded corner cropping to avoid layered raw square borders.
 - 💾 **Markdown-to-PDF Export**
@@ -52,8 +52,8 @@ The interface features a borderless frosted HUD card overlay with a golden-ratio
   Provides complete native localization (English & 简体中文). You can toggle languages in the preference panel with zero lag; menu bars, statuses, and toast alerts refresh immediately.
 - 🔌 **System-Level Native Integration**
   - **Adaptive Menubar Icon**: Features a single-color `Template` icon that automatically flips colors depending on system dark/light aesthetics.
-  - **Scripting Bridge Hook**: Zero-overhead AppleEvent query retrieves active Finder selection in microseconds, falling back to a safe mouse-coordinate pop-up when permissions are off.
-  - **matchedGeometry Spring Transition**: Utilizes `AXUIElement` recursive target searching to fly the preview card back to the exact Finder cell position during close.
+  - **Scripting Bridge Hook**: Zero-overhead AppleEvent query retrieves active Finder selection in microseconds.
+  - **Native Center Spring & Zero Accessibility**: Employs macOS native center spring expansion and fluid cubic bezier contraction, completely freeing users from high-risk accessibility permissions for instant out-of-the-box readiness.
   - **SMAppService Startup**: Integrates modern macOS 13+ ServiceManagement login item API for lightweight, silent, and sandboxed auto-launch.
 
 ---
@@ -151,10 +151,10 @@ Quick Cookies runs silently in the background. Use the following global keystrok
 | Action                       | Shortcut (Kbd)                          | Description                                                                                                                                               |
 | :--------------------------- | :-------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Instant Preview / Toggle** | <kbd>⌘ Command</kbd> <kbd>⌘ Command</kbd> | Double-click Command to open when a file is selected in Finder. Trigger again to fade out and fly back. _(Configurable in Settings)_ |
-| **Open with Default (Relay)**| <kbd>⌘ Command</kbd> + <kbd>O</kbd> / <kbd>↩ Return</kbd> | Open the current file immediately in its default application or preferred external editor, dismissing the preview overlay. |
+| **Open with Default App**    | <kbd>⌘ Command</kbd> + <kbd>O</kbd> / <kbd>↩ Return</kbd> | Open the current file immediately in its default application or preferred external editor, dismissing the preview overlay. |
 | **Reveal in Finder**         | <kbd>⌘ Command</kbd> + <kbd>R</kbd>     | Highlight and select the previewed file in Finder.                                                                                                        |
 | **Copy File Path**           | <kbd>⌥ Option</kbd> + <kbd>⌘ Command</kbd> + <kbd>C</kbd> | Copy the full POSIX physical path of the previewed file to the clipboard.                                                                                 |
-| **Dismiss Window**           | <kbd>Esc</kbd>                          | Close the window safely and shrink it back to Finder file icon.                                                                                           |
+| **Dismiss Window**           | <kbd>Esc</kbd>                          | Close the window safely with fluid spring scaling and return focus to Finder.                                                                             |
 
 ---
 

@@ -260,7 +260,7 @@ struct OnboardingView: View {
                             .scaleEffect(optionPulse ? 1.1 : 1.0)
                     }
                     
-                    StepRow(text: "3. The preview window flies out instantly, supporting live edit & save".localized())
+                    StepRow(text: "3. The preview window flies out instantly, ready to open in external editors".localized())
                 }
                 .padding(.top, 4)
             }

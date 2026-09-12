@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Quick Cookies - Preview instantly. Edit seamlessly.</title>
+    <title>Quick Cookies - Preview instantly. Open seamlessly.</title>
     <link rel="icon" href="logo.png" type="image/png" />
     <link rel="apple-touch-icon" href="logo.png" />
 
@@ -830,7 +830,7 @@
       </h1>
       <p class="subtitle spring-reveal stagger-3" data-i18n="desc">
         为 macOS
-        深度定制的卡片式文件预览与快捷编辑工具。极速唤醒，无缝融入您的日常工作流。
+        深度定制的卡片式文件快速预览工具。极速唤醒，无缝融入您的日常工作流。
       </p>
 
       <div class="cta-group spring-reveal stagger-4">
@@ -913,7 +913,7 @@
         zh: {
           versionTip: "v1.0.0 新版本已发布 &rarr;",
           title: "秒开，无缝，极简。",
-          desc: "为 macOS 深度定制的卡片式文件预览与快捷编辑工具。极速唤醒，无缝融入您的日常工作流。",
+          desc: "为 macOS 深度定制的卡片式文件快速预览工具。极速唤醒，无缝融入您的日常工作流。",
           download: "下载 .DMG",
           github: "GitHub 仓库",
           copyText: "复制",
@@ -922,8 +922,8 @@
         },
         en: {
           versionTip: "v1.0.0 Released &rarr;",
-          title: "Preview instantly. Edit seamlessly.",
-          desc: "A card-style file preview and quick editor tailored for macOS. Reveal instantly and blend seamlessly into your workflow.",
+          title: "Preview instantly. Open seamlessly.",
+          desc: "A card-style file preview tool tailored for macOS. Reveal instantly and blend seamlessly into your workflow.",
           download: "Download .DMG",
           github: "GitHub Repo",
           copyText: "Copy",
@@ -971,6 +971,10 @@
         }
 
         currentLang = targetLang;
+        document.title =
+          currentLang === "zh"
+            ? "Quick Cookies - 秒开，无缝，极简。"
+            : "Quick Cookies - Preview instantly. Open seamlessly.";
 
         // 执行平滑模糊淡出切换
         const elements = document.querySelectorAll("[data-i18n]");

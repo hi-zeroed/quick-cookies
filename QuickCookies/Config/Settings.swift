@@ -284,7 +284,7 @@ struct Localization {
             "Three simple steps to start": [.en: "Three simple steps to start", .zhHans: "简单三步，开启效率之旅"],
             "1. Select any code or Markdown file in Finder": [.en: "1. Select any code or Markdown file in Finder", .zhHans: "1. 在 Finder 中选中任意代码或 Markdown 文件"],
             "2. Double-press Option key (or right-click to preview)": [.en: "2. Double-press Command key (or right-click to preview)", .zhHans: "2. 在键盘上快速双击 Command 键（或右键选择预览）"],
-            "3. The preview panel flies out with instant render & external app relay!": [.en: "3. The preview panel flies out with instant render & external app relay!", .zhHans: "3. 预览窗口瞬间飞出，支持秒开渲染与外部编辑器接力！"],
+            "3. The preview panel flies out with instant render & external app relay!": [.en: "3. The preview panel flies out with instant rendering and one-click editor opening!", .zhHans: "3. 预览窗口瞬间弹出，支持秒开渲染与外部编辑器直开！"],
             "Preferences": [.en: "Preferences", .zhHans: "偏好配置"],
             "You can customize basic settings before we start:": [.en: "You can customize basic settings before we start:", .zhHans: "在正式使用前，您可以进行一些基础的个性化定制："],
             "Default Hotkey": [.en: "Default Hotkey", .zhHans: "默认触发快捷键"],
@@ -299,7 +299,7 @@ struct Localization {
             // New Onboarding Additions
             "Instant Preview": [.en: "Instant Preview", .zhHans: "极速唤起预览"],
             "2. Quickly double-press": [.en: "2. Quickly double-press", .zhHans: "2. 键盘上快速双击"],
-            "3. The preview window flies out instantly, supporting external editor relay": [.en: "3. The preview window flies out instantly, supporting external editor relay", .zhHans: "3. 预览窗口瞬间飞出，支持外部编辑器一键接力打开"],
+            "3. The preview window flies out instantly, ready to open in external editors": [.en: "3. The preview window flies out instantly, ready to open in external editors", .zhHans: "3. 预览窗口瞬间弹出，支持一键在外部编辑器中打开"],
             "Personalized Settings": [.en: "Personalized Settings", .zhHans: "个性化定制"],
             "Before getting started, you can customize some core preferences:": [.en: "Before getting started, you can customize some core preferences:", .zhHans: "正式使用前，您可以进行一些核心的偏好设定："],
             "Adapt to your system appearance": [.en: "Adapt to your system appearance", .zhHans: "自适应匹配您的系统外观"],
