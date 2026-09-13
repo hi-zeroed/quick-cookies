@@ -194,6 +194,15 @@ final class WebKitRuntimeTests: XCTestCase {
     }
 
     func test_wkWebView_loadHTMLStringWithFileBaseURL_canRenderRelativeLocalImage() async throws {
+        let isCI = ProcessInfo.processInfo.environment["CI"] != nil
+            || ProcessInfo.processInfo.environment["GITHUB_ACTIONS"] != nil
+            || NSUserName() == "runner"
+            || NSHomeDirectory().contains("/Users/runner")
+        try XCTSkipIf(
+            isCI,
+            "Skipping raw file-subresource WebKit test under CI daemon environment where launchservicesd restricts file subresources"
+        )
+
         let tempDirectoryURL = URL(fileURLWithPath: NSTemporaryDirectory())
             .appendingPathComponent(UUID().uuidString, isDirectory: true)
         try FileManager.default.createDirectory(at: tempDirectoryURL, withIntermediateDirectories: true)
@@ -220,29 +229,20 @@ final class WebKitRuntimeTests: XCTestCase {
 
         webView.loadHTMLString(html, baseURL: tempDirectoryURL)
         try await delegate.waitForFinish()
-        do {
-            try await waitUntil(timeoutNanoseconds: 5_000_000_000) {
-                let payload = try await self.evaluateJavaScript(
-                    """
-                    JSON.stringify({
-                      complete: document.getElementById('target')?.complete ?? false,
-                      naturalWidth: document.getElementById('target')?.naturalWidth ?? 0,
-                      currentSrc: document.getElementById('target')?.currentSrc ?? ''
-                    })
-                    """,
-                    in: webView
-                )
-                let data = try XCTUnwrap(payload.data(using: .utf8))
-                let result = try JSONDecoder().decode(LocalImageProbe.self, from: data)
-                return result.complete && result.naturalWidth > 0 && result.currentSrc == imageURL.absoluteString
-            }
-        } catch {
-            let isCI = ProcessInfo.processInfo.environment["CI"] != nil
-                || ProcessInfo.processInfo.environment["GITHUB_ACTIONS"] != nil
-            if isCI {
-                throw XCTSkip("Skipping raw file-subresource WebKit test under CI daemon environment: \(error.localizedDescription)")
-            }
-            throw error
+        try await waitUntil(timeoutNanoseconds: 3_000_000_000) {
+            let payload = try await self.evaluateJavaScript(
+                """
+                JSON.stringify({
+                  complete: document.getElementById('target')?.complete ?? false,
+                  naturalWidth: document.getElementById('target')?.naturalWidth ?? 0,
+                  currentSrc: document.getElementById('target')?.currentSrc ?? ''
+                })
+                """,
+                in: webView
+            )
+            let data = try XCTUnwrap(payload.data(using: .utf8))
+            let result = try JSONDecoder().decode(LocalImageProbe.self, from: data)
+            return result.complete && result.naturalWidth > 0 && result.currentSrc == imageURL.absoluteString
         }
 
         let payload = try await evaluateJavaScript(
