@@ -223,6 +223,21 @@ final class MarkdownRenderSnapshotTests: XCTestCase {
         XCTAssertEqual(metas.map(\.source), ["Pasted image 20250316114626.png"])
     }
 
+    func test_probeImages_nonExistentFile_returnsNilDimensionsWithoutCrashingOrOpening() {
+        let metas = MarkdownImageProbe.probeImages(
+            in: "![placeholder](URL)\n<img src=\"missing_nonexistent_image.png\">",
+            baseDirectoryURL: tempDirectoryURL
+        )
+
+        XCTAssertEqual(metas.count, 2)
+        XCTAssertEqual(metas[0].source, "URL")
+        XCTAssertNil(metas[0].width)
+        XCTAssertNil(metas[0].height)
+        XCTAssertEqual(metas[1].source, "missing_nonexistent_image.png")
+        XCTAssertNil(metas[1].width)
+        XCTAssertNil(metas[1].height)
+    }
+
     func test_parser_keepsMultilineHTMLImageContainerInSingleBlock() {
         let markdown = """
         <p align="center">

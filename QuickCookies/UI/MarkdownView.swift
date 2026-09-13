@@ -1,6 +1,7 @@
 import SwiftUI
 import WebKit
 import AppKit
+import Combine
 
 struct MarkdownPreviewDisplayPolicy {
     static func shouldMountPreview(
@@ -20,6 +21,7 @@ struct MarkdownView: View {
     let markdownText: String
     let previewTimeline: MarkdownPreviewTimelineTracker?
     let onBootstrapReady: (() -> Void)?
+    var findBarState: FindBarState? = nil
 
     @Environment(\.colorScheme) private var colorScheme
     @ObservedObject var settings = Settings.shared
@@ -33,7 +35,8 @@ struct MarkdownView: View {
             bodyFontSize: settings.fontSize,
             preferFileBackedRendering: true,
             previewTimeline: previewTimeline,
-            onBootstrapReady: onBootstrapReady
+            onBootstrapReady: onBootstrapReady,
+            findBarState: findBarState
         )
         .background(Color.appBackground)
         .environment(\.openURL, OpenURLAction { url in
@@ -52,6 +55,7 @@ private struct MarkdownWebPreviewView: NSViewRepresentable {
     let preferFileBackedRendering: Bool
     let previewTimeline: MarkdownPreviewTimelineTracker?
     let onBootstrapReady: (() -> Void)?
+    let findBarState: FindBarState?
 
     func makeCoordinator() -> Coordinator {
         Coordinator(parent: self)
@@ -83,6 +87,8 @@ private struct MarkdownWebPreviewView: NSViewRepresentable {
         var lastStyleSignature: String?
         weak var mountedContainer: NSView?
         weak var mountedWebView: PreviewWebView?
+        var findBarState: FindBarState?
+        private var cancellables = Set<AnyCancellable>()
 
         private let controller = MarkdownPreviewController(policy: MarkdownPreviewPolicy())
 
@@ -91,17 +97,6 @@ private struct MarkdownWebPreviewView: NSViewRepresentable {
         }
 
         func mountBorrowedWebViewIfNeeded(in container: NSView) {
-            // Markdown borrows the shared WebKit runtime instead of owning a
-            // dedicated long-lived WebView. Future WebView-backed file types
-            // should prefer this borrow/reuse model first, and only introduce a
-            // different shell template when their content model truly differs;
-            // a different shell still does not justify a second always-on
-            // runtime by default.
-            //
-            // If future work targets "app just launched, immediate first
-            // preview" latency, keep this mount path simple and attack prewarm
-            // timing upstream; this hot-path mount is already close to its
-            // practical floor.
             mountedContainer = container
             guard mountedWebView == nil else {
                 if mountedWebView?.superview !== container, let mountedWebView {
@@ -117,10 +112,16 @@ private struct MarkdownWebPreviewView: NSViewRepresentable {
             mountedWebView = webView
             attach(webView: webView, to: container)
             controller.bind(webView: webView)
+            setupFindBarSubscription(findBarState: parent.findBarState, webView: webView)
             updateIfNeeded()
         }
 
         func unmountBorrowedWebView() {
+            cancellables.removeAll()
+            findBarState = nil
+            lastSearchQuery = ""
+            totalMatchCount = 0
+            currentMatchIdx = 0
             controller.unbind()
             PreviewRuntimeRegistry.shared.webKitRuntime().detachCurrentWebView()
             mountedWebView = nil
@@ -130,6 +131,7 @@ private struct MarkdownWebPreviewView: NSViewRepresentable {
         func updateIfNeeded() {
             guard let webView = mountedWebView else { return }
 
+            setupFindBarSubscription(findBarState: parent.findBarState, webView: webView)
             controller.previewTimeline = parent.previewTimeline
             controller.onBootstrapReady = parent.onBootstrapReady
 
@@ -157,6 +159,175 @@ private struct MarkdownWebPreviewView: NSViewRepresentable {
                     self?.controller.hasTextSelection == true
                 }
             }
+        }
+
+        private var lastSearchQuery: String = ""
+        private var totalMatchCount: Int = 0
+        private var currentMatchIdx: Int = 0
+
+        func setupFindBarSubscription(findBarState: FindBarState?, webView: PreviewWebView) {
+            if self.findBarState === findBarState && !cancellables.isEmpty {
+                return
+            }
+            self.findBarState = findBarState
+            cancellables.removeAll()
+            guard let findBarState = findBarState else { return }
+
+            findBarState.$query
+                .debounce(for: .milliseconds(100), scheduler: RunLoop.main)
+                .removeDuplicates()
+                .sink { [weak self, weak webView] query in
+                    guard let self = self, let webView = webView else { return }
+                    self.performMarkdownSearch(query: query, in: webView, backwards: false)
+                }
+                .store(in: &cancellables)
+
+            findBarState.$isPresented
+                .dropFirst()
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self, weak webView] isPresented in
+                    guard let self = self, let webView = webView else { return }
+                    if !isPresented {
+                        self.clearMarkdownSearch(in: webView)
+                    } else if !findBarState.query.isEmpty {
+                        self.performMarkdownSearch(query: findBarState.query, in: webView, backwards: false)
+                    }
+                }
+                .store(in: &cancellables)
+
+            findBarState.findNextTrigger
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self, weak webView] in
+                    guard let self = self, let webView = webView, !findBarState.query.isEmpty else { return }
+                    self.performMarkdownSearch(query: findBarState.query, in: webView, backwards: false)
+                }
+                .store(in: &cancellables)
+
+            findBarState.findPreviousTrigger
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self, weak webView] in
+                    guard let self = self, let webView = webView, !findBarState.query.isEmpty else { return }
+                    self.performMarkdownSearch(query: findBarState.query, in: webView, backwards: true)
+                }
+                .store(in: &cancellables)
+        }
+
+        private func performMarkdownSearch(query: String, in webView: PreviewWebView, backwards: Bool) {
+            guard !query.isEmpty else {
+                clearMarkdownSearch(in: webView)
+                return
+            }
+
+            let isNewQuery = query != lastSearchQuery
+            lastSearchQuery = query
+
+            if #available(macOS 11.0, *) {
+                let config = WKFindConfiguration()
+                config.backwards = backwards
+                config.caseSensitive = false
+                config.wraps = true
+                webView.find(query, configuration: config) { [weak self, weak webView] result in
+                    guard let self = self, let webView = webView else { return }
+                    guard result.matchFound else {
+                        self.totalMatchCount = 0
+                        self.currentMatchIdx = 0
+                        DispatchQueue.main.async {
+                            self.findBarState?.totalMatches = 0
+                            self.findBarState?.currentMatchIndex = 0
+                        }
+                        return
+                    }
+
+                    if isNewQuery || self.totalMatchCount == 0 {
+                        self.calculateMarkdownMatches(query: query, in: webView) { [weak self] total in
+                            guard let self = self, self.lastSearchQuery == query else { return }
+                            self.totalMatchCount = max(total, 1)
+                            self.currentMatchIdx = 1
+                            DispatchQueue.main.async {
+                                self.findBarState?.totalMatches = self.totalMatchCount
+                                self.findBarState?.currentMatchIndex = self.currentMatchIdx
+                            }
+                        }
+                    } else {
+                        let total = max(self.totalMatchCount, 1)
+                        if backwards {
+                            self.currentMatchIdx -= 1
+                            if self.currentMatchIdx < 1 { self.currentMatchIdx = total }
+                        } else {
+                            self.currentMatchIdx += 1
+                            if self.currentMatchIdx > total { self.currentMatchIdx = 1 }
+                        }
+                        DispatchQueue.main.async {
+                            self.findBarState?.totalMatches = self.totalMatchCount
+                            self.findBarState?.currentMatchIndex = self.currentMatchIdx
+                        }
+                    }
+                }
+            }
+        }
+
+        private func calculateMarkdownMatches(
+            query: String,
+            in webView: PreviewWebView,
+            completion: @escaping (Int) -> Void
+        ) {
+            let escapedQuery = (try? String(data: JSONEncoder().encode(query), encoding: .utf8)) ?? "\"\""
+            let script = """
+            (function(q) {
+                if (!q || !document.body) return 0;
+                var lowerQ = q.toLowerCase();
+                var qLen = lowerQ.length;
+                if (qLen === 0) return 0;
+                var walker = document.createTreeWalker(
+                    document.body,
+                    NodeFilter.SHOW_TEXT,
+                    {
+                        acceptNode: function(node) {
+                            if (!node || !node.parentElement) return NodeFilter.FILTER_REJECT;
+                            var tag = node.parentElement.tagName;
+                            if (tag === 'SCRIPT' || tag === 'STYLE' || tag === 'NOSCRIPT') {
+                                return NodeFilter.FILTER_REJECT;
+                            }
+                            return NodeFilter.FILTER_ACCEPT;
+                        }
+                    }
+                );
+                var count = 0;
+                var node;
+                while ((node = walker.nextNode())) {
+                    var val = node.nodeValue;
+                    if (!val) continue;
+                    var lowerVal = val.toLowerCase();
+                    var idx = 0;
+                    while ((idx = lowerVal.indexOf(lowerQ, idx)) !== -1) {
+                        count++;
+                        idx += qLen;
+                    }
+                }
+                return count;
+            })(\(escapedQuery))
+            """
+
+            webView.evaluateJavaScript(script) { result, _ in
+                let count = (result as? NSNumber)?.intValue ?? (result as? Int ?? 0)
+                completion(count)
+            }
+        }
+
+        private func clearMarkdownSearch(in webView: PreviewWebView) {
+            lastSearchQuery = ""
+            totalMatchCount = 0
+            currentMatchIdx = 0
+            DispatchQueue.main.async { [weak self] in
+                guard let self = self else { return }
+                if self.findBarState?.totalMatches != 0 {
+                    self.findBarState?.totalMatches = 0
+                }
+                if self.findBarState?.currentMatchIndex != 0 {
+                    self.findBarState?.currentMatchIndex = 0
+                }
+            }
+            webView.evaluateJavaScript("window.getSelection()?.removeAllRanges()", completionHandler: nil)
         }
 
         private func attach(webView: PreviewWebView, to container: NSView) {

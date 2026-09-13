@@ -65,11 +65,25 @@ class FileChunkReader {
             }
             
             let encoding = EncodingDetector.detect(data: data)
-            guard let content = String(data: data, encoding: encoding) else {
-                return .failure(.readFailed(path: fileURL.path, reason: "编码解码失败"))
+            
+            // 如果还有后续数据且检测为 UTF-8，检查末尾是否被切断了多字节字符
+            var validData = data
+            if currentOffset + UInt64(data.count) < totalSize && encoding == .utf8 {
+                let truncatedBytes = Self.trailingIncompleteUTF8Bytes(in: data)
+                if truncatedBytes > 0 && truncatedBytes < data.count {
+                    validData = data.prefix(data.count - truncatedBytes)
+                }
             }
             
-            let bytesRead = data.count
+            let content: String
+            if let decoded = String(data: validData, encoding: encoding) {
+                content = decoded
+            } else {
+                // 兜底容错解码，防止个别异常字节导致读取失败阻断首屏
+                content = String(decoding: validData, as: UTF8.self)
+            }
+            
+            let bytesRead = validData.count
             currentOffset += UInt64(bytesRead)
             let hasMore = currentOffset < totalSize
             
@@ -107,8 +121,11 @@ class FileChunkReader {
             }
             
             let encoding = EncodingDetector.detect(data: data)
-            guard let content = String(data: data, encoding: encoding) else {
-                return .failure(.readFailed(path: fileURL.path, reason: "编码解码失败"))
+            let content: String
+            if let decoded = String(data: data, encoding: encoding) {
+                content = decoded
+            } else {
+                content = String(decoding: data, as: UTF8.self)
             }
             
             currentOffset += UInt64(data.count)
@@ -120,6 +137,44 @@ class FileChunkReader {
         }
     }
     
+    /// 检测数据末尾是否包含因分块读取而被截断的 UTF-8 多字节字符序列，返回需要从尾部截掉并回退的字节数 (0...3)
+    static func trailingIncompleteUTF8Bytes(in data: Data) -> Int {
+        let count = data.count
+        guard count > 0 else { return 0 }
+        
+        let maxCheck = min(count, 4)
+        for i in 1...maxCheck {
+            let byte = data[count - i]
+            if (byte & 0x80) == 0 {
+                // 单字节 ASCII (0x00...0x7F)，说明在此之前的字符已闭合
+                return 0
+            }
+            if (byte & 0xC0) == 0xC0 {
+                // 找到了多字节前导字节
+                let expectedLength: Int
+                if (byte & 0xE0) == 0xC0 {
+                    expectedLength = 2
+                } else if (byte & 0xF0) == 0xE0 {
+                    expectedLength = 3
+                } else if (byte & 0xF8) == 0xF0 {
+                    expectedLength = 4
+                } else {
+                    return 0
+                }
+                
+                let actualLength = i // 当前前导字节到末尾的字节总数
+                if actualLength < expectedLength {
+                    // 该字符未闭合，截断了 actualLength 个字节
+                    return actualLength
+                } else {
+                    // 该字符已闭合
+                    return 0
+                }
+            }
+        }
+        return 0
+    }
+
     private func isBinaryFile(_ data: Data) -> Bool {
         let checkSize = min(data.count, 8192)
         let sample = data.prefix(checkSize)

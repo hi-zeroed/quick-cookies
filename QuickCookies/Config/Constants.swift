@@ -31,6 +31,21 @@ enum Constants {
         "zip", "tar", "gz", "tgz", "bz2", "tbz2", "xz", "txz", "7z", "rar", "jar", "war", "ear"
     ]
 
+    // 音频文件类型
+    static let audioExtensions: Set<String> = [
+        "mp3", "wav", "m4a", "aac", "flac", "aiff", "caf", "ogg"
+    ]
+
+    // 视频文件类型
+    static let videoExtensions: Set<String> = [
+        "mp4", "mov", "m4v", "webm"
+    ]
+
+    // 字体文件类型
+    static let fontExtensions: Set<String> = [
+        "ttf", "otf", "woff", "woff2"
+    ]
+
     // 二进制文件扩展名黑名单（遇到此类文件直接阻断，不作文本预览）
     static let binaryBlacklistExtensions: Set<String> = [
         "dmg", "pkg", "exe", "dll", "so", "dylib",

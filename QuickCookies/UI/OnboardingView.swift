@@ -2,6 +2,7 @@ import SwiftUI
 import AppKit
 
 // MARK: - Confetti Particle Model
+
 struct ConfettiParticle: Identifiable {
     let id = UUID()
     var x: Double
@@ -13,6 +14,7 @@ struct ConfettiParticle: Identifiable {
 }
 
 // MARK: - Confetti View
+
 struct ConfettiView: View {
     @State private var particles: [ConfettiParticle] = []
     let timer = Timer.publish(every: 0.03, on: .main, in: .common).autoconnect()
@@ -33,10 +35,10 @@ struct ConfettiView: View {
                 for _ in 0..<85 {
                     particles.append(ConfettiParticle(
                         x: Double.random(in: 0...Double(geo.size.width)),
-                        y: Double.random(in: -100...Double(geo.size.height) * 0.5),
+                        y: Double.random(in: -80...Double(geo.size.height) * 0.4),
                         color: colors.randomElement()!,
-                        size: Double.random(in: 8...15),
-                        speed: Double.random(in: 4...9),
+                        size: Double.random(in: 7...14),
+                        speed: Double.random(in: 4...8),
                         angle: Double.random(in: 0...360)
                     ))
                 }
@@ -55,7 +57,8 @@ struct ConfettiView: View {
     }
 }
 
-// MARK: - Visual Effect View
+// MARK: - Visual Effect View (System Vibrancy)
+
 struct VisualEffectView: NSViewRepresentable {
     let material: NSVisualEffectView.Material
     let blendingMode: NSVisualEffectView.BlendingMode
@@ -73,7 +76,6 @@ struct VisualEffectView: NSViewRepresentable {
         nsView.material = material
         nsView.blendingMode = blendingMode
         
-        // 动态应用外观给所属窗口，实现 OnboardingWindow 的主题热切换与自适应
         if let mode = themeMode {
             DispatchQueue.main.async {
                 guard let window = nsView.window else { return }
@@ -94,71 +96,315 @@ struct VisualEffectView: NSViewRepresentable {
     }
 }
 
-// MARK: - Onboarding View
+// MARK: - Onboarding Window Policy
+
+struct OnboardingWindowPolicy {
+    static let contentSize = CGSize(width: 540, height: 410)
+    static let cornerRadius: CGFloat = 28
+    static let totalPages = 4
+}
+
+// MARK: - Onboarding Exit Coordinator
+
+struct OnboardingExitCoordinator {
+    private(set) var hasExited: Bool = false
+    
+    mutating func requestExit(action: () -> Void) -> Bool {
+        guard !hasExited else { return false }
+        hasExited = true
+        action()
+        return true
+    }
+}
+
+// MARK: - Superpower Showcase Tabs
+
+enum ShowcaseTab: Int, CaseIterable, Identifiable {
+    case code = 0
+    case markdown = 1
+    case archive = 2
+    case relay = 3
+    
+    var id: Int { rawValue }
+    
+    var title: String {
+        switch self {
+        case .code: return "Code & Config".localized()
+        case .markdown: return "Markdown Docs".localized()
+        case .archive: return "Archive & Folders".localized()
+        case .relay: return "App Relay".localized()
+        }
+    }
+    
+    var icon: String {
+        switch self {
+        case .code: return "chevron.left.forwardslash.chevron.right"
+        case .markdown: return "text.badge.checkmark"
+        case .archive: return "archivebox.fill"
+        case .relay: return "arrow.up.forward.app.fill"
+        }
+    }
+    
+    var description: String {
+        switch self {
+        case .code:
+            return "Syntax highlighting for 60+ languages with line numbers & streaming highlight.".localized()
+        case .markdown:
+            return "GitHub-style typography with rounded tables, transparent background & local images.".localized()
+        case .archive:
+            return "0-extract structure inspection, format size bar & collapsible directory tree.".localized()
+        case .relay:
+            return "One-click handoff to VS Code, Cursor, Xcode or your favorite editors.".localized()
+        }
+    }
+}
+
+// MARK: - Singline Theme Constants
+
+private let brandIndigo = Color(red: 0.38, green: 0.36, blue: 0.88)
+
+// MARK: - Tactile Keycap Component
+
+struct PlaygroundKbdKeyView: View {
+    let symbol: String
+    let isHighlighted: Bool
+    @Environment(\.colorScheme) private var colorScheme
+    
+    var body: some View {
+        Text(symbol)
+            .font(.system(size: 16, weight: .bold, design: .rounded))
+            .foregroundColor(isHighlighted ? .white : Color.appText)
+            .frame(width: 38, height: 34)
+            .background(
+                ZStack {
+                    if isHighlighted {
+                        LinearGradient(
+                            colors: [brandIndigo, brandIndigo.opacity(0.85)],
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    } else {
+                        LinearGradient(
+                            gradient: Gradient(colors: colorScheme == .dark ? [
+                                Color(red: 0.25, green: 0.25, blue: 0.29),
+                                Color(red: 0.17, green: 0.17, blue: 0.20)
+                            ] : [
+                                Color.white,
+                                Color(red: 0.93, green: 0.93, blue: 0.95)
+                            ]),
+                            startPoint: .top,
+                            endPoint: .bottom
+                        )
+                    }
+                }
+            )
+            .cornerRadius(7)
+            .overlay(
+                RoundedRectangle(cornerRadius: 7)
+                    .stroke(
+                        isHighlighted ? Color.white.opacity(0.6) : Color.appBorder.opacity(colorScheme == .dark ? 0.35 : 0.8),
+                        lineWidth: 0.8
+                    )
+            )
+            .shadow(
+                color: isHighlighted ? brandIndigo.opacity(0.65) : Color.black.opacity(colorScheme == .dark ? 0.35 : 0.10),
+                radius: isHighlighted ? 4 : 1.5,
+                x: 0,
+                y: isHighlighted ? 1 : 1.5
+            )
+    }
+}
+
+// MARK: - Hotkey Option Card Component (Singline Style)
+
+struct HotkeyOptionCard: View {
+    let title: String
+    let subtitle: String
+    let keys: [String]
+    let isSelected: Bool
+    let isPulsing: Bool
+    let action: () -> Void
+    
+    @Environment(\.colorScheme) private var colorScheme
+    
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 8) {
+                // Keycaps Icon Area
+                HStack(spacing: 4) {
+                    ForEach(keys, id: \.self) { k in
+                        PlaygroundKbdKeyView(symbol: k, isHighlighted: isPulsing || isSelected)
+                    }
+                }
+                .frame(height: 42)
+                .scaleEffect(isPulsing ? 1.08 : 1.0)
+                .animation(.spring(response: 0.25, dampingFraction: 0.5), value: isPulsing)
+                
+                // Title
+                Text(title)
+                    .font(.system(size: 13, weight: isSelected ? .bold : .medium))
+                    .foregroundColor(Color.appText)
+                
+                // Subtitle Badge
+                Text(subtitle)
+                    .font(.system(size: 10, weight: .regular))
+                    .foregroundColor(isSelected ? (colorScheme == .dark ? Color(red: 0.78, green: 0.76, blue: 1.0) : brandIndigo) : .secondary)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 14)
+            .background(
+                ZStack {
+                    if isSelected {
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .fill(colorScheme == .dark ? brandIndigo.opacity(0.18) : Color(red: 0.94, green: 0.95, blue: 1.0))
+                    } else {
+                        RoundedRectangle(cornerRadius: 16, style: .continuous)
+                            .fill(colorScheme == .dark ? Color(white: 0.16).opacity(0.6) : Color.white.opacity(0.7))
+                    }
+                }
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    .stroke(
+                        isSelected ? brandIndigo : Color.white.opacity(colorScheme == .dark ? 0.12 : 0.6),
+                        lineWidth: isSelected ? 2 : 0.8
+                    )
+            )
+            .shadow(
+                color: isSelected ? brandIndigo.opacity(0.2) : Color.black.opacity(colorScheme == .dark ? 0.2 : 0.04),
+                radius: isSelected ? 6 : 3,
+                x: 0,
+                y: isSelected ? 2 : 1.5
+            )
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+// MARK: - Modern Onboarding Main View
+
 struct OnboardingView: View {
     @State private var currentPage = 0
     @State private var isFullDiskAccessAuthorized = {
         let path = NSHomeDirectory() + "/Library/Safari/Bookmarks.plist"
         return FileManager.default.isReadableFile(atPath: path)
     }()
-    @State private var isFinderExtensionAttempted = false
     @State private var isCheckingFDA = false
-    @State private var isStartingApp = false
+    @State private var isFinderExtensionAttempted = false
     @State private var showConfetti = false
-    @State private var isWelcomeAnimating = false
-    @State private var demoAnimStep = 0
-    @State private var optionPulse = false
+    @State private var isStartingApp = false
+    
+    // Window fade-out animation properties
     @State private var windowOpacity: Double = 1.0
     @State private var windowScale: CGFloat = 1.0
-    // NOTE: 关闭序列启动后设为 true，所有 Timer 回调检查此标志并立即返回，
-    //       防止 orderOut 后 RunLoop 中残留的 Timer 事件继续触发 SwiftUI 状态更新，
-    //       与 window.close()/setActivationPolicy 产生主线程 CATransaction 竞争导致死锁
+    
+    // Step 2 Hotkey Playground state
+    @State private var didTriggerPulse = false
+    @State private var lastModifierPressTime: Date? = nil
+    @State private var lastModifierState: Bool = false
+    @State private var playgroundMonitor: Any? = nil
+    
+    // Step 3 Showcase selected tab
+    @State private var selectedShowcaseTab: ShowcaseTab = .code
+    
+    // Timer to poll permissions while window is visible
+    let authTimer = Timer.publish(every: 1.0, on: .main, in: .common).autoconnect()
+    
+    @ObservedObject private var settings = Settings.shared
+    @Environment(\.colorScheme) private var colorScheme
+    
+    var onFinished: () -> Void = {}
+    
     @State private var isClosing = false
     
-    @ObservedObject var settings = Settings.shared
-    
-    let onFinished: () -> Void
-    let authTimer = Timer.publish(every: 1.0, on: .main, in: .common).autoconnect()
-    let animationTimer = Timer.publish(every: 2.0, on: .main, in: .common).autoconnect()
+    init(initialPage: Int = 0, onFinished: @escaping () -> Void = {}) {
+        self._currentPage = State(initialValue: initialPage)
+        self.onFinished = onFinished
+    }
     
     var body: some View {
         ZStack {
-            VisualEffectView(material: .hudWindow, blendingMode: .behindWindow, themeMode: settings.themeMode)
+            // Base Layer: Native System Vibrancy Frosted Glass
+            VisualEffectView(material: .popover, blendingMode: .behindWindow, themeMode: settings.themeMode)
+                .edgesIgnoringSafeArea(.all)
+            
+            // Middle Layer: Soft Pastel Aurora Gradient Tint (Singline Style)
+            LinearGradient(
+                gradient: Gradient(colors: [
+                    Color(red: 0.94, green: 0.84, blue: 0.98).opacity(colorScheme == .dark ? 0.16 : 0.45),
+                    Color(red: 0.82, green: 0.90, blue: 0.98).opacity(colorScheme == .dark ? 0.14 : 0.35),
+                    Color.clear
+                ]),
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .edgesIgnoringSafeArea(.all)
+            
+            // Soft Light Wash
+            Color.white.opacity(colorScheme == .dark ? 0.03 : 0.25)
                 .edgesIgnoringSafeArea(.all)
             
             VStack(spacing: 0) {
-                // Header Title
-                Text("Onboarding".localized())
-                    .font(.system(size: 14, weight: .bold))
-                    .foregroundColor(Color.appText)
-                    .opacity(0.8)
-                    .padding(.top, 20)
-                
-                // Page Area
-                ZStack {
-                    if currentPage == 0 {
-                        welcomePage
-                            .transition(.asymmetric(insertion: .opacity.combined(with: .move(edge: .trailing)), removal: .opacity.combined(with: .move(edge: .leading))))
-                    } else if currentPage == 1 {
-                        demoPage
-                            .transition(.asymmetric(insertion: .opacity.combined(with: .move(edge: .trailing)), removal: .opacity.combined(with: .move(edge: .leading))))
-                    } else if currentPage == 2 {
-                        configPage
-                            .transition(.asymmetric(insertion: .opacity.combined(with: .move(edge: .trailing)), removal: .opacity.combined(with: .move(edge: .leading))))
-                    } else if currentPage == 3 {
-                        permissionPage
-                            .transition(.asymmetric(insertion: .opacity.combined(with: .move(edge: .trailing)), removal: .opacity.combined(with: .move(edge: .leading))))
+                // Top Mini Bar (Skip Guide Button if not on page 0)
+                HStack {
+                    Spacer()
+                    if currentPage > 0 {
+                        Button(action: {
+                            handleFinishAction(withConfetti: false)
+                        }) {
+                            Text("Skip Guide".localized())
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundColor(.secondary)
+                                .padding(.horizontal, 8)
+                                .padding(.vertical, 4)
+                                .background(Color.black.opacity(colorScheme == .dark ? 0.2 : 0.05))
+                                .cornerRadius(5)
+                        }
+                        .buttonStyle(.plain)
+                        .padding(.trailing, 16)
                     }
                 }
-                .frame(maxHeight: .infinity)
-                .padding(.horizontal, 32)
+                .frame(height: 28)
+                .padding(.top, 4)
                 
-                Rectangle()
-                    .fill(Color.appText.opacity(0.08))
-                    .frame(height: 1)
+                // Page Carousel
+                ZStack {
+                    switch currentPage {
+                    case 0:
+                        welcomeStepView
+                            .transition(.asymmetric(
+                                insertion: .opacity.combined(with: .move(edge: .trailing)),
+                                removal: .opacity.combined(with: .move(edge: .leading))
+                            ))
+                    case 1:
+                        hotkeySelectorStepView
+                            .transition(.asymmetric(
+                                insertion: .opacity.combined(with: .move(edge: .trailing)),
+                                removal: .opacity.combined(with: .move(edge: .leading))
+                            ))
+                    case 2:
+                        showcaseStepView
+                            .transition(.asymmetric(
+                                insertion: .opacity.combined(with: .move(edge: .trailing)),
+                                removal: .opacity.combined(with: .move(edge: .leading))
+                            ))
+                    case 3:
+                        readyStepView
+                            .transition(.asymmetric(
+                                insertion: .opacity.combined(with: .move(edge: .trailing)),
+                                removal: .opacity.combined(with: .move(edge: .leading))
+                            ))
+                    default:
+                        EmptyView()
+                    }
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .padding(.horizontal, 28)
                 
-                // Navigation Bottom Bar
-                bottomBar
+                // Bottom Universal Navigation Bar (Visible on pages 1, 2, 3)
+                if currentPage > 0 {
+                    bottomNavigationBar
+                }
             }
             
             if showConfetti {
@@ -166,16 +412,24 @@ struct OnboardingView: View {
                     .allowsHitTesting(false)
             }
         }
+        .frame(width: OnboardingWindowPolicy.contentSize.width, height: OnboardingWindowPolicy.contentSize.height)
+        .cornerRadius(OnboardingWindowPolicy.cornerRadius)
+        .overlay(
+            RoundedRectangle(cornerRadius: OnboardingWindowPolicy.cornerRadius, style: .continuous)
+                .stroke(Color.white.opacity(colorScheme == .dark ? 0.16 : 0.6), lineWidth: 0.8)
+        )
         .opacity(windowOpacity)
         .scaleEffect(windowScale)
-        .frame(width: 620, height: 450)
+        .id(settings.language)
         .onAppear {
             isFinderExtensionAttempted = UserDefaults.standard.bool(forKey: "isFinderExtensionAttempted")
             checkPermissionState()
-            isWelcomeAnimating = true
+            setupPlaygroundKeyMonitor()
+        }
+        .onDisappear {
+            teardownPlaygroundKeyMonitor()
         }
         .onReceive(authTimer) { _ in
-            // 关闭序列启动后不再轮询权限，避免与 close/activationPolicy 产生 RunLoop 竞争
             guard !isClosing else { return }
             checkPermissionState()
         }
@@ -184,541 +438,644 @@ struct OnboardingView: View {
             checkPermissionState()
             isCheckingFDA = false
         }
-        .onReceive(animationTimer) { _ in
-            // 关闭序列启动后停止动画更新
-            guard !isClosing, currentPage == 1 else { return }
-            withAnimation(.spring(response: 0.6, dampingFraction: 0.75)) {
-                demoAnimStep = (demoAnimStep + 1) % 4
-            }
-            withAnimation(.easeInOut(duration: 0.3)) {
-                optionPulse = true
-            }
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                optionPulse = false
-            }
-        }
     }
     
-    // MARK: - Page 0: Welcome Page
-    private var welcomePage: some View {
+    // MARK: - Step 0: Welcome (Singline Image 1 Style)
+    
+    private var welcomeStepView: some View {
         VStack(spacing: 16) {
             Spacer()
             
-            // Transparent PNG Brand Logo
-            Image("AppIcon_transparent")
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .frame(width: 90, height: 90)
-                .shadow(color: Color.black.opacity(0.18), radius: 8, x: 0, y: 4)
-                .scaleEffect(isWelcomeAnimating ? 1.02 : 0.98)
-                .offset(y: isWelcomeAnimating ? -6 : 6)
-                .animation(.easeInOut(duration: 2.2).repeatForever(autoreverses: true), value: isWelcomeAnimating)
-                .padding(.top, 10)
-            
-            Text("Quick Cookies")
-                .font(.system(size: 28, weight: .bold, design: .rounded))
-                .foregroundColor(Color.appText)
-            
-            Text("Instant Code & Document Preview".localized())
-                .font(.system(size: 14))
-                .foregroundColor(Color.appText.opacity(0.6))
-                .kerning(1.2)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal, 48)
-            
-            Spacer()
-        }
-    }
-    
-    // MARK: - Page 1: Demo Page
-    private var demoPage: some View {
-        HStack(spacing: 24) {
-            // Left Content: Text Steps & Key Cap
-            VStack(alignment: .leading, spacing: 14) {
-                Text("Instant Preview".localized())
-                    .font(.system(size: 16, weight: .bold))
-                    .foregroundColor(Color.appText)
-                
-                VStack(alignment: .leading, spacing: 12) {
-                    StepRow(text: "1. Select any code or Markdown file in Finder".localized())
-                    
-                    HStack(spacing: 6) {
-                        StepRow(text: "2. Quickly double-press".localized())
-                        
-                        // Interactive keycap with pulse animation
-                        Text("⌥ Option")
-                            .font(.system(size: 10, weight: .bold, design: .monospaced))
-                            .foregroundColor(optionPulse ? .black : Color.appText)
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background(optionPulse ? Color.accentColor : Color.kbdBackground)
-                            .cornerRadius(4)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 4)
-                                    .stroke(Color.appBorder, lineWidth: 1)
-                            )
-                            .scaleEffect(optionPulse ? 1.1 : 1.0)
-                    }
-                    
-                    StepRow(text: "3. The preview window flies out instantly, ready to open in external editors".localized())
-                }
-                .padding(.top, 4)
-            }
-            .frame(maxWidth: .infinity, alignment: .leading)
-            
-            // Right Content: Visualized Line-frame Animation
+            // App Icon on soft rounded card with shadow
             ZStack {
-                // Simulator Background Container (macOS Desktop representation)
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.black.opacity(0.2))
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 12)
-                            .stroke(Color.appBorder, lineWidth: 1)
-                    )
-                    .frame(width: 240, height: 180)
+                RoundedRectangle(cornerRadius: 18, style: .continuous)
+                    .fill(colorScheme == .dark ? Color(white: 0.22) : Color.white)
+                    .frame(width: 76, height: 76)
+                    .shadow(color: Color.black.opacity(colorScheme == .dark ? 0.35 : 0.12), radius: 10, x: 0, y: 5)
                 
-                // Simulated Finder Window
-                VStack(spacing: 0) {
-                    // Traffic lights & header
-                    HStack(spacing: 4) {
-                        Circle().fill(Color.red.opacity(0.7)).frame(width: 5, height: 5)
-                        Circle().fill(Color.yellow.opacity(0.7)).frame(width: 5, height: 5)
-                        Circle().fill(Color.green.opacity(0.7)).frame(width: 5, height: 5)
-                        Spacer()
-                        RoundedRectangle(cornerRadius: 2).fill(Color.secondary.opacity(0.2)).frame(width: 40, height: 4)
-                        Spacer()
-                    }
-                    .padding(.horizontal, 8)
-                    .padding(.vertical, 6)
-                    .background(Color.toolbarBackground.opacity(0.5))
-                    
-                    HStack(spacing: 0) {
-                        // Sidebar simulator
-                        VStack(alignment: .leading, spacing: 6) {
-                            ForEach(0..<4) { _ in
-                                RoundedRectangle(cornerRadius: 1).fill(Color.secondary.opacity(0.2)).frame(width: 25, height: 3)
-                            }
-                            Spacer()
-                        }
-                        .padding(8)
-                        .frame(width: 45)
-                        .background(Color.toolbarBackground.opacity(0.2))
-                        
-                        Divider().background(Color.appBorder)
-                        
-                        // Files Area Simulator
-                        VStack(alignment: .leading, spacing: 6) {
-                            ForEach(0..<4) { index in
-                                HStack {
-                                    Image(systemName: index == 2 ? "doc.text.fill" : "doc.text")
-                                        .font(.system(size: 7))
-                                        .foregroundColor(index == 2 ? .accentColor : .secondary)
-                                    RoundedRectangle(cornerRadius: 1)
-                                        .fill(index == 2 ? Color.accentColor.opacity(0.8) : Color.secondary.opacity(0.3))
-                                        .frame(width: index == 2 ? 65 : 80, height: 3)
-                                }
-                                .padding(.vertical, 2)
-                                .padding(.horizontal, 4)
-                                .background(index == 2 ? Color.accentColor.opacity(0.15) : Color.clear)
-                                .cornerRadius(2)
-                            }
-                            Spacer()
-                        }
-                        .padding(8)
-                    }
-                }
-                .frame(width: 200, height: 140)
-                .background(Color.cardBackground.opacity(0.6))
-                .cornerRadius(6)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 6)
-                        .stroke(Color.appBorder, lineWidth: 0.8)
-                )
-                
-                // Fly-out Preview Window Simulator
-                if demoAnimStep == 1 || demoAnimStep == 2 {
-                    VStack(alignment: .leading, spacing: 4) {
-                        HStack(spacing: 3) {
-                            Circle().fill(Color.red.opacity(0.7)).frame(width: 3, height: 3)
-                            Spacer()
-                            RoundedRectangle(cornerRadius: 1).fill(Color.secondary.opacity(0.3)).frame(width: 24, height: 3)
-                            Spacer()
-                        }
-                        .padding(4)
-                        
-                        Divider().background(Color.appBorder)
-                        
-                        // Fake code lines
-                        VStack(alignment: .leading, spacing: 3) {
-                            RoundedRectangle(cornerRadius: 0.5).fill(Color.accentColor.opacity(0.7)).frame(width: 45, height: 2)
-                            RoundedRectangle(cornerRadius: 0.5).fill(Color.secondary.opacity(0.4)).frame(width: 60, height: 2)
-                            RoundedRectangle(cornerRadius: 0.5).fill(Color.secondary.opacity(0.4)).frame(width: 35, height: 2)
-                            RoundedRectangle(cornerRadius: 0.5).fill(Color.accentColor.opacity(0.6)).frame(width: 50, height: 2)
-                        }
-                        .padding(6)
-                    }
-                    .frame(width: 85, height: 110)
-                    .background(Color.cardBackground)
-                    .cornerRadius(4)
-                    .shadow(color: Color.black.opacity(0.4), radius: 8, x: 0, y: 4)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 4)
-                            .stroke(Color.accentColor.opacity(0.5), lineWidth: 1)
-                    )
-                    // Fly-out animation transition parameters
-                    .offset(x: demoAnimStep == 1 ? 0 : 0, y: demoAnimStep == 1 ? -10 : -10)
-                    .scaleEffect(demoAnimStep == 1 ? 1.0 : 0.2)
-                    .opacity(demoAnimStep == 1 ? 1.0 : 0.0)
-                    .transition(.identity) // Managed manually via demoAnimStep state
+                if let icon = NSImage(named: "AppIcon") {
+                    Image(nsImage: icon)
+                        .resizable()
+                        .frame(width: 64, height: 64)
+                        .cornerRadius(14)
+                } else {
+                    Text("🍪")
+                        .font(.system(size: 44))
                 }
             }
-            .frame(width: 240, height: 180)
-        }
-    }
-    
-    // MARK: - Page 2: Config Page
-    private var configPage: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Personalized Settings".localized())
-                .font(.system(size: 16, weight: .bold))
+            .padding(.bottom, 4)
+            
+            Text("Welcome to QuickCookies".localized())
+                .font(.system(size: 26, weight: .bold, design: .rounded))
                 .foregroundColor(Color.appText)
             
-            Text("Before getting started, you can customize some core preferences:".localized())
-                .font(.system(size: 13))
-                .foregroundColor(Color.appText.opacity(0.6))
-                .padding(.bottom, 6)
+            Text("Instant card preview for your Finder files".localized())
+                .font(.system(size: 14, weight: .regular))
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+                .padding(.horizontal, 32)
             
-            SettingsCard {
-                // Exterior Theme Settings Row
-                SettingsRow(title: "Theme Mode".localized(), subtitle: "Adapt to your system appearance".localized()) {
-                    Picker("", selection: $settings.themeMode) {
-                        ForEach(ThemeMode.allCases) { mode in
-                            Text(mode.displayName).tag(mode)
-                        }
-                    }
-                    .pickerStyle(.segmented)
-                    .frame(width: 180)
-                    .labelsHidden()
+            Spacer()
+            
+            // Centered Pill Button "Get Started"
+            Button(action: {
+                withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                    currentPage = 1
                 }
-                
-                Divider()
-                    .background(Color.appBorder)
-                    .padding(.horizontal, 16)
-                
-                // Language Settings Row
-                SettingsRow(title: "Interface Language".localized(), subtitle: "Support dynamic toggle between English & Chinese".localized()) {
-                    Picker("", selection: $settings.language) {
-                        ForEach(Language.allCases) { lang in
-                            Text(lang.displayName).tag(lang)
-                        }
-                    }
-                    .pickerStyle(.segmented)
-                    .frame(width: 180)
-                    .labelsHidden()
-                }
-                
-                Divider()
-                    .background(Color.appBorder)
-                    .padding(.horizontal, 16)
-                
-                // Startup Launch Settings Row
-                SettingsRow(title: "Launch at Login".localized(), subtitle: "Silently start in the background when you log in".localized()) {
-                    Toggle("", isOn: $settings.launchAtLogin)
-                        .toggleStyle(.switch)
-                        .labelsHidden()
-                }
+            }) {
+                Text("Get Started".localized())
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(colorScheme == .dark ? .black : Color(white: 0.1))
+                    .frame(width: 190, height: 40)
+                    .background(
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .fill(Color.white)
+                            .shadow(color: Color.black.opacity(colorScheme == .dark ? 0.3 : 0.12), radius: 6, x: 0, y: 2)
+                    )
             }
+            .buttonStyle(.plain)
+            
+            Text("Takes about a minute".localized())
+                .font(.system(size: 11, weight: .medium))
+                .foregroundColor(.secondary.opacity(0.85))
+                .padding(.top, 2)
+            
+            Spacer().frame(height: 24)
         }
     }
     
-    // MARK: - Page 3: Permission Center (Progressive & Dual track)
-    private var permissionPage: some View {
+    // MARK: - Step 1: Hotkey Selection (Singline Image 2 Style)
+    
+    private var hotkeySelectorStepView: some View {
+        let isDoubleCmd = settings.hotkeyKeyCode == 0 && settings.hotkeyModifiers.contains(NSEvent.ModifierFlags.command)
+        let isDoubleOpt = settings.hotkeyKeyCode == 0 && settings.hotkeyModifiers.contains(NSEvent.ModifierFlags.option)
+        
+        return VStack(spacing: 12) {
+            Spacer().frame(height: 4)
+            
+            Text("How would you like to open previews?".localized())
+                .font(.system(size: 23, weight: .bold, design: .rounded))
+                .foregroundColor(Color.appText)
+            
+            Text("Choose the shortcut to press in Finder.".localized())
+                .font(.system(size: 13, weight: .regular))
+                .foregroundColor(.secondary)
+            
+            Spacer().frame(height: 6)
+            
+            // Horizontal Option Cards (Image 2 style)
+            HStack(spacing: 12) {
+                // Card 1: Double Command
+                HotkeyOptionCard(
+                    title: "Double Command".localized(),
+                    subtitle: "Recommended".localized(),
+                    keys: ["⌘", "⌘"],
+                    isSelected: isDoubleCmd,
+                    isPulsing: didTriggerPulse && isDoubleCmd
+                ) {
+                    settings.saveHotkey(modifiers: .command, keyCode: 0)
+                }
+                
+                // Card 2: Double Option
+                HotkeyOptionCard(
+                    title: "Double Option".localized(),
+                    subtitle: "Classic".localized(),
+                    keys: ["⌥", "⌥"],
+                    isSelected: isDoubleOpt,
+                    isPulsing: didTriggerPulse && isDoubleOpt
+                ) {
+                    settings.saveHotkey(modifiers: .option, keyCode: 0)
+                }
+                
+                // Card 3: Instant Search
+                HotkeyOptionCard(
+                    title: "Instant Search".localized(),
+                    subtitle: "Find in file (⌥F)".localized(),
+                    keys: ["⌥", "F"],
+                    isSelected: false,
+                    isPulsing: false
+                ) {
+                    // Informative preset card
+                }
+            }
+            
+            // Footnote description (Image 2 style)
+            Text(isDoubleCmd 
+                ? "Double Command is recommended for natural macOS interaction.".localized() 
+                : "Press twice anywhere in Finder to trigger instant card preview.".localized()
+            )
+            .font(.system(size: 11, weight: .regular))
+            .foregroundColor(.secondary)
+            .multilineTextAlignment(.center)
+            .padding(.horizontal, 24)
+            .frame(height: 28)
+            
+            // Interactive keypress feedback
+            if didTriggerPulse {
+                HStack(spacing: 6) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .foregroundColor(.green)
+                    Text("Shortcut detected! Works perfectly.".localized())
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(.green)
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 6)
+                .background(Color.green.opacity(0.12))
+                .cornerRadius(8)
+                .transition(.scale.combined(with: .opacity))
+            } else {
+                Text("Try pressing twice on your keyboard now:".localized())
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundColor(.secondary.opacity(0.75))
+            }
+            
+            Spacer()
+        }
+    }
+    
+    // MARK: - Step 2: Showcase (Compact Feature Cards)
+    
+    private var showcaseStepView: some View {
+        VStack(spacing: 12) {
+            Spacer().frame(height: 4)
+            
+            Text("What QuickCookies previews".localized())
+                .font(.system(size: 23, weight: .bold, design: .rounded))
+                .foregroundColor(Color.appText)
+            
+            Text("Instant preview without opening heavy apps.".localized())
+                .font(.system(size: 13, weight: .regular))
+                .foregroundColor(.secondary)
+            
+            Spacer().frame(height: 6)
+            
+            // 3 Feature Showcase Cards in HStack
+            HStack(spacing: 10) {
+                // Card 1: Code & Config
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Image(systemName: "chevron.left.forwardslash.chevron.right")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundColor(.blue)
+                        Text("Code & Config".localized())
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundColor(Color.appText)
+                        Spacer()
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 3) {
+                        Text("1  import SwiftUI")
+                            .foregroundColor(.purple)
+                        Text("2  struct App: View {")
+                            .foregroundColor(Color.appText.opacity(0.85))
+                        Text("3    var body: some View")
+                            .foregroundColor(.blue)
+                        Text("4      Text(\"Instant!\")")
+                            .foregroundColor(.orange)
+                        Text("5    }")
+                            .foregroundColor(Color.appText.opacity(0.85))
+                    }
+                    .font(.system(size: 9.5, design: .monospaced))
+                    .padding(8)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Color.black.opacity(colorScheme == .dark ? 0.35 : 0.05))
+                    .cornerRadius(8)
+                    
+                    Spacer()
+                    
+                    Text("60+ Languages".localized())
+                        .font(.system(size: 9.5, weight: .medium))
+                        .foregroundColor(.blue)
+                }
+                .padding(12)
+                .frame(maxWidth: .infinity)
+                .frame(height: 168)
+                .background(
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .fill(colorScheme == .dark ? Color(white: 0.16).opacity(0.7) : Color.white.opacity(0.8))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .stroke(Color.white.opacity(colorScheme == .dark ? 0.1 : 0.6), lineWidth: 0.8)
+                )
+                
+                // Card 2: Markdown
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Image(systemName: "text.badge.checkmark")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundColor(.green)
+                        Text("Markdown Docs".localized())
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundColor(Color.appText)
+                        Spacer()
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("# README.md")
+                            .font(.system(size: 11, weight: .bold))
+                            .foregroundColor(Color.appText)
+                        Text("GitHub-style typography with rounded tables & images.".localized())
+                            .font(.system(size: 9))
+                            .foregroundColor(.secondary)
+                            .lineLimit(3)
+                        HStack(spacing: 4) {
+                            Text("Feature".localized()).bold()
+                            Spacer()
+                            Text("Status".localized()).bold()
+                        }
+                        .font(.system(size: 8))
+                        .padding(4)
+                        .background(Color.green.opacity(0.1))
+                        .cornerRadius(4)
+                    }
+                    .padding(8)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Color.black.opacity(colorScheme == .dark ? 0.35 : 0.05))
+                    .cornerRadius(8)
+                    
+                    Spacer()
+                    
+                    Text("GitHub Typography".localized())
+                        .font(.system(size: 9.5, weight: .medium))
+                        .foregroundColor(.green)
+                }
+                .padding(12)
+                .frame(maxWidth: .infinity)
+                .frame(height: 168)
+                .background(
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .fill(colorScheme == .dark ? Color(white: 0.16).opacity(0.7) : Color.white.opacity(0.8))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .stroke(Color.white.opacity(colorScheme == .dark ? 0.1 : 0.6), lineWidth: 0.8)
+                )
+                
+                // Card 3: Archives & Folders
+                VStack(alignment: .leading, spacing: 8) {
+                    HStack {
+                        Image(systemName: "archivebox.fill")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundColor(.orange)
+                        Text("Archive & Folders".localized())
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundColor(Color.appText)
+                        Spacer()
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 3) {
+                        HStack {
+                            Capsule().fill(Color.blue).frame(width: 40, height: 4)
+                            Capsule().fill(Color.orange).frame(width: 25, height: 4)
+                            Capsule().fill(Color.green).frame(width: 15, height: 4)
+                        }
+                        Text("📁 src/")
+                            .font(.system(size: 9, weight: .semibold))
+                        Text("  📄 main.swift (24KB)")
+                            .font(.system(size: 8.5))
+                            .foregroundColor(.secondary)
+                        Text("  📄 package.json")
+                            .font(.system(size: 8.5))
+                            .foregroundColor(.secondary)
+                    }
+                    .padding(8)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(Color.black.opacity(colorScheme == .dark ? 0.35 : 0.05))
+                    .cornerRadius(8)
+                    
+                    Spacer()
+                    
+                    Text("Instant Inspection".localized())
+                        .font(.system(size: 9.5, weight: .medium))
+                        .foregroundColor(.orange)
+                }
+                .padding(12)
+                .frame(maxWidth: .infinity)
+                .frame(height: 168)
+                .background(
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .fill(colorScheme == .dark ? Color(white: 0.16).opacity(0.7) : Color.white.opacity(0.8))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
+                        .stroke(Color.white.opacity(colorScheme == .dark ? 0.1 : 0.6), lineWidth: 0.8)
+                )
+            }
+            
+            Text("One-click handoff to VS Code, Cursor, Xcode or your favorite editors.".localized())
+                .font(.system(size: 11, weight: .regular))
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+            
+            Spacer()
+        }
+    }
+    
+    // MARK: - Step 3: Ready & Personalize (Singline Image 3 Style)
+    
+    private var readyStepView: some View {
         VStack(spacing: 14) {
-            VStack(spacing: 4) {
-                Text("Running Mode & Permissions".localized())
-                    .font(.system(size: 15, weight: .bold))
-                    .foregroundColor(Color.appText)
-                
-                Text("QuickCookies supports running without high-level permissions. Choose as you need:".localized())
-                    .font(.system(size: 11))
-                    .foregroundColor(Color.appText.opacity(0.6))
-                    .multilineTextAlignment(.center)
-            }
-            .padding(.bottom, 2)
+            Spacer().frame(height: 4)
             
-            HStack(spacing: 16) {
-                // 1. Finder 扩展卡片
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack(spacing: 6) {
-                        Image(systemName: isFinderExtensionAttempted ? "checkmark.circle.fill" : "arrow.up.forward.app")
-                            .foregroundColor(isFinderExtensionAttempted ? .green : .secondary)
-                            .font(.system(size: 14))
-                        Text("Finder Extension".localized())
-                            .font(.system(size: 13, weight: .bold))
-                            .foregroundColor(Color.appText)
-                    }
+            Text("You're all set".localized())
+                .font(.system(size: 23, weight: .bold, design: .rounded))
+                .foregroundColor(Color.appText)
+            
+            Text("QuickCookies is standing by in Finder.".localized())
+                .font(.system(size: 13, weight: .regular))
+                .foregroundColor(.secondary)
+            
+            Spacer().frame(height: 6)
+            
+            // Asymmetric Split Cards (Image 3 Style)
+            HStack(spacing: 14) {
+                // Left Card: Pure Architecture / Zero-Privilege Badge
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Privacy & Security".localized())
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundColor(.secondary)
                     
-                    Text("Integrate right-click menu and seamless preview. Zero privacy risk.".localized())
-                        .font(.system(size: 11))
-                        .foregroundColor(Color.appText.opacity(0.6))
-                        .lineSpacing(2.5)
-                        .frame(height: 52, alignment: .topLeading)
+                    Text("Zero".localized())
+                        .font(.system(size: 32, weight: .heavy, design: .rounded))
+                        .foregroundColor(Color.appText)
+                    
+                    Text("Zero Accessibility privileges required. Safe, private, and lightweight.".localized())
+                        .font(.system(size: 10.5, weight: .regular))
+                        .foregroundColor(.secondary)
+                        .lineLimit(3)
+                        .fixedSize(horizontal: false, vertical: true)
                     
                     Spacer()
                     
-                    if isFinderExtensionAttempted {
-                        HStack {
-                            Image(systemName: "checkmark.circle.fill")
-                                .foregroundColor(.green)
-                            Text("Attempted".localized())
-                                .foregroundColor(.green)
-                                .font(.system(size: 11, weight: .semibold))
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 4)
-                    } else {
-                        Button(action: {
-                            if let url = URL(string: "x-apple.systempreferences:com.apple.ExtensionsPreferences") {
-                                NSWorkspace.shared.open(url)
-                                UserDefaults.standard.set(true, forKey: "isFinderExtensionAttempted")
-                                isFinderExtensionAttempted = true
-                            }
-                        }) {
-                            HStack(spacing: 4) {
-                                Image(systemName: "arrow.up.forward.app")
-                                Text("Enable Finder Extension".localized())
-                                    .font(.system(size: 11))
-                            }
-                            .frame(maxWidth: .infinity)
-                        }
-                        .buttonStyle(.bordered)
-                        .controlSize(.regular)
+                    HStack(spacing: 4) {
+                        Image(systemName: "checkmark.shield.fill")
+                            .font(.system(size: 12))
+                            .foregroundColor(.green)
+                        Text("No Special Permissions Required".localized())
+                            .font(.system(size: 10.5, weight: .medium))
+                            .foregroundColor(.green)
                     }
                 }
                 .padding(14)
-                .background(Color.cardBackground)
-                .cornerRadius(10)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .frame(height: 156)
+                .background(
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .fill(colorScheme == .dark ? Color(white: 0.16).opacity(0.7) : Color.white.opacity(0.85))
+                        .shadow(color: Color.black.opacity(colorScheme == .dark ? 0.25 : 0.05), radius: 6, x: 0, y: 2)
+                )
                 .overlay(
-                    RoundedRectangle(cornerRadius: 10)
-                        .stroke(isFinderExtensionAttempted ? Color.green.opacity(0.3) : Color.appBorder, lineWidth: 1)
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .stroke(Color.white.opacity(colorScheme == .dark ? 0.1 : 0.6), lineWidth: 0.8)
                 )
                 
-                // 2. 所有文件夹访问 (FDA) 卡片
-                VStack(alignment: .leading, spacing: 8) {
-                    HStack(spacing: 6) {
-                        Image(systemName: isFullDiskAccessAuthorized ? "folder.fill" : "folder")
-                            .foregroundColor(isFullDiskAccessAuthorized ? .green : .secondary)
-                            .font(.system(size: 14))
-                        Text("Full Disk Access".localized())
-                            .font(.system(size: 13, weight: .bold))
-                            .foregroundColor(Color.appText)
+                // Right Card: Inset Grouped Settings List
+                VStack(spacing: 0) {
+                    // Row 1: Start at Login
+                    HStack(spacing: 12) {
+                        Image(systemName: "power")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundColor(.blue)
+                            .frame(width: 22)
+                        
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text("Open at Login".localized())
+                                .font(.system(size: 12, weight: .semibold))
+                                .foregroundColor(Color.appText)
+                            Text("Ready when you open your Mac.".localized())
+                                .font(.system(size: 10, weight: .regular))
+                                .foregroundColor(.secondary)
+                        }
+                        
+                        Spacer()
+                        
+                        Toggle("", isOn: $settings.launchAtLogin)
+                            .labelsHidden()
+                            .toggleStyle(.switch)
+                            .controlSize(.small)
                     }
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 12)
                     
-                    Text("Grant Full Disk Access to avoid folder permission prompts.".localized())
-                        .font(.system(size: 11))
-                        .foregroundColor(Color.appText.opacity(0.6))
-                        .lineSpacing(2.5)
-                        .frame(height: 52, alignment: .topLeading)
+                    Divider()
+                        .padding(.horizontal, 14)
                     
-                    Spacer()
-                    
-                    if isFullDiskAccessAuthorized {
-                        HStack {
-                            Image(systemName: "checkmark.circle.fill")
-                                .foregroundColor(.green)
-                            Text("Permission Granted".localized())
-                                .foregroundColor(.green)
+                    // Row 2: View Settings
+                    Button(action: {
+                        SettingsWindowController.shared.show()
+                    }) {
+                        HStack(spacing: 12) {
+                            Image(systemName: "gearshape.fill")
+                                .font(.system(size: 15, weight: .semibold))
+                                .foregroundColor(.purple)
+                                .frame(width: 22)
+                            
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("More Settings...".localized())
+                                    .font(.system(size: 12, weight: .semibold))
+                                    .foregroundColor(Color.appText)
+                                Text("Fonts, theme and shortcuts.".localized())
+                                    .font(.system(size: 10, weight: .regular))
+                                    .foregroundColor(.secondary)
+                            }
+                            
+                            Spacer()
+                            
+                            Image(systemName: "chevron.right")
                                 .font(.system(size: 11, weight: .semibold))
+                                .foregroundColor(.secondary.opacity(0.6))
                         }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 4)
-                    } else {
-                        Button(action: {
-                            isCheckingFDA = true
-                            if let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles") {
-                                NSWorkspace.shared.open(url)
-                            }
-                        }) {
-                            HStack(spacing: 4) {
-                                if isCheckingFDA {
-                                    ProgressView()
-                                        .controlSize(.small)
-                                    Text("Checking...".localized())
-                                        .font(.system(size: 11))
-                                } else {
-                                    Image(systemName: "lock.fill")
-                                    Text("Grant Access".localized())
-                                        .font(.system(size: 11))
-                                }
-                            }
-                            .frame(maxWidth: .infinity)
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .controlSize(.regular)
-                        .disabled(isCheckingFDA)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 12)
+                        .contentShape(Rectangle())
                     }
+                    .buttonStyle(.plain)
                 }
-                .padding(14)
-                .background(Color.cardBackground)
-                .cornerRadius(10)
+                .frame(maxWidth: .infinity)
+                .frame(height: 156)
+                .background(
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .fill(colorScheme == .dark ? Color(white: 0.16).opacity(0.7) : Color.white.opacity(0.85))
+                        .shadow(color: Color.black.opacity(colorScheme == .dark ? 0.25 : 0.05), radius: 6, x: 0, y: 2)
+                )
                 .overlay(
-                    RoundedRectangle(cornerRadius: 10)
-                        .stroke(isFullDiskAccessAuthorized ? Color.green.opacity(0.4) : Color.appBorder, lineWidth: 1)
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .stroke(Color.white.opacity(colorScheme == .dark ? 0.1 : 0.6), lineWidth: 0.8)
                 )
             }
-            .frame(height: 170)
+            
+            Spacer()
         }
     }
     
-    // MARK: - Navigation Bar
-    private var bottomBar: some View {
-        HStack(spacing: 16) {
-            // Page Dot Indicator
-            HStack(spacing: 6) {
+    // MARK: - Universal Bottom Navigation Bar (Singline Style)
+    
+    private var bottomNavigationBar: some View {
+        HStack {
+            // Left: Back Button
+            Button(action: {
+                withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                    currentPage = max(0, currentPage - 1)
+                }
+            }) {
+                Text("Back".localized())
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(Color.appText.opacity(0.85))
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 7)
+                    .background(
+                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                            .fill(colorScheme == .dark ? Color(white: 0.22) : Color.white.opacity(0.9))
+                            .shadow(color: Color.black.opacity(0.06), radius: 3, x: 0, y: 1)
+                    )
+            }
+            .buttonStyle(.plain)
+            
+            Spacer()
+            
+            // Center: 4-Dot Page Indicator (Singline Image 2 & 3 Style)
+            HStack(spacing: 7) {
                 ForEach(0..<4) { index in
-                    Circle()
-                        .fill(currentPage == index ? Color.accentColor : Color.secondary.opacity(0.3))
-                        .frame(width: 6, height: 6)
+                    if index == currentPage {
+                        Capsule()
+                            .fill(brandIndigo)
+                            .frame(width: 14, height: 6)
+                    } else {
+                        Circle()
+                            .fill(Color.secondary.opacity(0.35))
+                            .frame(width: 6, height: 6)
+                    }
                 }
             }
             
             Spacer()
             
-            if currentPage > 0 {
+            // Right: Primary Action Button
+            if currentPage == 3 {
+                // "Start Using QuickCookies"
                 Button(action: {
-                    withAnimation(.easeInOut(duration: 0.25)) {
-                        currentPage -= 1
+                    handleFinishAction(withConfetti: true)
+                }) {
+                    Text(isStartingApp ? "Starting...".localized() : "Start Using QuickCookies".localized())
+                        .font(.system(size: 12.5, weight: .semibold))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 18)
+                        .padding(.vertical, 8)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .fill(brandIndigo)
+                                .shadow(color: brandIndigo.opacity(0.4), radius: 6, x: 0, y: 2)
+                        )
+                }
+                .buttonStyle(.plain)
+                .disabled(isStartingApp)
+            } else {
+                // "Continue" (Image 2 style)
+                Button(action: {
+                    withAnimation(.spring(response: 0.35, dampingFraction: 0.85)) {
+                        currentPage = min(3, currentPage + 1)
                     }
                 }) {
-                    Text("Back".localized())
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundColor(Color.appText)
-                        .frame(width: 72, height: 28)
-                        .background(Color.appText.opacity(0.06))
-                        .cornerRadius(6)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 6)
-                                .stroke(Color.appText.opacity(0.12), lineWidth: 1)
+                    Text("Continue".localized())
+                        .font(.system(size: 12.5, weight: .semibold))
+                        .foregroundColor(colorScheme == .dark ? .white : Color(white: 0.1))
+                        .padding(.horizontal, 18)
+                        .padding(.vertical, 8)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .fill(colorScheme == .dark ? Color(white: 0.25) : Color.white)
+                                .shadow(color: Color.black.opacity(colorScheme == .dark ? 0.3 : 0.1), radius: 5, x: 0, y: 2)
                         )
                 }
                 .buttonStyle(.plain)
             }
-            
-            if currentPage < 3 {
-                Button(action: {
-                    withAnimation(.easeInOut(duration: 0.25)) {
-                        currentPage += 1
-                    }
-                }) {
-                    Text("Next".localized())
-                        .font(.system(size: 12, weight: .bold))
-                        .foregroundColor(.white)
-                        .frame(width: 72, height: 28)
-                        .background(Color.accentColor)
-                        .cornerRadius(6)
-                }
-                .buttonStyle(.plain)
-            } else {
-                Button(action: handleFinishAction) {
-                    HStack(spacing: 6) {
-                        if isStartingApp {
-                            ProgressView()
-                                .controlSize(.small)
-                            Text("Starting...".localized())
-                        } else {
-                            Text("Start Using Quick Cookies".localized())
-                        }
-                    }
-                    .font(.system(size: 12, weight: .bold))
-                    .foregroundColor(.white)
-                    .frame(width: 140, height: 28)
-                    .background(isStartingApp ? Color.green.opacity(0.6) : Color.green)
-                    .cornerRadius(6)
-                }
-                .buttonStyle(.plain)
-                .disabled(isStartingApp)
-            }
         }
         .padding(.horizontal, 24)
-        .padding(.vertical, 16)
-        .background(Color.clear)
+        .padding(.bottom, 16)
     }
     
-    // MARK: - Logic & Actions
-    private func checkPermissionState() {
-        let fda = checkFullDiskAccess()
-        
-        var shouldShowConfetti = false
-        
-        DispatchQueue.main.async {
-            if fda != self.isFullDiskAccessAuthorized {
-                withAnimation(.spring()) {
-                    self.isFullDiskAccessAuthorized = fda
-                    if fda {
-                        shouldShowConfetti = true
-                    }
+    // MARK: - Hotkey Playground Physical Keypress Monitor
+    
+    private func setupPlaygroundKeyMonitor() {
+        guard playgroundMonitor == nil else { return }
+        playgroundMonitor = NSEvent.addLocalMonitorForEvents(matching: [.flagsChanged]) { event in
+            guard self.currentPage == 1 else { return event }
+            
+            let isOpt = self.settings.hotkeyModifiers.contains(NSEvent.ModifierFlags.option)
+            let targetFlag: NSEvent.ModifierFlags = isOpt ? .option : .command
+            let isPressed = event.modifierFlags.contains(targetFlag)
+            
+            if isPressed && !self.lastModifierState {
+                let now = Date()
+                if let lastPress = self.lastModifierPressTime, now.timeIntervalSince(lastPress) < 0.45 {
+                    self.triggerPlaygroundPulse()
+                    self.lastModifierPressTime = nil
+                } else {
+                    self.lastModifierPressTime = now
                 }
             }
-            
-            if shouldShowConfetti {
-                self.showConfetti = true
-                DispatchQueue.main.asyncAfter(deadline: .now() + 5.0) {
-                    if !self.isClosing {
-                        self.showConfetti = false
-                    }
-                }
+            self.lastModifierState = isPressed
+            return event
+        }
+    }
+    
+    private func teardownPlaygroundKeyMonitor() {
+        if let monitor = playgroundMonitor {
+            NSEvent.removeMonitor(monitor)
+            playgroundMonitor = nil
+        }
+    }
+    
+    private func triggerPlaygroundPulse() {
+        withAnimation(.spring(response: 0.2, dampingFraction: 0.45)) {
+            didTriggerPulse = true
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+            withAnimation(.easeOut(duration: 0.3)) {
+                self.didTriggerPulse = false
             }
         }
     }
     
-    private func checkFullDiskAccess() -> Bool {
+    // MARK: - Permission & LifeCycle Helpers
+    
+    private func checkPermissionState() {
         let path = NSHomeDirectory() + "/Library/Safari/Bookmarks.plist"
-        return FileManager.default.isReadableFile(atPath: path)
+        let fda = FileManager.default.isReadableFile(atPath: path)
+        if fda != isFullDiskAccessAuthorized {
+            isFullDiskAccessAuthorized = fda
+        }
     }
     
-    private func handleFinishAction() {
+    private func handleFinishAction(withConfetti: Bool = true) {
         guard !isStartingApp else { return }
         isStartingApp = true
         
-        // Step 1: 触发彩屑庆祝动画
-        showConfetti = true
+        UserDefaults.standard.set(true, forKey: "hasCompletedOnboarding")
         
-        // Step 2: 1.8s 庆祝后，启动窗口淡出
-        DispatchQueue.main.asyncAfter(deadline: .now() + 1.8) {
-            withAnimation(.easeInOut(duration: 0.18)) {
-                windowOpacity = 0.0
-                windowScale = 0.96
+        if withConfetti {
+            showConfetti = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+                self.performWindowExit()
             }
-            
-            // Step 3: 淡出动画结束（0.18s）后，先停止所有 Timer 副作用再回调
-            // NOTE: isClosing = true 必须在 onFinished() 之前设置，
-            //       确保 AppDelegate 执行 orderOut 之前 RunLoop 中不再有新的
-            //       Timer 事件可以触发 SwiftUI 状态更新（防死锁关键步骤）
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.18) {
-                showConfetti = false   // 移除 ConfettiView，取消其 33ms 高频 Timer 订阅
-                isClosing = true       // 屏蔽 authTimer / animationTimer 回调
-                onFinished()           // 通知 AppDelegate 执行四阶段关闭序列
-            }
+        } else {
+            performWindowExit()
         }
     }
-}
-
-
-// MARK: - Step Row Helper
-struct StepRow: View {
-    let text: String
     
-    var body: some View {
-        HStack(alignment: .top, spacing: 8) {
-            Circle()
-                .fill(Color.accentColor.opacity(0.8))
-                .frame(width: 5, height: 5)
-                .padding(.top, 6)
-            
-            Text(text)
-                .font(.system(size: 13))
-                .foregroundColor(Color.appText)
-                .lineSpacing(3)
+    private func performWindowExit() {
+        withAnimation(.easeInOut(duration: 0.18)) {
+            windowOpacity = 0.0
+            windowScale = 0.96
+        }
+        
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.18) {
+            self.showConfetti = false
+            self.isClosing = true
+            self.teardownPlaygroundKeyMonitor()
+            self.onFinished()
         }
     }
 }

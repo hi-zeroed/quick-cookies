@@ -211,10 +211,15 @@ enum PreviewOverlayPresentationPolicy {
 enum PreviewOverlayKeyWindowPolicy {
     static func canBecomeKey(
         renderType: FileRenderType?,
-        source: PreviewLaunchSource?
+        source: PreviewLaunchSource?,
+        isSearchActive: Bool = false
     ) -> Bool {
         guard renderType != nil else {
             return false
+        }
+
+        if isSearchActive {
+            return true
         }
 
         return !PreviewOverlayFinderInteractionPolicy.isFinderDriven(source)
@@ -311,6 +316,37 @@ enum PreviewOverlayFinderSelectionEventRefreshPolicy {
 enum PreviewOverlayInternalNavigationDirection: Equatable {
     case previous
     case next
+}
+
+enum PreviewOverlaySearchShortcutPolicy {
+    /// 判定键盘事件是否应当激活/切换文件内搜索
+    /// - Parameters:
+    ///   - keyCode: 键盘物理键码（3 对应 ANSI 'F' 键）
+    ///   - modifierFlags: 修饰键掩码
+    ///   - isKeyWindow: 当前 QuickCookies 预览窗口是否处于 Key 状态（获得输入焦点）
+    /// - Returns: 是否触发搜索
+    static func shouldTriggerSearch(
+        keyCode: UInt16,
+        modifierFlags: NSEvent.ModifierFlags,
+        isKeyWindow: Bool
+    ) -> Bool {
+        guard keyCode == 3 else { return false }
+        let modifiers = modifierFlags.intersection([.command, .control, .option, .shift])
+
+        // 1. 全局主流：Option + F (⌥F)
+        // 无论是在 Finder 前台还是自身为 Key Window，均 100% 触发，Finder 菜单绝不拦截
+        if modifiers == .option {
+            return true
+        }
+
+        // 2. 本地宽容兼容：Command + F (⌘F)
+        // 仅在 QuickCookies 已经获得焦点（Key Window）时兼容触发，避免 Finder 前台时被 Finder 菜单拦截争抢
+        if isKeyWindow && modifiers == .command {
+            return true
+        }
+
+        return false
+    }
 }
 
 enum PreviewOverlayInternalNavigationKeyPolicy {
@@ -416,19 +452,23 @@ enum PreviewOverlaySizingPolicy {
         fileExtension: String?,
         isExpanded: Bool
     ) -> CGFloat {
+        if isExpanded {
+            return 0.96
+        }
+
         guard renderType == .office else {
-            return isExpanded ? 0.68 : 0.48
+            return 0.68
         }
 
         switch fileExtension {
         case "doc", "docx", "rtf", "rtfd", "pages":
-            return isExpanded ? 0.56 : 0.34
+            return 0.52
         case "xls", "xlsx", "numbers", "csv":
-            return isExpanded ? 0.82 : 0.72
+            return 0.82
         case "ppt", "pptx", "key":
-            return isExpanded ? 0.78 : 0.66
+            return 0.78
         default:
-            return isExpanded ? 0.56 : 0.36
+            return 0.52
         }
     }
 
@@ -443,14 +483,21 @@ enum PreviewOverlaySizingPolicy {
             return compactContentSize
         }
 
+        if renderType == .audio && !isExpanded {
+            return CGSize(width: 520, height: 260)
+        }
+
+        let width = contentWidth(
+            renderType: renderType,
+            filePath: filePath,
+            isExpanded: isExpanded,
+            screenVisibleFrame: screenVisibleFrame
+        )
+        let heightRatio: CGFloat = isExpanded ? 0.96 : 0.88
+
         return CGSize(
-            width: contentWidth(
-                renderType: renderType,
-                filePath: filePath,
-                isExpanded: isExpanded,
-                screenVisibleFrame: screenVisibleFrame
-            ),
-            height: screenVisibleFrame.height * 0.88
+            width: width,
+            height: screenVisibleFrame.height * heightRatio
         )
     }
 
@@ -482,6 +529,8 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
     private var navigationContextPath: String?
     private var transitionGate = PreviewOverlayTransitionGate()
     private let loadState = PreviewLoadState()
+    private(set) var isSearchActive: Bool = false
+    private let searchTriggerSubject = PassthroughSubject<Void, Never>()
     private lazy var windowActions = PreviewWindowActions(
         closeOverlay: { [weak self] in
             self?.closeWithAnimation()
@@ -491,7 +540,11 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         },
         currentWindow: { [weak self] in
             self?.currentWindow
-        }
+        },
+        onSearchStateChanged: { [weak self] isSearching in
+            self?.handleSearchStateChanged(isSearching)
+        },
+        triggerSearchSubject: searchTriggerSubject
     )
     private lazy var finderSelectionPollingController = FinderSelectionPollingController(
         timerFactory: { interval, tick in
@@ -526,8 +579,44 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
     var canBecomeKeyDynamic: Bool {
         PreviewOverlayKeyWindowPolicy.canBecomeKey(
             renderType: activeSessionState?.displayRenderType,
-            source: activeSessionState?.source
+            source: activeSessionState?.source,
+            isSearchActive: isSearchActive
         )
+    }
+
+    func handleSearchStateChanged(_ isSearching: Bool) {
+        let block = { [weak self] in
+            guard let self = self else { return }
+            self.isSearchActive = isSearching
+            if isSearching {
+                NSApp.activate(ignoringOtherApps: true)
+                self.previewWindow?.makeKeyAndOrderFront(nil)
+            } else {
+                self.unfocusWindowToFinder()
+            }
+        }
+
+        if Thread.isMainThread {
+            block()
+        } else {
+            DispatchQueue.main.async(execute: block)
+        }
+    }
+
+    @MainActor
+    func activateSearchFromShortcut() {
+        guard let window = previewWindow, window.isVisible else { return }
+        let effectiveRenderType = activeSessionState?.displayRenderType
+        let isSVG = currentFilePath?.lowercased().hasSuffix(".svg") == true
+        guard ContentRenderCapabilityRegistry.supportsSearch(for: effectiveRenderType, path: currentFilePath, isSVGSourceMode: isSVG) else {
+            return
+        }
+
+        self.isSearchActive = true
+        NSApp.activate(ignoringOtherApps: true)
+        window.makeKeyAndOrderFront(nil)
+
+        searchTriggerSubject.send()
     }
 
     @MainActor
@@ -741,7 +830,8 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
     }
 
     private func targetWindowFrame(for window: NSWindow) -> NSRect {
-        let screenVisibleFrame = NSScreen.main?.visibleFrame ?? NSRect(x: 0, y: 0, width: 1920, height: 1080)
+        let screen = ActiveScreenLocator.targetScreen()
+        let screenVisibleFrame = screen.visibleFrame
         let contentRect = targetContentRect(for: screenVisibleFrame)
         let windowWidth = contentRect.width + stableCardOuterPadding * 2
         let windowHeight = contentRect.height + stableCardOuterPadding * 2
@@ -845,14 +935,11 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
             panel.contentView = toastView
             
             // 3. 计算屏幕顶部中心位置
-            if let screen = NSScreen.main {
-                let screenFrame = screen.visibleFrame
-                let x = screenFrame.midX - 160
-                let y = screenFrame.maxY - 80
-                panel.setFrameOrigin(NSPoint(x: x, y: y))
-            } else {
-                panel.center()
-            }
+            let screen = ActiveScreenLocator.targetScreen()
+            let screenFrame = screen.visibleFrame
+            let x = screenFrame.midX - 160
+            let y = screenFrame.maxY - 80
+            panel.setFrameOrigin(NSPoint(x: x, y: y))
             
             // 4. 保存强引用，防止被 ARC 提前释放
             self.activeToastPanel = panel
@@ -996,6 +1083,22 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         self.localEventMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event -> NSEvent? in
             guard let self = self else { return event }
 
+            if self.isSearchActive {
+                // 搜索激活时，放行输入框按键输入，不执行 Finder 快捷翻页拦截
+                return event
+            }
+
+            if PreviewOverlaySearchShortcutPolicy.shouldTriggerSearch(
+                keyCode: event.keyCode,
+                modifierFlags: event.modifierFlags,
+                isKeyWindow: self.previewWindow?.isKeyWindow == true
+            ) {
+                DispatchQueue.main.async {
+                    self.activateSearchFromShortcut()
+                }
+                return nil
+            }
+
             if self.handleInternalNavigationIfNeeded(for: event) {
                 return nil
             }
@@ -1010,9 +1113,19 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
             return event
         }
 
-        // 2. 注册全局事件监视器，用于在 Finder 前台时按选择事件加速刷新。
+        // 2. 注册全局事件监视器，用于在 Finder 前台时按选择事件加速刷新与快捷键呼出。
         self.globalEventMonitor = NSEvent.addGlobalMonitorForEvents(matching: [.keyDown, .leftMouseUp]) { [weak self] event in
             guard let self = self else { return }
+            if event.type == .keyDown && PreviewOverlaySearchShortcutPolicy.shouldTriggerSearch(
+                keyCode: event.keyCode,
+                modifierFlags: event.modifierFlags,
+                isKeyWindow: false
+            ) {
+                DispatchQueue.main.async {
+                    self.activateSearchFromShortcut()
+                }
+                return
+            }
             if self.refreshAfterFinderSelectionEventIfNeeded(
                 for: event,
                 frontmostAppFallbackBundleIdentifier: Bundle.main.bundleIdentifier
@@ -1143,6 +1256,7 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         navigationContext = nil
         navigationContextPath = nil
         finderSelectionPollingController.resetSelection()
+        isSearchActive = false
         transitionGate.finishClose()
         
         // 3. 激活并归还焦点给 Finder
@@ -1220,6 +1334,7 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         navigationContext = nil
         navigationContextPath = nil
         finderSelectionPollingController.resetSelection()
+        isSearchActive = false
 
         // 计算中心微缩收缩终止变换矩阵 (Scale 0.94)
         let finalTransform = PreviewOverlayTransformMath.centerScaleTransform(

@@ -136,4 +136,40 @@ final class FileTypeClassifierTests: XCTestCase {
     func testDirectoryPathClassifiesAsFolder() {
         XCTAssertEqual(FileTypeClassifier.classify(path: tempDirURL.path), .folder)
     }
+
+    func testAudioFileClassifiesAsAudio() throws {
+        let fileURL = tempDirURL.appendingPathComponent("track.mp3")
+        try Data([0xFF, 0xFB, 0x90, 0x64]).write(to: fileURL)
+
+        XCTAssertEqual(FileTypeClassifier.classify(path: fileURL.path), .audio)
+        XCTAssertTrue(FileTypeClassifier.isSupported(path: fileURL.path))
+    }
+
+    func testVideoFileClassifiesAsVideo() throws {
+        let fileURL = tempDirURL.appendingPathComponent("movie.mp4")
+        try Data([0x00, 0x00, 0x00, 0x18, 0x66, 0x74, 0x79, 0x70]).write(to: fileURL)
+
+        XCTAssertEqual(FileTypeClassifier.classify(path: fileURL.path), .video)
+        XCTAssertTrue(FileTypeClassifier.isSupported(path: fileURL.path))
+    }
+
+    func testFontFileClassifiesAsFont() throws {
+        let fileURL = tempDirURL.appendingPathComponent("custom.ttf")
+        try Data([0x00, 0x01, 0x00, 0x00]).write(to: fileURL)
+
+        XCTAssertEqual(FileTypeClassifier.classify(path: fileURL.path), .font)
+        XCTAssertTrue(FileTypeClassifier.isSupported(path: fileURL.path))
+    }
+
+    func testCsvAndTsvClassifyAsCode() throws {
+        let csvURL = tempDirURL.appendingPathComponent("data.csv")
+        try "name,age\nAlice,30".write(to: csvURL, atomically: true, encoding: .utf8)
+        XCTAssertEqual(FileTypeClassifier.classify(path: csvURL.path), .code)
+        XCTAssertTrue(FileTypeClassifier.isSupported(path: csvURL.path))
+
+        let tsvURL = tempDirURL.appendingPathComponent("data.tsv")
+        try "name\tage\nBob\t25".write(to: tsvURL, atomically: true, encoding: .utf8)
+        XCTAssertEqual(FileTypeClassifier.classify(path: tsvURL.path), .code)
+        XCTAssertTrue(FileTypeClassifier.isSupported(path: tsvURL.path))
+    }
 }

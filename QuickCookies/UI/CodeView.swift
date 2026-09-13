@@ -1,5 +1,6 @@
 import SwiftUI
 import AppKit
+import Combine
 
 enum CodeViewTextColorPolicy {
     static func shouldApplyTextViewTextColor(language: String?) -> Bool {
@@ -77,6 +78,7 @@ struct CodeView: NSViewRepresentable {
     let isDark: Bool
     let loadState: PreviewLoadState
     let onLoadMore: () -> Void
+    var findBarState: FindBarState? = nil
 
     func makeCoordinator() -> Coordinator {
         Coordinator()
@@ -152,6 +154,231 @@ struct CodeView: NSViewRepresentable {
                     self.onLoadMore?()
                 }
             }
+        }
+
+        var cancellables = Set<AnyCancellable>()
+        weak var textView: NSTextView?
+        var findBarState: FindBarState?
+        var currentMatches: [NSRange] = []
+
+        func setupFindBarSubscription(findBarState: FindBarState?, textView: NSTextView) {
+            cancellables.removeAll()
+            self.findBarState = findBarState
+            self.textView = textView
+
+            guard let findBarState = findBarState else {
+                clearSearchHighlights(in: textView)
+                return
+            }
+
+            findBarState.$query
+                .removeDuplicates()
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self, weak textView] query in
+                    guard let self = self, let textView = textView else { return }
+                    self.performSearch(query: query, in: textView)
+                }
+                .store(in: &cancellables)
+
+            findBarState.$isPresented
+                .removeDuplicates()
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self, weak textView] isPresented in
+                    guard let self = self, let textView = textView else { return }
+                    if !isPresented {
+                        self.clearSearchHighlights(in: textView)
+                    } else if !findBarState.query.isEmpty {
+                        self.performSearch(query: findBarState.query, in: textView)
+                    }
+                }
+                .store(in: &cancellables)
+
+            findBarState.findNextTrigger
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self, weak textView] in
+                    guard let self = self, let textView = textView else { return }
+                    self.nextMatch(in: textView)
+                }
+                .store(in: &cancellables)
+
+            findBarState.findPreviousTrigger
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self, weak textView] in
+                    guard let self = self, let textView = textView else { return }
+                    self.previousMatch(in: textView)
+                }
+                .store(in: &cancellables)
+
+            if findBarState.isPresented && !findBarState.query.isEmpty {
+                performSearch(query: findBarState.query, in: textView)
+            }
+        }
+
+        func performSearch(query: String, in textView: NSTextView) {
+            guard let layoutManager = textView.layoutManager,
+                  let textStorage = textView.textStorage else { return }
+            let fullRange = NSRange(location: 0, length: textStorage.length)
+            layoutManager.removeTemporaryAttribute(.backgroundColor, forCharacterRange: fullRange)
+            layoutManager.removeTemporaryAttribute(.underlineStyle, forCharacterRange: fullRange)
+            currentMatches.removeAll()
+
+            guard !query.isEmpty else {
+                DispatchQueue.main.async { [weak self] in
+                    self?.findBarState?.totalMatches = 0
+                    self?.findBarState?.currentMatchIndex = 0
+                }
+                return
+            }
+
+            let text = (textView.string as NSString)
+            var searchRange = NSRange(location: 0, length: text.length)
+
+            while searchRange.location < text.length {
+                searchRange.length = text.length - searchRange.location
+                let foundRange = text.range(of: query, options: .caseInsensitive, range: searchRange)
+                if foundRange.location != NSNotFound {
+                    currentMatches.append(foundRange)
+                    searchRange.location = foundRange.location + max(foundRange.length, 1)
+                } else {
+                    break
+                }
+            }
+
+            let total = currentMatches.count
+            let activeIdx = !currentMatches.isEmpty ? 1 : 0
+
+            DispatchQueue.main.async { [weak self] in
+                self?.findBarState?.totalMatches = total
+                self?.findBarState?.currentMatchIndex = activeIdx
+            }
+
+            if !currentMatches.isEmpty {
+                applyMatchHighlights(in: textView, activeMatchIndex: activeIdx)
+                scrollToMatch(at: activeIdx, in: textView)
+            }
+        }
+
+        /// 当大文件追加内容或异步高亮覆写后，重新计算匹配项并刷新高亮，保持当前浏览位置不跳变
+        func refreshSearchPreservingPosition(in textView: NSTextView) {
+            guard let findBarState = findBarState,
+                  findBarState.isPresented,
+                  !findBarState.query.isEmpty else { return }
+
+            guard let layoutManager = textView.layoutManager,
+                  let textStorage = textView.textStorage else { return }
+
+            let previousIndex = findBarState.currentMatchIndex
+            let query = findBarState.query
+
+            let fullRange = NSRange(location: 0, length: textStorage.length)
+            layoutManager.removeTemporaryAttribute(.backgroundColor, forCharacterRange: fullRange)
+            layoutManager.removeTemporaryAttribute(.underlineStyle, forCharacterRange: fullRange)
+            currentMatches.removeAll()
+
+            let text = (textView.string as NSString)
+            var searchRange = NSRange(location: 0, length: text.length)
+
+            while searchRange.location < text.length {
+                searchRange.length = text.length - searchRange.location
+                let foundRange = text.range(of: query, options: .caseInsensitive, range: searchRange)
+                if foundRange.location != NSNotFound {
+                    currentMatches.append(foundRange)
+                    searchRange.location = foundRange.location + max(foundRange.length, 1)
+                } else {
+                    break
+                }
+            }
+
+            let total = currentMatches.count
+            let nextIndex: Int
+            if !currentMatches.isEmpty {
+                if previousIndex > 0 && previousIndex <= currentMatches.count {
+                    nextIndex = previousIndex
+                } else {
+                    nextIndex = 1
+                }
+            } else {
+                nextIndex = 0
+            }
+
+            DispatchQueue.main.async { [weak self] in
+                self?.findBarState?.totalMatches = total
+                self?.findBarState?.currentMatchIndex = nextIndex
+            }
+
+            if !currentMatches.isEmpty {
+                applyMatchHighlights(in: textView, activeMatchIndex: nextIndex)
+            }
+        }
+
+        func applyMatchHighlights(in textView: NSTextView, activeMatchIndex: Int? = nil) {
+            guard let layoutManager = textView.layoutManager,
+                  let textStorage = textView.textStorage else { return }
+            let fullRange = NSRange(location: 0, length: textStorage.length)
+            layoutManager.removeTemporaryAttribute(.backgroundColor, forCharacterRange: fullRange)
+            layoutManager.removeTemporaryAttribute(.underlineStyle, forCharacterRange: fullRange)
+
+            let matchIndex = activeMatchIndex ?? (findBarState?.currentMatchIndex ?? 0)
+            guard !currentMatches.isEmpty, matchIndex > 0 else { return }
+            let activeIndex = matchIndex - 1
+
+            let matchBg = NSColor.systemYellow.withAlphaComponent(0.35)
+            let activeBg = NSColor.systemOrange.withAlphaComponent(0.75)
+
+            for (idx, range) in currentMatches.enumerated() {
+                guard range.location + range.length <= textStorage.length else { continue }
+                if idx == activeIndex {
+                    layoutManager.addTemporaryAttribute(.backgroundColor, value: activeBg, forCharacterRange: range)
+                    layoutManager.addTemporaryAttribute(.underlineStyle, value: NSUnderlineStyle.single.rawValue, forCharacterRange: range)
+                } else {
+                    layoutManager.addTemporaryAttribute(.backgroundColor, value: matchBg, forCharacterRange: range)
+                }
+            }
+        }
+
+        func scrollToMatch(at matchIndex: Int, in textView: NSTextView) {
+            guard !currentMatches.isEmpty, matchIndex > 0 else { return }
+            let activeIndex = matchIndex - 1
+            guard activeIndex < currentMatches.count else { return }
+            let range = currentMatches[activeIndex]
+            textView.scrollRangeToVisible(range)
+            textView.showFindIndicator(for: range)
+        }
+
+        func scrollToCurrentMatch(in textView: NSTextView) {
+            let activeIndex = findBarState?.currentMatchIndex ?? 0
+            scrollToMatch(at: activeIndex, in: textView)
+        }
+
+        func nextMatch(in textView: NSTextView) {
+            guard let findBarState = findBarState, currentMatches.count > 0 else { return }
+            var nextIndex = findBarState.currentMatchIndex + 1
+            if nextIndex > currentMatches.count {
+                nextIndex = 1
+            }
+            findBarState.currentMatchIndex = nextIndex
+            applyMatchHighlights(in: textView)
+            scrollToCurrentMatch(in: textView)
+        }
+
+        func previousMatch(in textView: NSTextView) {
+            guard let findBarState = findBarState, currentMatches.count > 0 else { return }
+            var prevIndex = findBarState.currentMatchIndex - 1
+            if prevIndex < 1 {
+                prevIndex = currentMatches.count
+            }
+            findBarState.currentMatchIndex = prevIndex
+            applyMatchHighlights(in: textView)
+            scrollToCurrentMatch(in: textView)
+        }
+
+        func clearSearchHighlights(in textView: NSTextView) {
+            guard let layoutManager = textView.layoutManager,
+                  let textStorage = textView.textStorage else { return }
+            let fullRange = NSRange(location: 0, length: textStorage.length)
+            layoutManager.removeTemporaryAttribute(.backgroundColor, forCharacterRange: fullRange)
+            layoutManager.removeTemporaryAttribute(.underlineStyle, forCharacterRange: fullRange)
+            currentMatches.removeAll()
         }
     }
 
@@ -229,6 +456,9 @@ struct CodeView: NSViewRepresentable {
             coordinator: context.coordinator
         )
 
+        // 挂载搜索监听
+        context.coordinator.setupFindBarSubscription(findBarState: findBarState, textView: textView)
+
         return scrollView
     }
 
@@ -240,6 +470,9 @@ struct CodeView: NSViewRepresentable {
         // 传递最新的回调与状态引用给 Coordinator
         context.coordinator.loadState = loadState
         context.coordinator.onLoadMore = onLoadMore
+        if context.coordinator.findBarState !== findBarState {
+            context.coordinator.setupFindBarSubscription(findBarState: findBarState, textView: textView)
+        }
 
         guard !CodeViewRepresentableUpdatePolicy.shouldSkipRenderSync(
             previousIdentity: previousIdentity,
@@ -250,10 +483,9 @@ struct CodeView: NSViewRepresentable {
 
         let isSameFile = context.coordinator.lastFilePath == filePath
         let contentChanged = context.coordinator.lastRenderedContent != content
-        // NOTE: 用长度对比替代 O(n) 的 content.hasPrefix(textView.string)，避免大文件在 updateNSView 每次都做全量字符串扫描
-        let cachedLength = context.coordinator.lastContentLength
-        let currentLength = textView.textStorage?.length ?? 0
-        let isIncremental = isSameFile && content.count > currentLength && currentLength == cachedLength
+        let lastRendered = context.coordinator.lastRenderedContent
+        let lastLength = lastRendered.count
+        let isIncremental = isSameFile && lastLength > 0 && content.count > lastLength && content.hasPrefix(lastRendered)
 
         // NOTE: 相比于直接对比高亮富文本的 textView.font?.pointSize (它会返回富文本首字高亮字体，导致判断失误)，
         //       直接比对 Coordinator 缓存的上一次 font 属性才是最可靠的。
@@ -291,8 +523,8 @@ struct CodeView: NSViewRepresentable {
         }
 
         if isIncremental {
-            // 增量追加段落
-            let newText = String(content[content.index(content.startIndex, offsetBy: currentLength)...])
+            // 增量追加段落（基于纯 Swift 字符安全切片，杜绝 UTF-16 code units 偏移带来的越界与错位）
+            let newText = String(content.dropFirst(lastLength))
             appendChunk(
                 newText: newText,
                 for: textView,
@@ -301,7 +533,7 @@ struct CodeView: NSViewRepresentable {
                 coordinator: context.coordinator
             )
             context.coordinator.lastRenderedContent = content
-            context.coordinator.lastContentLength = textView.textStorage?.length ?? 0
+            context.coordinator.lastContentLength = content.count
         } else if !isSameFile || contentChanged || isDarkChanged || fontChanged {
             // 首次加载、修改主题或字体
             textView.string = content
@@ -313,9 +545,9 @@ struct CodeView: NSViewRepresentable {
                 coordinator: context.coordinator
             )
             context.coordinator.lastRenderedContent = content
-            context.coordinator.lastContentLength = textView.textStorage?.length ?? 0
+            context.coordinator.lastContentLength = content.count
         } else {
-            context.coordinator.lastContentLength = textView.textStorage?.length ?? 0
+            context.coordinator.lastContentLength = content.count
         }
     }
 
@@ -350,6 +582,7 @@ struct CodeView: NSViewRepresentable {
                     currentText: textView.string
                 ) else { return }
                 textView.textStorage?.setAttributedString(attributed)
+                coordinator.refreshSearchPreservingPosition(in: textView)
             }
             return
         }
@@ -363,6 +596,7 @@ struct CodeView: NSViewRepresentable {
                 currentText: textView.string
             ) {
                 textView.textStorage?.setAttributedString(cached)
+                coordinator.refreshSearchPreservingPosition(in: textView)
             }
             return
         }
@@ -395,6 +629,7 @@ struct CodeView: NSViewRepresentable {
                     ) else { return }
                     // NOTE: 直接替换，无 CATransition 动画
                     textView.textStorage?.setAttributedString(customAttributed)
+                    coordinator.refreshSearchPreservingPosition(in: textView)
                 }
             } else {
                 // 超大文件首段：先高亮前 500 行，剩下普通文本显示，实现窗口 0ms 秒开
@@ -418,6 +653,7 @@ struct CodeView: NSViewRepresentable {
                             currentText: textView.string
                         ) else { return }
                         textView.textStorage?.setAttributedString(fallbackAttributed)
+                        coordinator.refreshSearchPreservingPosition(in: textView)
                     }
                     return
                 }
@@ -440,6 +676,7 @@ struct CodeView: NSViewRepresentable {
                         currentText: textView.string
                     ) else { return }
                     textView.textStorage?.setAttributedString(tempFull)
+                    coordinator.refreshSearchPreservingPosition(in: textView)
                 }
                 
                 // 随后在后台默默做首段文本的全量高亮（使用 utility 优先级避免与主线程滚动抢占 CPU 资源）
@@ -469,6 +706,7 @@ struct CodeView: NSViewRepresentable {
                         // PERF: 高效率的 setAttributedString 整体覆写（仅耗时 0.3ms）
                         // 避免在主线程使用 enumerateAttributes 产生上千次 ObjC 桥接调用阻塞主线程
                         textStorage.setAttributedString(customFull)
+                        coordinator.refreshSearchPreservingPosition(in: textView)
                     }
                 }
             }
@@ -496,6 +734,7 @@ struct CodeView: NSViewRepresentable {
         let appendedAttrString = NSAttributedString(string: newText, attributes: attributes)
         
         textStorage.append(appendedAttrString)
+        coordinator.refreshSearchPreservingPosition(in: textView)
         
         // 如果没有 language，说明是 plainText 模式，无需高亮
         guard let language = language else { return }
@@ -530,6 +769,7 @@ struct CodeView: NSViewRepresentable {
                     currentText: textView.string
                 ) else { return }
                 textStorage.setAttributedString(customFull)
+                coordinator.refreshSearchPreservingPosition(in: textView)
             }
         }
     }

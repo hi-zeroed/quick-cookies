@@ -17,6 +17,7 @@ enum MarkdownImageProbe {
 
             if let resolvedURL,
                resolvedURL.isFileURL,
+               FileManager.default.fileExists(atPath: resolvedURL.path),
                let imageSource = CGImageSourceCreateWithURL(resolvedURL as CFURL, nil),
                let properties = CGImageSourceCopyPropertiesAtIndex(imageSource, 0, nil) as? [CFString: Any] {
                 let width = properties[kCGImagePropertyPixelWidth] as? Int

@@ -109,4 +109,52 @@ final class FileChunkReaderTests: XCTestCase {
             XCTAssertEqual(actualPath, path)
         }
     }
+
+    func testReadUTF8MultiByteAcrossChunkBoundaryDoesNotCorruptOrFail() throws {
+        // "ABCDEFGHIJ" (10 bytes) + "中文" (6 bytes)
+        let text = "ABCDEFGHIJ中文"
+        let fileURL = tempDirURL.appendingPathComponent("utf8_boundary.txt")
+        try text.write(to: fileURL, atomically: true, encoding: .utf8)
+
+        let reader = try FileChunkReader(path: fileURL.path)
+        // 第一次读取 limitBytes 为 11，刚好截断在 '中' (E4 B8 AD) 的第 1 个字节
+        let firstChunk = reader.readNextChunk(limitBytes: 11)
+        switch firstChunk {
+        case .success(let payload):
+            // 应该安全回退 1 字节，只读出前 10 字节 ASCII
+            XCTAssertEqual(payload.content, "ABCDEFGHIJ")
+            XCTAssertEqual(payload.bytesRead, 10)
+            XCTAssertTrue(payload.hasMore)
+        case .failure(let error):
+            XCTFail("Unexpected failure on boundary chunk: \(error)")
+        }
+
+        // 第二次读取剩余内容，应该顺利读出完整的 "中文"
+        let secondChunk = reader.readNextChunk(limitBytes: 100)
+        switch secondChunk {
+        case .success(let payload):
+            XCTAssertEqual(payload.content, "中文")
+            XCTAssertFalse(payload.hasMore)
+        case .failure(let error):
+            XCTFail("Unexpected failure on remainder chunk: \(error)")
+        }
+    }
+
+    func testTrailingIncompleteUTF8BytesDetection() {
+        // 完整 ASCII
+        let asciiData = "hello".data(using: .utf8)!
+        XCTAssertEqual(FileChunkReader.trailingIncompleteUTF8Bytes(in: asciiData), 0)
+
+        // 截断 1 字节：3 字节 UTF-8 中文 '中' (0xE4, 0xB8, 0xAD)，只有 0xE4
+        let truncated1 = Data([0x61, 0x62, 0xE4])
+        XCTAssertEqual(FileChunkReader.trailingIncompleteUTF8Bytes(in: truncated1), 1)
+
+        // 截断 2 字节：3 字节 UTF-8 中文 '中'，只有 0xE4, 0xB8
+        let truncated2 = Data([0x61, 0x62, 0xE4, 0xB8])
+        XCTAssertEqual(FileChunkReader.trailingIncompleteUTF8Bytes(in: truncated2), 2)
+
+        // 完整中文
+        let completeChinese = "中文".data(using: .utf8)!
+        XCTAssertEqual(FileChunkReader.trailingIncompleteUTF8Bytes(in: completeChinese), 0)
+    }
 }

@@ -1,10 +1,13 @@
 import SwiftUI
 import UniformTypeIdentifiers
+import Combine
 
 struct PreviewWindowActions {
     let closeOverlay: () -> Void
     let showToast: (_ message: String, _ icon: String?) -> Void
     let currentWindow: () -> NSWindow?
+    var onSearchStateChanged: ((Bool) -> Void)? = nil
+    var triggerSearchSubject: PassthroughSubject<Void, Never>? = nil
 }
 
 struct PreviewDisplayState: Equatable {
@@ -64,28 +67,48 @@ struct ContentRenderCapability {
     let allowsPDFExport: Bool
     let usesTextContentLoader: Bool
     let showsGenericLoading: Bool
+    let supportsSearch: Bool
 }
 
 enum ContentRenderCapabilityRegistry {
-    static func capability(for renderType: FileRenderType?) -> ContentRenderCapability {
+    static func capability(for renderType: FileRenderType?, path: String? = nil, isSVGSourceMode: Bool = false) -> ContentRenderCapability {
+        guard let renderType else {
+            return ContentRenderCapability(
+                allowsPDFExport: false,
+                usesTextContentLoader: false,
+                showsGenericLoading: false,
+                supportsSearch: false
+            )
+        }
         switch renderType {
         case .markdown:
             return ContentRenderCapability(
                 allowsPDFExport: true,
                 usesTextContentLoader: true,
-                showsGenericLoading: false
+                showsGenericLoading: false,
+                supportsSearch: true
             )
         case .code, .plainText:
             return ContentRenderCapability(
                 allowsPDFExport: false,
                 usesTextContentLoader: true,
-                showsGenericLoading: true
+                showsGenericLoading: true,
+                supportsSearch: true
             )
-        case .pdf, .image, .office, .archive, .folder, .unsupported, .none:
+        case .image:
+            let isSVG = path?.lowercased().hasSuffix(".svg") == true
+            return ContentRenderCapability(
+                allowsPDFExport: false,
+                usesTextContentLoader: isSVG,
+                showsGenericLoading: false,
+                supportsSearch: isSVG && isSVGSourceMode
+            )
+        case .pdf, .office, .archive, .folder, .audio, .video, .font, .unsupported:
             return ContentRenderCapability(
                 allowsPDFExport: false,
                 usesTextContentLoader: false,
-                showsGenericLoading: false
+                showsGenericLoading: false,
+                supportsSearch: false
             )
         }
     }
@@ -94,12 +117,16 @@ enum ContentRenderCapabilityRegistry {
         capability(for: renderType).allowsPDFExport
     }
 
-    static func usesTextContentLoader(for renderType: FileRenderType?) -> Bool {
-        capability(for: renderType).usesTextContentLoader
+    static func usesTextContentLoader(for renderType: FileRenderType?, path: String? = nil) -> Bool {
+        capability(for: renderType, path: path).usesTextContentLoader
     }
 
     static func showsGenericLoading(for renderType: FileRenderType?) -> Bool {
         capability(for: renderType).showsGenericLoading
+    }
+
+    static func supportsSearch(for renderType: FileRenderType?, path: String? = nil, isSVGSourceMode: Bool = false) -> Bool {
+        capability(for: renderType, path: path, isSVGSourceMode: isSVGSourceMode).supportsSearch
     }
 }
 
@@ -124,20 +151,26 @@ enum PreviewContentAreaChrome {
         case none
     }
 
-    static func backgroundStyle(for renderType: FileRenderType?) -> BackgroundStyle {
+    static func backgroundStyle(for renderType: FileRenderType?, isSVGSourceMode: Bool = false) -> BackgroundStyle {
+        if isSVGSourceMode {
+            return .appBackground
+        }
         switch renderType {
         case .image, .unsupported:
             return .transparent
-        case .markdown, .code, .plainText, .pdf, .office, .archive, .folder, .none:
+        case .markdown, .code, .plainText, .pdf, .office, .archive, .folder, .audio, .video, .font, .none:
             return .appBackground
         }
     }
 
-    static func borderStyle(for renderType: FileRenderType?) -> BorderStyle {
+    static func borderStyle(for renderType: FileRenderType?, isSVGSourceMode: Bool = false) -> BorderStyle {
+        if isSVGSourceMode {
+            return .appBorder
+        }
         switch renderType {
         case .image, .unsupported:
             return .none
-        case .markdown, .code, .plainText, .pdf, .office, .archive, .folder, .none:
+        case .markdown, .code, .plainText, .pdf, .office, .archive, .folder, .audio, .video, .font, .none:
             return .appBorder
         }
     }
@@ -153,7 +186,7 @@ enum PreviewContentVisibilityPolicy {
             return false
         }
 
-        guard ContentRenderCapabilityRegistry.usesTextContentLoader(for: renderType) else {
+        guard ContentRenderCapabilityRegistry.usesTextContentLoader(for: renderType, path: activePath) else {
             return true
         }
 
@@ -264,6 +297,12 @@ struct ContentView: View {
     @State private var localToastMessage: String = ""
     @State private var localToastIcon: String? = nil
     
+    // 全文搜索与 SVG 双模预览状态
+    @StateObject private var findBarState = FindBarState()
+    @State private var isSVGSourceMode: Bool = false
+    @State private var isSearchHovered: Bool = false
+    @State private var isCopySVGHovered: Bool = false
+    
     // 状态化分段文件读取器
     @State private var chunkReader: FileChunkReader? = nil
     @State private var markdownPreviewTimeline: MarkdownPreviewTimelineTracker? = nil
@@ -319,6 +358,10 @@ struct ContentView: View {
         displayState.errorMessage
     }
 
+    private var isExpanded: Bool {
+        displayState.isExpanded
+    }
+
     private var isLocatingSelection: Bool {
         displayState.isLoadingPath && activePath == nil
     }
@@ -341,6 +384,7 @@ struct ContentView: View {
             contentArea
                 .zIndex(0)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .ignoresSafeArea(edges: .top)
         .background(
             VisualEffectView(material: .hudWindow, blendingMode: .behindWindow)
@@ -351,6 +395,8 @@ struct ContentView: View {
         .background(Color.clear) // 根容器背景必须是透明 clear，保持留白边缘穿透
         .toast(isShowing: $showLocalToast, message: localToastMessage, icon: localToastIcon)
         .onDisappear {
+            findBarState.dismiss()
+            isSVGSourceMode = false
             chunkReader?.close()
             chunkReader = nil
             markdownPreviewTimeline = nil
@@ -365,6 +411,8 @@ struct ContentView: View {
             }
         }
         .onChange(of: activePath) { newPath in
+            findBarState.dismiss()
+            isSVGSourceMode = false
             if let path = newPath {
                 prepareForIncomingPath(path)
                 Task {
@@ -389,6 +437,24 @@ struct ContentView: View {
             if newRenderType != .markdown {
                 markdownPreviewTimeline = nil
                 markdownHasLoadedInitialContent = false
+            }
+        }
+        .onChange(of: findBarState.isPresented) { isPresented in
+            windowActions.onSearchStateChanged?(isPresented)
+            if isPresented {
+                triggerFullLoadForSearchIfNeeded()
+            }
+        }
+        .onChange(of: findBarState.query) { newQuery in
+            if !newQuery.isEmpty && findBarState.isPresented {
+                triggerFullLoadForSearchIfNeeded()
+            }
+        }
+        .onReceive(windowActions.triggerSearchSubject ?? PassthroughSubject<Void, Never>()) {
+            withAnimation(.easeInOut(duration: 0.15)) {
+                if !findBarState.isPresented {
+                    findBarState.present()
+                }
             }
         }
     }
@@ -452,10 +518,14 @@ struct ContentView: View {
                     windowActions.closeOverlay()
                 }
                 
-                // 展开/收起按钮
-                CircleControlButton(iconName: "arrow.left.and.right", isHovered: isHeaderHovered) {
+                // 全屏/还原按钮
+                CircleControlButton(
+                    iconName: isExpanded ? "arrow.down.right.and.arrow.up.left" : "arrow.up.left.and.arrow.down.right",
+                    isHovered: isHeaderHovered
+                ) {
                     session.toggleExpanded()
                 }
+                .help(isExpanded ? "Exit Full Screen".localized() : "Full Screen".localized())
             }
             .frame(width: 72, alignment: .leading)
             
@@ -497,9 +567,131 @@ struct ContentView: View {
 
             Spacer()
 
-            // 右侧控制区域（外部接力打开与 PDF 导出）
+            // 右侧控制区域（外部接力打开、SVG模式切换、⌥F搜索、PDF导出）
             HStack(spacing: 8) {
                 if let path = activePath, activeErrorMessage == nil {
+                    // SVG 双模切换胶囊 & 源码复制按钮
+                    let isSVG = path.lowercased().hasSuffix(".svg")
+                    if isSVG {
+                        HStack(spacing: 4) {
+                            // 模式切换极简微胶囊（纯图标：photo ⟷ code）
+                            HStack(spacing: 2) {
+                                Button(action: {
+                                    withAnimation(.easeInOut(duration: 0.15)) {
+                                        isSVGSourceMode = false
+                                        findBarState.dismiss()
+                                    }
+                                }) {
+                                    Image(systemName: "photo")
+                                        .font(.system(size: 11, weight: .medium))
+                                        .foregroundColor(isSVGSourceMode ? Color.appText.opacity(0.45) : Color.appText)
+                                        .frame(width: 22, height: 22)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 5)
+                                                .fill(isSVGSourceMode ? Color.clear : Color.appText.opacity(0.12))
+                                        )
+                                        .contentShape(Rectangle())
+                                }
+                                .buttonStyle(.plain)
+                                .help("Visual Preview".localized())
+
+                                Button(action: {
+                                    withAnimation(.easeInOut(duration: 0.15)) {
+                                        isSVGSourceMode = true
+                                    }
+                                }) {
+                                    Image(systemName: "chevron.left.forwardslash.chevron.right")
+                                        .font(.system(size: 10, weight: .semibold))
+                                        .foregroundColor(isSVGSourceMode ? Color.appText : Color.appText.opacity(0.45))
+                                        .frame(width: 22, height: 22)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 5)
+                                                .fill(isSVGSourceMode ? Color.appText.opacity(0.12) : Color.clear)
+                                        )
+                                        .contentShape(Rectangle())
+                                }
+                                .buttonStyle(.plain)
+                                .help("Source Code".localized())
+                            }
+                            .padding(2)
+                            .background(
+                                RoundedRectangle(cornerRadius: 7)
+                                    .fill(Color.appText.opacity(0.06))
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 7)
+                                    .stroke(Color.appBorder.opacity(colorScheme == .dark ? 0.2 : 0.1), lineWidth: 0.5)
+                            )
+
+                            // 源码模式下一键复制 SVG 源码
+                            if isSVGSourceMode {
+                                Button(action: {
+                                    NSPasteboard.general.clearContents()
+                                    NSPasteboard.general.setString(content, forType: .string)
+                                    localToastMessage = "SVG code copied to clipboard".localized()
+                                    localToastIcon = "doc.on.doc"
+                                    showLocalToast = true
+                                }) {
+                                    Image(systemName: "doc.on.doc")
+                                        .font(.system(size: 12, weight: .medium))
+                                        .foregroundColor(Color.appText.opacity(isCopySVGHovered ? 0.95 : 0.75))
+                                        .frame(width: 22, height: 22)
+                                        .background(
+                                            RoundedRectangle(cornerRadius: 5)
+                                                .fill(Color.appText.opacity(isCopySVGHovered ? 0.12 : 0.06))
+                                        )
+                                        .overlay(
+                                            RoundedRectangle(cornerRadius: 5)
+                                                .stroke(Color.appText.opacity(isCopySVGHovered ? 0.18 : (colorScheme == .dark ? 0.12 : 0.08)), lineWidth: 0.5)
+                                        )
+                                        .contentShape(Rectangle())
+                                }
+                                .buttonStyle(.plain)
+                                .help("Copy SVG Code".localized())
+                                .onHover { hovering in
+                                    isCopySVGHovered = hovering
+                                }
+                            }
+                        }
+                    }
+
+                    // ⌥F 全文搜索按钮 (针对代码、纯文本、Markdown、结构化数据或 SVG 源码模式)
+                    let effectiveRenderType = activeRenderType ?? session.state.target?.renderType
+                    let supportsFind = ContentRenderCapabilityRegistry.supportsSearch(
+                        for: effectiveRenderType,
+                        path: path,
+                        isSVGSourceMode: isSVGSourceMode
+                    )
+                    if supportsFind {
+                        Button(action: {
+                            if findBarState.isPresented {
+                                findBarState.dismiss()
+                            } else {
+                                findBarState.present()
+                            }
+                        }) {
+                            Image(systemName: "magnifyingglass")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(findBarState.isPresented ? Color.accentColor : Color.appText.opacity(isSearchHovered ? 0.95 : 0.75))
+                                .frame(width: 22, height: 22)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 5)
+                                        .fill(findBarState.isPresented ? Color.accentColor.opacity(0.15) : Color.appText.opacity(isSearchHovered ? 0.12 : 0.06))
+                                 )
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 5)
+                                        .stroke(findBarState.isPresented ? Color.accentColor.opacity(0.3) : Color.appText.opacity(isSearchHovered ? 0.18 : (colorScheme == .dark ? 0.12 : 0.08)), lineWidth: 0.5)
+                                 )
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .help("Find in file (⌥F)".localized())
+                        .keyboardShortcut("f", modifiers: .option)
+                        .onHover { hovering in
+                            isSearchHovered = hovering
+                        }
+                    }
+
                     if ContentRenderCapabilityRegistry.allowsPDFExport(for: activeRenderType) {
                         Group {
                             if isExportingPDF {
@@ -563,18 +755,24 @@ struct ContentView: View {
     @ViewBuilder
     private var contentArea: some View {
         ZStack(alignment: .bottom) {
-            mainContent
-                .background(contentAreaBackgroundColor)
-                .cornerRadius(15)
-                .overlay(
-                    Group {
-                        if PreviewContentAreaChrome.borderStyle(for: activeRenderType) == .appBorder {
-                            RoundedRectangle(cornerRadius: 15)
-                                .stroke(Color.appBorder.opacity(colorScheme == .dark ? 0.25 : 0.12), lineWidth: 0.8)
+            ZStack(alignment: .topTrailing) {
+                mainContent
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(contentAreaBackgroundColor)
+                    .cornerRadius(15)
+                    .overlay(
+                        Group {
+                            if PreviewContentAreaChrome.borderStyle(for: activeRenderType, isSVGSourceMode: isSVGSourceMode) == .appBorder {
+                                RoundedRectangle(cornerRadius: 15)
+                                    .stroke(Color.appBorder.opacity(colorScheme == .dark ? 0.25 : 0.12), lineWidth: 0.8)
+                            }
                         }
-                    }
-                )
-                .padding([.horizontal, .bottom], 5) // 调整内边距至 5pt
+                    )
+                    .padding([.horizontal, .bottom], 5) // 调整内边距至 5pt
+
+                FindBarView(state: findBarState)
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
 
             if shouldShowLoadingOverlay {
                 VStack(spacing: 16) {
@@ -617,7 +815,7 @@ struct ContentView: View {
     }
 
     private var contentAreaBackgroundColor: Color {
-        switch PreviewContentAreaChrome.backgroundStyle(for: activeRenderType) {
+        switch PreviewContentAreaChrome.backgroundStyle(for: activeRenderType, isSVGSourceMode: isSVGSourceMode) {
         case .appBackground:
             return Color.appBackground
         case .transparent:
@@ -684,7 +882,8 @@ struct ContentView: View {
                             markdownBootstrapReady = true
                             isLoading = false
                         }
-                    }
+                    },
+                    findBarState: findBarState
                 )
             case .code:
                 if StructuredDataCategoryRegistry.isStructuredData(path: path) {
@@ -697,7 +896,8 @@ struct ContentView: View {
                         loadState: loadState,
                         onLoadMore: {
                             Task { await loadNextChunkAsync(for: path) }
-                        }
+                        },
+                        findBarState: findBarState
                     )
                 } else {
                     // NOTE: 将 settings 订阅下沉到 PreviewCodeView 内部，
@@ -710,7 +910,8 @@ struct ContentView: View {
                         loadState: loadState,
                         onLoadMore: {
                             Task { await loadNextChunkAsync(for: path) }
-                        }
+                        },
+                        findBarState: findBarState
                     )
                 }
             case .plainText:
@@ -722,9 +923,37 @@ struct ContentView: View {
                     loadState: loadState,
                     onLoadMore: {
                         Task { await loadNextChunkAsync(for: path) }
-                    }
+                    },
+                    findBarState: findBarState
                 )
-            case .pdf, .image:
+            case .image:
+                let isSVG = path.lowercased().hasSuffix(".svg")
+                if isSVG && isSVGSourceMode {
+                    PreviewCodeView(
+                        path: path,
+                        content: content,
+                        language: "xml",
+                        isDark: isDark,
+                        loadState: loadState,
+                        onLoadMore: {
+                            Task { await loadNextChunkAsync(for: path) }
+                        },
+                        findBarState: findBarState
+                    )
+                } else {
+                    heavyPreviewContainer(
+                        title: URL(fileURLWithPath: path).lastPathComponent,
+                        renderType: renderType
+                    ) {
+                        MediaPreviewView(
+                            filePath: path,
+                            renderType: renderType,
+                            readyToken: previewReadinessState.token,
+                            onReady: markHeavyPreviewReady
+                        )
+                    }
+                }
+            case .pdf:
                 heavyPreviewContainer(
                     title: URL(fileURLWithPath: path).lastPathComponent,
                     renderType: renderType
@@ -764,6 +993,12 @@ struct ContentView: View {
                     }
                 )
                 .id(path)
+            case .audio:
+                AudioPreviewView(filePath: path)
+            case .video:
+                VideoPreviewView(filePath: path)
+            case .font:
+                FontPreviewView(filePath: path)
             case .unsupported:
                 UnsupportedFileView(filePath: path, errorMessage: activeErrorMessage)
             }
@@ -821,7 +1056,7 @@ struct ContentView: View {
             }
         }
 
-        if !ContentRenderCapabilityRegistry.usesTextContentLoader(for: activeRenderType) {
+        if !ContentRenderCapabilityRegistry.usesTextContentLoader(for: activeRenderType, path: path) {
             return await MainActor.run {
                 guard loadCoordinator.shouldApplyResult(for: request, currentPath: activePath) else {
                     return false
@@ -950,6 +1185,70 @@ struct ContentView: View {
         }
     }
 
+    /// 当用户呼出搜索框或在搜索框输入关键词时，如果当前文件还有剩余未加载分块，
+    /// 自动在后台快速连续读取剩余所有分块，实现 100% 全文覆盖检索
+    private func triggerFullLoadForSearchIfNeeded() {
+        guard let path = activePath,
+              loadState.hasMoreChunks,
+              !loadState.isIncrementalLoading else { return }
+        Task {
+            await loadAllRemainingChunksForSearchAsync(for: path)
+        }
+    }
+
+    /// 在大文本搜索时，一次性将剩余所有分段快速读取完毕，使得搜索能 100% 覆盖整个大文件
+    @MainActor
+    private func loadAllRemainingChunksForSearchAsync(for requestPath: String) async {
+        guard let request = loadCoordinator.activeRequest else { return }
+        guard let reader = chunkReader,
+              loadState.hasMoreChunks,
+              !loadState.isIncrementalLoading,
+              PreviewIncrementalContentLoadPolicy.shouldApplyChunk(
+                request: request,
+                activeRequest: loadCoordinator.activeRequest,
+                activePath: activePath,
+                loadedContentPath: loadedContentPath
+              ),
+              request.path == requestPath else { return }
+
+        loadState.isIncrementalLoading = true
+
+        let result = await Task.detached(priority: .userInitiated) { () -> Result<String, FileUtils.FileError> in
+            var accumulated = ""
+            var hasMore = true
+            while hasMore {
+                let res = reader.readNextChunk(limitBytes: Constants.chunkSize * 2)
+                switch res {
+                case .success(let payload):
+                    accumulated += payload.content
+                    hasMore = payload.hasMore
+                case .failure(let error):
+                    return .failure(error)
+                }
+            }
+            return .success(accumulated)
+        }.value
+
+        guard PreviewIncrementalContentLoadPolicy.shouldApplyChunk(
+            request: request,
+            activeRequest: loadCoordinator.activeRequest,
+            activePath: activePath,
+            loadedContentPath: loadedContentPath
+        ) else {
+            loadState.isIncrementalLoading = false
+            return
+        }
+
+        switch result {
+        case .success(let remainingContent):
+            self.content += remainingContent
+            self.loadState.hasMoreChunks = false
+            self.loadState.isIncrementalLoading = false
+        case .failure:
+            self.loadState.isIncrementalLoading = false
+        }
+    }
+
     @MainActor
     private func triggerPathLoadIfNeeded(path: String) async {
         guard inflightLoadPath != path else { return }
@@ -978,6 +1277,8 @@ struct ContentView: View {
         markdownHasLoadedInitialContent = false
         markdownBootstrapReady = false
         isLoading = true
+        findBarState.dismiss()
+        isSVGSourceMode = false
     }
 
     private func resetHeavyPreviewState(for renderType: FileRenderType?) {
@@ -1098,17 +1399,19 @@ struct PreviewCodeView: View {
     let isDark: Bool
     let loadState: PreviewLoadState
     let onLoadMore: () -> Void
+    var findBarState: FindBarState? = nil
 
     // NOTE: 恢复 @ObservedObject 绑定，以实现设置修改时文本字号与字体的实时热联动
     @ObservedObject private var settings = Settings.shared
 
-    init(path: String, content: String, language: String?, isDark: Bool, loadState: PreviewLoadState, onLoadMore: @escaping () -> Void) {
+    init(path: String, content: String, language: String?, isDark: Bool, loadState: PreviewLoadState, onLoadMore: @escaping () -> Void, findBarState: FindBarState? = nil) {
         self.path = path
         self.content = content
         self.language = language
         self.isDark = isDark
         self.loadState = loadState
         self.onLoadMore = onLoadMore
+        self.findBarState = findBarState
     }
 
     var body: some View {
@@ -1120,7 +1423,8 @@ struct PreviewCodeView: View {
             fontName: settings.editorFont,
             isDark: isDark,
             loadState: loadState,
-            onLoadMore: onLoadMore
+            onLoadMore: onLoadMore,
+            findBarState: findBarState
         )
     }
 }

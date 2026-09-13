@@ -1,4 +1,5 @@
 import XCTest
+import SwiftUI
 @testable import QuickCookies
 
 private final class StubFinderSelectionPathProvider: FinderSelectionPathProviding {
@@ -46,6 +47,31 @@ final class QuickLookOverlayStateTests: XCTestCase {
 
         XCTAssertEqual(try? result.get(), "/tmp/injected-from-app-delegate.md")
         XCTAssertEqual(stubProvider.selectedPathCalls, 1)
+    }
+
+    func test_appDelegateShared_isConfiguredAndAccessible() {
+        let stubProvider = StubFinderSelectionPathProvider(result: .success("/tmp/test.md"))
+        let appDelegate = AppDelegate(finderSelectionPathProvider: stubProvider)
+        XCTAssertTrue(AppDelegate.shared === appDelegate)
+    }
+
+    func test_appDelegateShowOnboarding_createsWindowAndSupportsReopen() {
+        let stubProvider = StubFinderSelectionPathProvider(result: .success("/tmp/test.md"))
+        let appDelegate = AppDelegate(finderSelectionPathProvider: stubProvider)
+        defer {
+            appDelegate.currentOnboardingWindow?.close()
+        }
+
+        XCTAssertNil(appDelegate.currentOnboardingWindow)
+        appDelegate.showOnboarding()
+        let initialWindow = appDelegate.currentOnboardingWindow
+        XCTAssertNotNil(initialWindow)
+
+        // Calling showOnboarding with reopen: true recreates a fresh window instance
+        appDelegate.showOnboarding(reopen: true)
+        let reopenedWindow = appDelegate.currentOnboardingWindow
+        XCTAssertNotNil(reopenedWindow)
+        XCTAssertFalse(initialWindow === reopenedWindow)
     }
 
     func test_previewUIPresenter_forwardsInjectedUIActions() {
@@ -132,6 +158,7 @@ final class QuickLookOverlayStateTests: XCTestCase {
     func test_previewWindowActions_performInjectedCallbacks() {
         var didClose = false
         var toastPayload: (String, String?)?
+        var searchStateReceived: Bool?
         let expectedWindow = NSWindow()
 
         let actions = PreviewWindowActions(
@@ -143,15 +170,20 @@ final class QuickLookOverlayStateTests: XCTestCase {
             },
             currentWindow: {
                 expectedWindow
+            },
+            onSearchStateChanged: { isSearching in
+                searchStateReceived = isSearching
             }
         )
 
         actions.closeOverlay()
         actions.showToast("Saved", "checkmark.circle.fill")
+        actions.onSearchStateChanged?(true)
 
         XCTAssertTrue(didClose)
         XCTAssertEqual(toastPayload?.0, "Saved")
         XCTAssertEqual(toastPayload?.1, "checkmark.circle.fill")
+        XCTAssertEqual(searchStateReceived, true)
         XCTAssertIdentical(actions.currentWindow(), expectedWindow)
     }
 
@@ -285,6 +317,37 @@ final class QuickLookOverlayStateTests: XCTestCase {
             PreviewOverlayKeyWindowPolicy.canBecomeKey(
                 renderType: .code,
                 source: .hotkey
+            )
+        )
+    }
+
+    func test_previewOverlayKeyWindowPolicy_allowsFinderDrivenPreviewWhenSearchIsActive() {
+        XCTAssertTrue(
+            PreviewOverlayKeyWindowPolicy.canBecomeKey(
+                renderType: .code,
+                source: .hotkey,
+                isSearchActive: true
+            )
+        )
+        XCTAssertTrue(
+            PreviewOverlayKeyWindowPolicy.canBecomeKey(
+                renderType: .image,
+                source: .hotkey,
+                isSearchActive: true
+            )
+        )
+        XCTAssertTrue(
+            PreviewOverlayKeyWindowPolicy.canBecomeKey(
+                renderType: .markdown,
+                source: .hotkey,
+                isSearchActive: true
+            )
+        )
+        XCTAssertFalse(
+            PreviewOverlayKeyWindowPolicy.canBecomeKey(
+                renderType: nil,
+                source: .hotkey,
+                isSearchActive: true
             )
         )
     }
@@ -594,12 +657,12 @@ final class QuickLookOverlayStateTests: XCTestCase {
     func test_previewOverlaySizingPolicy_usesDocumentWidthForWordLikeOfficeContent() {
         XCTAssertEqual(
             PreviewOverlaySizingPolicy.widthRatio(for: .office, fileExtension: "docx", isExpanded: false),
-            0.34,
+            0.52,
             accuracy: 0.0001
         )
         XCTAssertEqual(
             PreviewOverlaySizingPolicy.widthRatio(for: .office, fileExtension: "pages", isExpanded: true),
-            0.56,
+            0.96,
             accuracy: 0.0001
         )
     }
@@ -607,12 +670,12 @@ final class QuickLookOverlayStateTests: XCTestCase {
     func test_previewOverlaySizingPolicy_usesSpreadsheetWidthForExcelLikeOfficeContent() {
         XCTAssertEqual(
             PreviewOverlaySizingPolicy.widthRatio(for: .office, fileExtension: "xlsx", isExpanded: false),
-            0.72,
+            0.82,
             accuracy: 0.0001
         )
         XCTAssertEqual(
             PreviewOverlaySizingPolicy.widthRatio(for: .office, fileExtension: "numbers", isExpanded: true),
-            0.82,
+            0.96,
             accuracy: 0.0001
         )
     }
@@ -620,12 +683,12 @@ final class QuickLookOverlayStateTests: XCTestCase {
     func test_previewOverlaySizingPolicy_usesPresentationWidthForSlideLikeOfficeContent() {
         XCTAssertEqual(
             PreviewOverlaySizingPolicy.widthRatio(for: .office, fileExtension: "pptx", isExpanded: false),
-            0.66,
+            0.78,
             accuracy: 0.0001
         )
         XCTAssertEqual(
             PreviewOverlaySizingPolicy.widthRatio(for: .office, fileExtension: "key", isExpanded: true),
-            0.78,
+            0.96,
             accuracy: 0.0001
         )
     }
@@ -633,12 +696,12 @@ final class QuickLookOverlayStateTests: XCTestCase {
     func test_previewOverlaySizingPolicy_preservesDefaultWidthForNonOfficeContent() {
         XCTAssertEqual(
             PreviewOverlaySizingPolicy.widthRatio(for: .markdown, fileExtension: nil, isExpanded: false),
-            0.48,
+            0.68,
             accuracy: 0.0001
         )
         XCTAssertEqual(
             PreviewOverlaySizingPolicy.widthRatio(for: .markdown, fileExtension: nil, isExpanded: true),
-            0.68,
+            0.96,
             accuracy: 0.0001
         )
     }
@@ -690,8 +753,23 @@ final class QuickLookOverlayStateTests: XCTestCase {
             screenVisibleFrame: screenFrame
         )
 
-        XCTAssertEqual(size.width, 768, accuracy: 0.0001)
+        XCTAssertEqual(size.width, 1088, accuracy: 0.0001)
         XCTAssertEqual(size.height, 880, accuracy: 0.0001)
+    }
+
+    func test_previewOverlaySizingPolicy_usesVisibleCardSizeForFullScreenExpandedWindow() {
+        let screenFrame = NSRect(x: 0, y: 0, width: 1600, height: 1000)
+
+        let size = PreviewOverlaySizingPolicy.stableContentSize(
+            renderType: .markdown,
+            filePath: "/tmp/demo.md",
+            isExpanded: true,
+            errorMessage: nil,
+            screenVisibleFrame: screenFrame
+        )
+
+        XCTAssertEqual(size.width, 1536, accuracy: 0.0001)
+        XCTAssertEqual(size.height, 960, accuracy: 0.0001)
     }
 
     func test_previewContentAreaChrome_keepsUnsupportedPresentationTransparent() {
@@ -976,6 +1054,29 @@ final class QuickLookOverlayStateTests: XCTestCase {
         XCTAssertFalse(ContentRenderCapabilityRegistry.usesTextContentLoader(for: .pdf))
         XCTAssertFalse(ContentRenderCapabilityRegistry.usesTextContentLoader(for: .unsupported))
         XCTAssertFalse(ContentRenderCapabilityRegistry.usesTextContentLoader(for: nil))
+    }
+
+    func test_contentRenderCapabilityRegistry_supportsSearch_forTextAndSVGSourceModes() {
+        XCTAssertTrue(ContentRenderCapabilityRegistry.supportsSearch(for: .code))
+        XCTAssertTrue(ContentRenderCapabilityRegistry.supportsSearch(for: .plainText))
+        XCTAssertTrue(ContentRenderCapabilityRegistry.supportsSearch(for: .markdown))
+
+        // SVG 在源码模式下支持搜索，视觉模式下不支持
+        XCTAssertTrue(ContentRenderCapabilityRegistry.supportsSearch(for: .image, path: "/tmp/icon.svg", isSVGSourceMode: true))
+        XCTAssertFalse(ContentRenderCapabilityRegistry.supportsSearch(for: .image, path: "/tmp/icon.svg", isSVGSourceMode: false))
+
+        // 普通图片不支持搜索
+        XCTAssertFalse(ContentRenderCapabilityRegistry.supportsSearch(for: .image, path: "/tmp/photo.png", isSVGSourceMode: true))
+        XCTAssertFalse(ContentRenderCapabilityRegistry.supportsSearch(for: .image, path: "/tmp/photo.png", isSVGSourceMode: false))
+
+        // 媒体与只读文档不支持搜索
+        XCTAssertFalse(ContentRenderCapabilityRegistry.supportsSearch(for: .pdf))
+        XCTAssertFalse(ContentRenderCapabilityRegistry.supportsSearch(for: .office))
+        XCTAssertFalse(ContentRenderCapabilityRegistry.supportsSearch(for: .audio))
+        XCTAssertFalse(ContentRenderCapabilityRegistry.supportsSearch(for: .video))
+        XCTAssertFalse(ContentRenderCapabilityRegistry.supportsSearch(for: .font))
+        XCTAssertFalse(ContentRenderCapabilityRegistry.supportsSearch(for: .unsupported))
+        XCTAssertFalse(ContentRenderCapabilityRegistry.supportsSearch(for: nil))
     }
 
     func test_contentLoadingPresentationPolicy_keepsGenericLoadingForTextBackedPreviewTypes() {
@@ -1521,5 +1622,189 @@ final class QuickLookOverlayStateTests: XCTestCase {
         hotkeyManager.unregister()
         // 验证注销后幂等且不崩溃
         hotkeyManager.unregister()
+    }
+
+    // MARK: - Onboarding Tests
+
+    func test_onboardingWindowPolicy_dimensionsAndConfiguration() {
+        XCTAssertEqual(OnboardingWindowPolicy.contentSize.width, 540, accuracy: 0.001)
+        XCTAssertEqual(OnboardingWindowPolicy.contentSize.height, 410, accuracy: 0.001)
+        XCTAssertEqual(OnboardingWindowPolicy.cornerRadius, 28, accuracy: 0.001)
+        XCTAssertEqual(OnboardingWindowPolicy.totalPages, 4)
+    }
+
+    func test_onboardingExitCoordinator_idempotency() {
+        var coordinator = OnboardingExitCoordinator()
+        XCTAssertFalse(coordinator.hasExited)
+
+        var callCount = 0
+        let firstResult = coordinator.requestExit {
+            callCount += 1
+        }
+        XCTAssertTrue(firstResult)
+        XCTAssertTrue(coordinator.hasExited)
+        XCTAssertEqual(callCount, 1)
+
+        let secondResult = coordinator.requestExit {
+            callCount += 1
+        }
+        XCTAssertFalse(secondResult)
+        XCTAssertTrue(coordinator.hasExited)
+        XCTAssertEqual(callCount, 1)
+    }
+
+    func test_onboardingShowcaseTab_completeness() {
+        XCTAssertEqual(ShowcaseTab.allCases.count, 4)
+        for tab in ShowcaseTab.allCases {
+            XCTAssertFalse(tab.title.isEmpty)
+            XCTAssertFalse(tab.icon.isEmpty)
+            XCTAssertFalse(tab.description.isEmpty)
+        }
+    }
+
+    func test_onboarding_localizationCoverage() {
+        let onboardingKeys = [
+            "Skip Guide",
+            "Instant Card Preview for Finder",
+            "Instant preview code, markdown, archives and documents without opening heavy apps.",
+            "Zero-Accessibility Risk",
+            "Interactive Hotkey Playground",
+            "Press twice anywhere in Finder to trigger instant card preview.",
+            "Double-press Command (Recommended)",
+            "Double-press Option",
+            "Try pressing twice on your keyboard now:",
+            "Triggered! Perfect muscle memory!",
+            "Waiting for double-press...",
+            "Superpower Showcase",
+            "Explore what QuickCookies can preview for you in Finder:",
+            "Code & Config",
+            "Markdown Docs",
+            "Archive & Folders",
+            "App Relay",
+            "Syntax highlighting for 60+ languages with line numbers & streaming highlight.",
+            "GitHub-style typography with rounded tables, transparent background & local images.",
+            "0-extract structure inspection, format size bar & collapsible directory tree.",
+            "One-click handoff to VS Code, Cursor, Xcode or your favorite editors.",
+            "Open in External Editor",
+            "Ready & Personalize",
+            "Personalized Settings",
+            "Zero-Permission Mode Ready",
+            "QuickCookies core features run without any accessibility permissions.",
+            "Theme Mode",
+            "Interface Language",
+            "Finder Extension",
+            "Attempted",
+            "Enable",
+            "Full Disk Access",
+            "Authorized",
+            "Grant Access",
+            "Back",
+            "Next",
+            "Start Exploring QuickCookies",
+            // Singline-inspired modern keys & Native HIG refactor
+            "Welcome to QuickCookies",
+            "Instant card preview for your Finder files",
+            "Fast, lightweight file previews for Finder",
+            "Let's go",
+            "Get Started",
+            "Takes about a minute",
+            "Takes about a minute · No extra permissions needed",
+            "How do you want to summon?",
+            "How would you like to open previews?",
+            "Choose the hotkey you press in Finder.",
+            "Choose the shortcut to press in Finder.",
+            "Double Command",
+            "Double Option",
+            "Instant Search",
+            "Double Command is recommended for natural macOS muscle memory.",
+            "Double Command is recommended for natural macOS interaction.",
+            "What can QuickCookies do?",
+            "What QuickCookies previews",
+            "Instant preview without opening heavy apps.",
+            "Preview files instantly without opening heavy editors.",
+            "You're all set",
+            "QuickCookies is standing by in Finder.",
+            "QuickCookies is ready to preview files in Finder.",
+            "Pure architecture",
+            "Privacy & Security",
+            "Zero",
+            "Accessibility privileges needed. Safe, private & instant.",
+            "Zero Accessibility privileges required. Safe, private, and lightweight.",
+            "No Special Permissions Required",
+            "Start at login",
+            "Open at Login",
+            "Ready when you open your Mac.",
+            "Available in the background right after you log in.",
+            "View settings >",
+            "More Settings...",
+            "Fonts, theme and shortcuts.",
+            "Customize fonts, themes, and shortcuts.",
+            "Start Exploring",
+            "Start Using QuickCookies",
+            "Continue",
+            "Recommended",
+            "Classic",
+            "60+ Languages",
+            "GitHub Typography",
+            "0-Extract X-Ray",
+            "Instant Inspection",
+            "GitHub-style typography with rounded tables & images.",
+            "Feature",
+            "Status",
+            "Close Preview (Esc)",
+            "Dismiss Window",
+            "Copy full path to clipboard",
+            "Copy full physical path to clipboard",
+            "Architecture & Capabilities",
+            "Fast Syntax Highlighting",
+            "Seamless Editor Handoff"
+        ]
+
+        for key in onboardingKeys {
+            let enTranslation = Localization.translate(key, lang: .en)
+            let zhTranslation = Localization.translate(key, lang: .zhHans)
+
+            XCTAssertFalse(enTranslation.isEmpty, "English translation should not be empty for key: \(key)")
+            XCTAssertFalse(zhTranslation.isEmpty, "Chinese translation should not be empty for key: \(key)")
+            XCTAssertNotEqual(zhTranslation, key, "Chinese translation should not return fallback English key for: \(key)")
+        }
+    }
+
+    func test_onboardingView_canRenderAllPagesWithoutCrashing() {
+        for page in 0..<OnboardingWindowPolicy.totalPages {
+            let view = OnboardingView(initialPage: page)
+            let hosting = NSHostingView(rootView: view)
+            hosting.frame = NSRect(origin: .zero, size: OnboardingWindowPolicy.contentSize)
+            XCTAssertEqual(hosting.frame.size.width, 540, accuracy: 0.001)
+            XCTAssertEqual(hosting.frame.size.height, 410, accuracy: 0.001)
+        }
+    }
+
+    func test_onboardingView_renderAndSaveSnapshots() {
+        let size = OnboardingWindowPolicy.contentSize
+        let targetDir = "/Users/jiangwei/.gemini/antigravity/brain/2d112d4e-b4ed-46df-9a55-9b4b3ea47f81/scratch"
+        
+        let window = NSWindow(
+            contentRect: NSRect(origin: .zero, size: size),
+            styleMask: [.borderless],
+            backing: .buffered,
+            defer: false
+        )
+        window.isOpaque = false
+        window.backgroundColor = .clear
+        
+        for page in 0..<OnboardingWindowPolicy.totalPages {
+            let view = OnboardingView(initialPage: page)
+            let hosting = NSHostingView(rootView: view)
+            hosting.frame = NSRect(origin: .zero, size: size)
+            window.contentView = hosting
+            hosting.layoutSubtreeIfNeeded()
+            
+            guard let bitmap = hosting.bitmapImageRepForCachingDisplay(in: hosting.bounds) else { continue }
+            hosting.cacheDisplay(in: hosting.bounds, to: bitmap)
+            let pngData = bitmap.representation(using: .png, properties: [:])
+            let fileURL = URL(fileURLWithPath: "\(targetDir)/onboarding_page_\(page).png")
+            try? pngData?.write(to: fileURL)
+        }
     }
 }

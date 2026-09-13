@@ -54,10 +54,19 @@
 		ARCHRDRBLD00000000000001 /* ArchiveReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = ARCHRDRREF00000000000001 /* ArchiveReader.swift */; };
 		FOLDRDRBLD00000000000001 /* FolderReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = FOLDRDRREF00000000000001 /* FolderReader.swift */; };
 		STRDATAPARSERBLD0000001 /* StructuredDataParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = STRDATAPARSERREF0000001 /* StructuredDataParser.swift */; };
+		SCRNLOCBLD00000000000001 /* ScreenLocator.swift in Sources */ = {isa = PBXBuildFile; fileRef = SCRNLOCREF00000000000001 /* ScreenLocator.swift */; };
+		SCRNLOCTSTBLD000000000001 /* ScreenLocatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = SCRNLOCTSTREF000000000001 /* ScreenLocatorTests.swift */; };
 		STRDATAVIEWBLD000000001 /* StructuredDataView.swift in Sources */ = {isa = PBXBuildFile; fileRef = STRDATAVIEWREF000000001 /* StructuredDataView.swift */; };
 		TSTBLD000000000000000021 /* FolderReaderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF000000000000000021 /* FolderReaderTests.swift */; };
 		TSTBLD000000000000000022 /* StructuredDataParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TSTREF000000000000000022 /* StructuredDataParserTests.swift */; };
 		ARCHPRVBLD00000000000001 /* ArchivePreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ARCHPRVREF00000000000001 /* ArchivePreviewView.swift */; };
+		FINDBARSTBLD0000000000001 /* FindBarState.swift in Sources */ = {isa = PBXBuildFile; fileRef = FINDBARSTREF0000000000001 /* FindBarState.swift */; };
+		FINDBARVWBLD0000000000001 /* FindBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FINDBARVWREF0000000000001 /* FindBarView.swift */; };
+		AUDIOPRVBLD00000000000001 /* AudioPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AUDIOPRVREF00000000000001 /* AudioPreviewView.swift */; };
+		VIDEOPRVBLD00000000000001 /* VideoPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = VIDEOPRVREF00000000000001 /* VideoPreviewView.swift */; };
+		FONTPRVBLD000000000000001 /* FontPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FONTPRVREF000000000000001 /* FontPreviewView.swift */; };
+		FNDBARSTTSTBLD00000000001 /* FindBarStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FNDBARSTTSTREF00000000001 /* FindBarStateTests.swift */; };
+		SRCHPOLTSTBLD00000000001 /* PreviewOverlaySearchShortcutPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = SRCHPOLTSTREF00000000001 /* PreviewOverlaySearchShortcutPolicyTests.swift */; };
 		APPRELAYBLD00000000000001 /* AppRelayControlView.swift in Sources */ = {isa = PBXBuildFile; fileRef = APPRELAYREF00000000000001 /* AppRelayControlView.swift */; };
 		835FB7022FCA950400D23AAB /* UnsupportedFileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835FB7012FCA950400D23AAA /* UnsupportedFileView.swift */; };
 		962C8A503D0B4CA6963E2B94 /* QuickLookOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = B76F46CEB24C42779E84EBBE /* QuickLookOverlay.swift */; };
@@ -226,10 +235,19 @@
 		ARCHRDRREF00000000000001 /* ArchiveReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchiveReader.swift; sourceTree = "<group>"; };
 		FOLDRDRREF00000000000001 /* FolderReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FolderReader.swift; sourceTree = "<group>"; };
 		STRDATAPARSERREF0000001 /* StructuredDataParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StructuredDataParser.swift; sourceTree = "<group>"; };
+		SCRNLOCREF00000000000001 /* ScreenLocator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenLocator.swift; sourceTree = "<group>"; };
+		SCRNLOCTSTREF000000000001 /* ScreenLocatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScreenLocatorTests.swift; sourceTree = "<group>"; };
 		STRDATAVIEWREF000000001 /* StructuredDataView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StructuredDataView.swift; sourceTree = "<group>"; };
 		TSTREF000000000000000021 /* FolderReaderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FolderReaderTests.swift; sourceTree = "<group>"; };
 		TSTREF000000000000000022 /* StructuredDataParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StructuredDataParserTests.swift; sourceTree = "<group>"; };
 		ARCHPRVREF00000000000001 /* ArchivePreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ArchivePreviewView.swift; sourceTree = "<group>"; };
+		FINDBARSTREF0000000000001 /* FindBarState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FindBarState.swift; sourceTree = "<group>"; };
+		FINDBARVWREF0000000000001 /* FindBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FindBarView.swift; sourceTree = "<group>"; };
+		AUDIOPRVREF00000000000001 /* AudioPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AudioPreviewView.swift; sourceTree = "<group>"; };
+		VIDEOPRVREF00000000000001 /* VideoPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoPreviewView.swift; sourceTree = "<group>"; };
+		FONTPRVREF000000000000001 /* FontPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FontPreviewView.swift; sourceTree = "<group>"; };
+		FNDBARSTTSTREF00000000001 /* FindBarStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FindBarStateTests.swift; sourceTree = "<group>"; };
+		SRCHPOLTSTREF00000000001 /* PreviewOverlaySearchShortcutPolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewOverlaySearchShortcutPolicyTests.swift; sourceTree = "<group>"; };
 		MEDPREVREF00000000000001 /* MediaPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MediaPreviewView.swift; sourceTree = "<group>"; };
 		ONBOARDREF00000000000001 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		835FB7012FCA950400D23AAA /* UnsupportedFileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnsupportedFileView.swift; sourceTree = "<group>"; };
@@ -308,6 +326,7 @@
 				ARCHRDRREF00000000000001 /* ArchiveReader.swift */,
 				FOLDRDRREF00000000000001 /* FolderReader.swift */,
 				STRDATAPARSERREF0000001 /* StructuredDataParser.swift */,
+				SCRNLOCREF00000000000001 /* ScreenLocator.swift */,
 				FMI000000000000000000002 /* FinderMenuIntegration.swift */,
 				835FBA032FCA950400D23A03 /* MarkedJS.swift */,
 				A1B2C3010000000000000021 /* Markdown */,
@@ -382,6 +401,11 @@
 				835FBA012FCA950400D23A01 /* OfficePreviewView.swift */,
 				ARCHPRVREF00000000000001 /* ArchivePreviewView.swift */,
 				STRDATAVIEWREF000000001 /* StructuredDataView.swift */,
+				FINDBARSTREF0000000000001 /* FindBarState.swift */,
+				FINDBARVWREF0000000000001 /* FindBarView.swift */,
+				AUDIOPRVREF00000000000001 /* AudioPreviewView.swift */,
+				VIDEOPRVREF00000000000001 /* VideoPreviewView.swift */,
+				FONTPRVREF000000000000001 /* FontPreviewView.swift */,
 			);
 			path = UI;
 			sourceTree = "<group>";
@@ -472,6 +496,9 @@
 				TSTREF00000000000000001F /* ArchiveReaderTests.swift */,
 				TSTREF000000000000000021 /* FolderReaderTests.swift */,
 				TSTREF000000000000000022 /* StructuredDataParserTests.swift */,
+				SCRNLOCTSTREF000000000001 /* ScreenLocatorTests.swift */,
+				FNDBARSTTSTREF00000000001 /* FindBarStateTests.swift */,
+				SRCHPOLTSTREF00000000001 /* PreviewOverlaySearchShortcutPolicyTests.swift */,
 			);
 			path = QuickCookiesTests;
 			sourceTree = "<group>";
@@ -653,6 +680,7 @@
 				ARCHRDRBLD00000000000001 /* ArchiveReader.swift in Sources */,
 				FOLDRDRBLD00000000000001 /* FolderReader.swift in Sources */,
 				STRDATAPARSERBLD0000001 /* StructuredDataParser.swift in Sources */,
+				SCRNLOCBLD00000000000001 /* ScreenLocator.swift in Sources */,
 				STRDATAVIEWBLD000000001 /* StructuredDataView.swift in Sources */,
 				APPRELAYBLD00000000000001 /* AppRelayControlView.swift in Sources */,
 				04C42AD9B8657A3924158DE2 /* ContentView.swift in Sources */,
@@ -668,6 +696,11 @@
 				835FBA042FCA950400D23A04 /* MarkedJS.swift in Sources */,
 				835FBA062FCA950400D23A06 /* MarkdownPDFExporter.swift in Sources */,
 				ARCHPRVBLD00000000000001 /* ArchivePreviewView.swift in Sources */,
+				FINDBARSTBLD0000000000001 /* FindBarState.swift in Sources */,
+				FINDBARVWBLD0000000000001 /* FindBarView.swift in Sources */,
+				AUDIOPRVBLD00000000000001 /* AudioPreviewView.swift in Sources */,
+				VIDEOPRVBLD00000000000001 /* VideoPreviewView.swift in Sources */,
+				FONTPRVBLD000000000000001 /* FontPreviewView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -701,6 +734,9 @@
 				TSTBLD00000000000000001F /* ArchiveReaderTests.swift in Sources */,
 				TSTBLD000000000000000021 /* FolderReaderTests.swift in Sources */,
 				TSTBLD000000000000000022 /* StructuredDataParserTests.swift in Sources */,
+				SCRNLOCTSTBLD000000000001 /* ScreenLocatorTests.swift in Sources */,
+				FNDBARSTTSTBLD00000000001 /* FindBarStateTests.swift in Sources */,
+				SRCHPOLTSTBLD00000000001 /* PreviewOverlaySearchShortcutPolicyTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

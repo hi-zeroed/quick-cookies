@@ -142,6 +142,7 @@ struct ImageFileView: View {
                     .cornerRadius(8)
                     .shadow(radius: 4)
                     .padding()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 VStack(spacing: 8) {
                     Text("无法加载图片".localized())
@@ -174,6 +175,7 @@ struct ImageFileView: View {
                 .padding(.bottom, 24)
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onAppear {
             loadContent(for: filePath)
         }
@@ -203,12 +205,16 @@ struct ImageFileView: View {
         if let nsImage = NSImage(contentsOfFile: path) {
             self.displayImage = nsImage
             if isSVG {
-                // 对于 SVG 矢量图，使用 nsImage.size 获取其 viewBox 逻辑尺寸
-                self.imageSize = nsImage.size
+                // NOTE: 对于 SVG 矢量图，使用 nsImage.size 获取其 viewBox 尺寸，并设定非零兜底以防止几何崩溃
+                let w = nsImage.size.width > 0 ? nsImage.size.width : 24
+                let h = nsImage.size.height > 0 ? nsImage.size.height : 24
+                self.imageSize = CGSize(width: max(w, 1), height: max(h, 1))
             } else if let rep = nsImage.representations.first {
-                self.imageSize = CGSize(width: rep.pixelsWide, height: rep.pixelsHigh)
+                let w = rep.pixelsWide > 0 ? CGFloat(rep.pixelsWide) : nsImage.size.width
+                let h = rep.pixelsHigh > 0 ? CGFloat(rep.pixelsHigh) : nsImage.size.height
+                self.imageSize = CGSize(width: max(w, 1), height: max(h, 1))
             } else {
-                self.imageSize = nsImage.size
+                self.imageSize = CGSize(width: max(nsImage.size.width, 1), height: max(nsImage.size.height, 1))
             }
         }
 

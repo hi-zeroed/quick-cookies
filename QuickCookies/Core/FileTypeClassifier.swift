@@ -10,6 +10,9 @@ enum FileRenderType {
     case office         // Word, Excel, PPT, RTF, RTFD, Pages, Numbers, Keynote, CSV 等
     case archive        // Zip, Tar, Gz, 7z, Rar 等压缩包与归档文件
     case folder         // 本地普通文件夹与目录
+    case audio          // 音频文件预览 (MP3, WAV, M4A, FLAC 等)
+    case video          // 视频文件预览 (MP4, MOV, M4V, WEBM 等)
+    case font           // 字体文件预览 (TTF, OTF, WOFF, WOFF2)
 }
 
 struct FileTypeClassifier {
@@ -38,8 +41,19 @@ struct FileTypeClassifier {
             return .image
         }
 
+        // 优先匹配音视频与字体
+        if Constants.audioExtensions.contains(ext) {
+            return .audio
+        }
+        if Constants.videoExtensions.contains(ext) {
+            return .video
+        }
+        if Constants.fontExtensions.contains(ext) {
+            return .font
+        }
+
         // 优先匹配办公文档与富文本
-        let officeExtensions: Set<String> = ["rtf", "rtfd", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "key", "pages", "numbers", "csv"]
+        let officeExtensions: Set<String> = ["rtf", "rtfd", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "key", "pages", "numbers"]
         if officeExtensions.contains(ext) {
             return .office
         }
@@ -101,13 +115,18 @@ struct FileTypeClassifier {
         }
 
         // 直接放行支持的办公文档和富文本格式
-        let officeExtensions: Set<String> = ["rtf", "rtfd", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "key", "pages", "numbers", "csv"]
+        let officeExtensions: Set<String> = ["rtf", "rtfd", "doc", "docx", "xls", "xlsx", "ppt", "pptx", "key", "pages", "numbers"]
         if officeExtensions.contains(ext) {
             return true
         }
 
         // 直接放行支持的压缩包与归档文件
         if Constants.archiveExtensions.contains(ext) {
+            return true
+        }
+
+        // 直接放行支持的音视频与字体文件
+        if Constants.audioExtensions.contains(ext) || Constants.videoExtensions.contains(ext) || Constants.fontExtensions.contains(ext) {
             return true
         }
 

@@ -38,8 +38,11 @@ enum PreviewCommandRouter {
 
 @MainActor
 class AppDelegate: NSObject, NSApplicationDelegate {
+    static private(set) weak var shared: AppDelegate?
+
     private let finderSelectionPathProvider: any FinderSelectionPathProviding
     private var onboardingWindow: NSWindow?
+    var currentOnboardingWindow: NSWindow? { onboardingWindow }
     private var didSetupNormalFlow = false
     private var notificationObservers: [NSObjectProtocol] = []
     private let previewSession = PreviewSession()
@@ -67,11 +70,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     override init() {
         self.finderSelectionPathProvider = AppleScriptFinderSelectionPathProvider()
         super.init()
+        AppDelegate.shared = self
     }
 
     init(finderSelectionPathProvider: any FinderSelectionPathProviding) {
         self.finderSelectionPathProvider = finderSelectionPathProvider
         super.init()
+        AppDelegate.shared = self
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -145,16 +150,19 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         overlay.finderSelectionPathProvider = finderSelectionPathProvider
     }
     
-    private func showOnboarding() {
-        // 如果 Onboarding 窗口已经存在且在屏幕上，直接置顶激活即可，防止重复创建
-        if let existingWindow = onboardingWindow {
+    func showOnboarding(reopen: Bool = false) {
+        // 如果是重新打开或者旧窗口已关闭/不可见，确保重置并重新创建
+        if reopen, let existingWindow = onboardingWindow {
+            existingWindow.close()
+            onboardingWindow = nil
+        } else if let existingWindow = onboardingWindow, existingWindow.isVisible {
             existingWindow.makeKeyAndOrderFront(nil)
             NSApp.activate(ignoringOtherApps: true)
             return
         }
 
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 620, height: 450),
+            contentRect: NSRect(origin: .zero, size: OnboardingWindowPolicy.contentSize),
             styleMask: [.titled, .closable, .fullSizeContentView],
             backing: .buffered,
             defer: false
@@ -167,6 +175,25 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         // NOTE: 必须设为 false，否则 close() 会触发 AppKit 额外向 ARC 已管理的对象发送多一次 release，
         // 造成引用计数下溢 → EXC_BAD_ACCESS 野指针崩溃
         window.isReleasedWhenClosed = false
+        window.isOpaque = false
+        window.backgroundColor = .clear
+        
+        // 隐藏标准红绿灯，呈现纯粹悬浮水晶大圆角卡片美学
+        window.standardWindowButton(.closeButton)?.isHidden = true
+        window.standardWindowButton(.miniaturizeButton)?.isHidden = true
+        window.standardWindowButton(.zoomButton)?.isHidden = true
+        
+        // 监听窗口直接关闭（如点击左上角红叉），避免滞留不可用的窗口实例
+        NotificationCenter.default.addObserver(
+            forName: NSWindow.willCloseNotification,
+            object: window,
+            queue: .main
+        ) { [weak self, weak window] _ in
+            if self?.onboardingWindow === window {
+                self?.onboardingWindow = nil
+            }
+            self?.setupNormalFlow()
+        }
         
         let onboardingView = OnboardingView(onFinished: { [weak self, weak window] in
             // 写入完成新手引导标识

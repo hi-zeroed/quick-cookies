@@ -26,6 +26,7 @@ struct StructuredDataView: View {
     let isDark: Bool
     let loadState: PreviewLoadState
     let onLoadMore: () -> Void
+    var findBarState: FindBarState? = nil
 
     @State private var displayMode: StructuredDataDisplayMode = .code
     @State private var rootNode: StructuredDataNode?
@@ -145,7 +146,8 @@ struct StructuredDataView: View {
             language: language,
             isDark: isDark,
             loadState: loadState,
-            onLoadMore: onLoadMore
+            onLoadMore: onLoadMore,
+            findBarState: findBarState
         )
     }
 

@@ -106,9 +106,9 @@ private extension PreviewRuntimeKind {
             return .web
         case .code, .plainText, .unsupported:
             return .text
-        case .office:
+        case .office, .font:
             return .document
-        case .image, .pdf:
+        case .image, .pdf, .audio, .video:
             return .media
         case .archive, .folder:
             return .archive
