@@ -67,6 +67,14 @@
 		FONTPRVBLD000000000000001 /* FontPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FONTPRVREF000000000000001 /* FontPreviewView.swift */; };
 		FNDBARSTTSTBLD00000000001 /* FindBarStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FNDBARSTTSTREF00000000001 /* FindBarStateTests.swift */; };
 		SRCHPOLTSTBLD00000000001 /* PreviewOverlaySearchShortcutPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = SRCHPOLTSTREF00000000001 /* PreviewOverlaySearchShortcutPolicyTests.swift */; };
+		PRVPROVBLD00000000000001 /* PreviewProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = PRVPROVREF00000000000001 /* PreviewProvider.swift */; };
+		PRVPROVREGBLD00000000001 /* PreviewProviderRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = PRVPROVREGREF00000000001 /* PreviewProviderRegistry.swift */; };
+		CLIINSTLBLD0000000000001 /* CLIInstaller.swift in Sources */ = {isa = PBXBuildFile; fileRef = CLIINSTLREF0000000000001 /* CLIInstaller.swift */; };
+		PRVHDRVWBLD00000000000001 /* PreviewHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = PRVHDRVWREF00000000000001 /* PreviewHeaderView.swift */; };
+		PRVCNTCTRBLD0000000000001 /* PreviewContentContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = PRVCNTCTRREF0000000000001 /* PreviewContentContainer.swift */; };
+		PRVFTRHUDBLD0000000000001 /* PreviewFooterHUD.swift in Sources */ = {isa = PBXBuildFile; fileRef = PRVFTRHUDREF0000000000001 /* PreviewFooterHUD.swift */; };
+		PRVPROVTSTBLD00000000001 /* PreviewProviderRegistryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = PRVPROVTSTREF00000000001 /* PreviewProviderRegistryTests.swift */; };
+		CLIINSTLTSTBLD0000000001 /* CLIInstallerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CLIINSTLTSTREF0000000001 /* CLIInstallerTests.swift */; };
 		APPRELAYBLD00000000000001 /* AppRelayControlView.swift in Sources */ = {isa = PBXBuildFile; fileRef = APPRELAYREF00000000000001 /* AppRelayControlView.swift */; };
 		835FB7022FCA950400D23AAB /* UnsupportedFileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835FB7012FCA950400D23AAA /* UnsupportedFileView.swift */; };
 		962C8A503D0B4CA6963E2B94 /* QuickLookOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = B76F46CEB24C42779E84EBBE /* QuickLookOverlay.swift */; };
@@ -255,6 +263,14 @@
 		835FBA012FCA950400D23A01 /* OfficePreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfficePreviewView.swift; sourceTree = "<group>"; };
 		835FBA032FCA950400D23A03 /* MarkedJS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkedJS.swift; sourceTree = "<group>"; };
 		835FBA052FCA950400D23A05 /* MarkdownPDFExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownPDFExporter.swift; sourceTree = "<group>"; };
+		PRVPROVREF00000000000001 /* PreviewProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewProvider.swift; sourceTree = "<group>"; };
+		PRVPROVREGREF00000000001 /* PreviewProviderRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewProviderRegistry.swift; sourceTree = "<group>"; };
+		CLIINSTLREF0000000000001 /* CLIInstaller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLIInstaller.swift; sourceTree = "<group>"; };
+		PRVHDRVWREF00000000000001 /* PreviewHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewHeaderView.swift; sourceTree = "<group>"; };
+		PRVCNTCTRREF0000000000001 /* PreviewContentContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewContentContainer.swift; sourceTree = "<group>"; };
+		PRVFTRHUDREF0000000000001 /* PreviewFooterHUD.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewFooterHUD.swift; sourceTree = "<group>"; };
+		PRVPROVTSTREF00000000001 /* PreviewProviderRegistryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewProviderRegistryTests.swift; sourceTree = "<group>"; };
+		CLIINSTLTSTREF0000000001 /* CLIInstallerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLIInstallerTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -334,8 +350,19 @@
 				A1B2C3010000000000000022 /* PreviewRuntime */,
 				A1B2C3010000000000000024 /* FinderSyncMonitoringPolicy.swift */,
 				835FBA052FCA950400D23A05 /* MarkdownPDFExporter.swift */,
+				PRVPROVGROUP00000000000001 /* PreviewProvider */,
+				CLIINSTLREF0000000000001 /* CLIInstaller.swift */,
 			);
 			path = Core;
+			sourceTree = "<group>";
+		};
+		PRVPROVGROUP00000000000001 /* PreviewProvider */ = {
+			isa = PBXGroup;
+			children = (
+				PRVPROVREF00000000000001 /* PreviewProvider.swift */,
+				PRVPROVREGREF00000000001 /* PreviewProviderRegistry.swift */,
+			);
+			path = PreviewProvider;
 			sourceTree = "<group>";
 		};
 		A1B2C3010000000000000021 /* Markdown */ = {
@@ -406,6 +433,9 @@
 				AUDIOPRVREF00000000000001 /* AudioPreviewView.swift */,
 				VIDEOPRVREF00000000000001 /* VideoPreviewView.swift */,
 				FONTPRVREF000000000000001 /* FontPreviewView.swift */,
+				PRVHDRVWREF00000000000001 /* PreviewHeaderView.swift */,
+				PRVCNTCTRREF0000000000001 /* PreviewContentContainer.swift */,
+				PRVFTRHUDREF0000000000001 /* PreviewFooterHUD.swift */,
 			);
 			path = UI;
 			sourceTree = "<group>";
@@ -499,6 +529,8 @@
 				SCRNLOCTSTREF000000000001 /* ScreenLocatorTests.swift */,
 				FNDBARSTTSTREF00000000001 /* FindBarStateTests.swift */,
 				SRCHPOLTSTREF00000000001 /* PreviewOverlaySearchShortcutPolicyTests.swift */,
+				PRVPROVTSTREF00000000001 /* PreviewProviderRegistryTests.swift */,
+				CLIINSTLTSTREF0000000001 /* CLIInstallerTests.swift */,
 			);
 			path = QuickCookiesTests;
 			sourceTree = "<group>";
@@ -701,6 +733,12 @@
 				AUDIOPRVBLD00000000000001 /* AudioPreviewView.swift in Sources */,
 				VIDEOPRVBLD00000000000001 /* VideoPreviewView.swift in Sources */,
 				FONTPRVBLD000000000000001 /* FontPreviewView.swift in Sources */,
+				PRVPROVBLD00000000000001 /* PreviewProvider.swift in Sources */,
+				PRVPROVREGBLD00000000001 /* PreviewProviderRegistry.swift in Sources */,
+				CLIINSTLBLD0000000000001 /* CLIInstaller.swift in Sources */,
+				PRVHDRVWBLD00000000000001 /* PreviewHeaderView.swift in Sources */,
+				PRVCNTCTRBLD0000000000001 /* PreviewContentContainer.swift in Sources */,
+				PRVFTRHUDBLD0000000000001 /* PreviewFooterHUD.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -737,6 +775,8 @@
 				SCRNLOCTSTBLD000000000001 /* ScreenLocatorTests.swift in Sources */,
 				FNDBARSTTSTBLD00000000001 /* FindBarStateTests.swift in Sources */,
 				SRCHPOLTSTBLD00000000001 /* PreviewOverlaySearchShortcutPolicyTests.swift in Sources */,
+				PRVPROVTSTBLD00000000001 /* PreviewProviderRegistryTests.swift in Sources */,
+				CLIINSTLTSTBLD0000000001 /* CLIInstallerTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

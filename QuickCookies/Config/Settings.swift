@@ -340,6 +340,15 @@ struct Localization {
             "Feature": [.en: "Feature", .zhHans: "功能"],
             "Status": [.en: "Status", .zhHans: "状态"],
 
+            // CLI Tool
+            "Command Line Tool (CLI)": [.en: "Command Line Tool (CLI)", .zhHans: "命令行工具 (CLI)"],
+            "Preview files instantly from Terminal using 'qc <path>'.": [.en: "Preview files instantly from Terminal using 'qc <path>'.", .zhHans: "在终端中随时使用 'qc <path>' 秒开文件预览。"],
+            "Installed": [.en: "Installed", .zhHans: "已安装"],
+            "Not Installed": [.en: "Not Installed", .zhHans: "未安装"],
+            "Install CLI Tool": [.en: "Install CLI Tool", .zhHans: "安装命令行工具"],
+            "Reinstall CLI": [.en: "Reinstall CLI", .zhHans: "重新安装 CLI"],
+            "CLI installed to /usr/local/bin/qc": [.en: "CLI installed to /usr/local/bin/qc", .zhHans: "已成功安装命令行工具至 /usr/local/bin/qc"],
+
             // Ready & Personalize
             "You're all set": [.en: "You're all set", .zhHans: "一切就绪"],
             "QuickCookies is ready to preview files in Finder.": [.en: "QuickCookies is ready to preview files in Finder.", .zhHans: "QuickCookies 已准备就绪，随时在访达中为你预览。"],

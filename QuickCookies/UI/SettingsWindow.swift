@@ -595,6 +595,7 @@ struct SettingsView: View {
     }()
     
     let permissionTimer = Timer.publish(every: 1.0, on: .main, in: .common).autoconnect()
+    @State private var cliRefreshToken = UUID()
 
     @Environment(\.colorScheme) private var colorScheme
 
@@ -739,7 +740,43 @@ struct SettingsView: View {
                 }
             }
 
-            // 3. Reset Section
+            // 3. Command Line Tool (CLI) Section
+            VStack(alignment: .leading, spacing: 6) {
+                InsetSectionHeader(title: "Command Line Tool (CLI)".localized())
+                InsetGroupCard {
+                    InsetGroupRow(
+                        title: "qc <path>",
+                        subtitle: "Preview files instantly from Terminal using 'qc <path>'.".localized()
+                    ) {
+                        let status = CLIInstallerPolicy.checkStatus()
+                        if status.isInstalled {
+                            HStack(spacing: 8) {
+                                HStack(spacing: 4) {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundColor(.green)
+                                    Text("Installed".localized())
+                                        .foregroundColor(.green)
+                                        .font(.system(size: 12, weight: .semibold))
+                                }
+                                Button("Reinstall CLI".localized()) {
+                                    installCLI()
+                                }
+                                .buttonStyle(.bordered)
+                                .controlSize(.small)
+                            }
+                        } else {
+                            Button("Install CLI Tool".localized()) {
+                                installCLI()
+                            }
+                            .buttonStyle(.borderedProminent)
+                            .controlSize(.small)
+                        }
+                    }
+                    .id(cliRefreshToken)
+                }
+            }
+
+            // 4. Reset Section
             VStack(alignment: .leading, spacing: 6) {
                 InsetSectionHeader(title: "Reset".localized())
                 InsetGroupCard {
@@ -752,6 +789,16 @@ struct SettingsView: View {
                     }
                 }
             }
+        }
+    }
+
+    private func installCLI() {
+        let result = CLIInstallerPolicy.install()
+        switch result {
+        case .success:
+            cliRefreshToken = UUID()
+        case .failure:
+            break
         }
     }
 

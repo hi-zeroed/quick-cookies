@@ -1,0 +1,140 @@
+#!/bin/bash
+#
+# qc - QuickCookies 命令行快速预览工具
+# 用法: qc [选项] <文件或目录路径>
+#
+
+VERSION="1.5.0"
+
+show_help() {
+    cat << EOF
+QuickCookies CLI (qc) v${VERSION}
+在访达与终端中极速预览代码、Markdown、配置、归档与各类文件。
+
+用法:
+    qc <文件或目录路径>     在 QuickCookies 浮层中打开预览
+    qc .                   预览当前目录
+    qc -h, --help          查看帮助信息
+    qc -v, --version       查看版本号
+
+示例:
+    qc README.md
+    qc src/main.swift
+    qc archive.zip
+    qc .
+
+EOF
+}
+
+if [ $# -eq 0 ]; then
+    show_help
+    exit 0
+fi
+
+case "$1" in
+    -h|--help)
+        show_help
+        exit 0
+        ;;
+    -v|--version)
+        echo "QuickCookies CLI (qc) v${VERSION}"
+        exit 0
+        ;;
+    *)
+        TARGET="$1"
+        ;;
+esac
+
+# 检查目标文件或目录是否存在
+if [ ! -e "$TARGET" ]; then
+    echo "qc: 找不到指定的文件或目录: $TARGET" >&2
+    exit 1
+fi
+
+# 获取绝对物理路径
+if [ -d "$TARGET" ]; then
+    ABS_PATH="$(cd "$TARGET" 2>/dev/null && pwd -P)"
+else
+    DIR="$(dirname "$TARGET")"
+    BASE="$(basename "$TARGET")"
+    ABS_DIR="$(cd "$DIR" 2>/dev/null && pwd -P)"
+    ABS_PATH="${ABS_DIR}/${BASE}"
+fi
+
+if [ -z "$ABS_PATH" ] || [ ! -e "$ABS_PATH" ]; then
+    echo "qc: 无法解析绝对路径: $TARGET" >&2
+    exit 1
+fi
+
+# 对路径进行 URL 编码
+python_urlencode() {
+    python3 -c "import urllib.parse, sys; print(urllib.parse.quote(sys.argv[1]))" "$1" 2>/dev/null
+}
+
+ENCODED_PATH="$(python_urlencode "$ABS_PATH")"
+
+if [ -z "$ENCODED_PATH" ]; then
+    # 若无 python3 兜底直接传递
+    ENCODED_PATH="$ABS_PATH"
+fi
+
+# 寻找可用的 QuickCookies.app 路径，避免被系统中其它陈旧版本或历史构建拦截
+find_quickcookies_app() {
+    # 1. 显式环境变量指定的 App 路径
+    if [ -n "$QUICKCOOKIES_APP" ] && [ -d "$QUICKCOOKIES_APP" ]; then
+        echo "$QUICKCOOKIES_APP"
+        return 0
+    fi
+
+    # 2. 系统/用户标准安装目录 (生产环境)
+    if [ -d "/Applications/QuickCookies.app" ]; then
+        echo "/Applications/QuickCookies.app"
+        return 0
+    fi
+    if [ -d "$HOME/Applications/QuickCookies.app" ]; then
+        echo "$HOME/Applications/QuickCookies.app"
+        return 0
+    fi
+
+    # 3. 检查当前或父级工作区中的本地开发构建产物 (开发调试场景)
+    local cur_dir="$PWD"
+    while [ "$cur_dir" != "/" ] && [ -n "$cur_dir" ]; do
+        for candidate in \
+            "$cur_dir/buildClean/Build/Products/Debug/QuickCookies.app" \
+            "$cur_dir/build/Build/Products/Debug/QuickCookies.app" \
+            "$cur_dir/buildRelease/Build/Products/Release/QuickCookies.app"; do
+            if [ -d "$candidate" ]; then
+                echo "$candidate"
+                return 0
+            fi
+        done
+        cur_dir="$(dirname "$cur_dir")"
+    done
+
+    # 4. 系统 DerivedData 中的最新 Debug 产物
+    local dd_match
+    dd_match=$(ls -td "$HOME"/Library/Developer/Xcode/DerivedData/QuickCookies-*/Build/Products/Debug/QuickCookies.app 2>/dev/null | head -n 1)
+    if [ -n "$dd_match" ] && [ -d "$dd_match" ]; then
+        echo "$dd_match"
+        return 0
+    fi
+
+    return 1
+}
+
+TARGET_APP="$(find_quickcookies_app 2>/dev/null)"
+
+if [ -n "$TARGET_APP" ] && [ -d "$TARGET_APP" ]; then
+    # 精确定向唤起指定应用，避免被系统中其它陈旧或脏版本（如 QuickView/历史构建）拦截
+    open -a "$TARGET_APP" -g "quickcookies://preview?path=${ENCODED_PATH}"
+else
+    # 兜底：若系统已有实例在运行，尝试以 bundle id 发送
+    if pgrep -x "QuickCookies" >/dev/null 2>&1; then
+        open -b com.quickcookies.app -g "quickcookies://preview?path=${ENCODED_PATH}"
+    else
+        echo "qc: 未找到可用的 QuickCookies.app。" >&2
+        echo "请先启动 QuickCookies，或将其安装至 /Applications 目录。" >&2
+        exit 1
+    fi
+fi
+exit 0

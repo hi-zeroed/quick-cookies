@@ -80,53 +80,29 @@ enum ContentRenderCapabilityRegistry {
                 supportsSearch: false
             )
         }
-        switch renderType {
-        case .markdown:
-            return ContentRenderCapability(
-                allowsPDFExport: true,
-                usesTextContentLoader: true,
-                showsGenericLoading: false,
-                supportsSearch: true
-            )
-        case .code, .plainText:
-            return ContentRenderCapability(
-                allowsPDFExport: false,
-                usesTextContentLoader: true,
-                showsGenericLoading: true,
-                supportsSearch: true
-            )
-        case .image:
-            let isSVG = path?.lowercased().hasSuffix(".svg") == true
-            return ContentRenderCapability(
-                allowsPDFExport: false,
-                usesTextContentLoader: isSVG,
-                showsGenericLoading: false,
-                supportsSearch: isSVG && isSVGSourceMode
-            )
-        case .pdf, .office, .archive, .folder, .audio, .video, .font, .unsupported:
-            return ContentRenderCapability(
-                allowsPDFExport: false,
-                usesTextContentLoader: false,
-                showsGenericLoading: false,
-                supportsSearch: false
-            )
-        }
+        let p = PreviewProviderRegistry.shared.provider(for: renderType)
+        return ContentRenderCapability(
+            allowsPDFExport: p.allowsPDFExport,
+            usesTextContentLoader: PreviewProviderRegistry.usesTextContentLoader(for: renderType, path: path),
+            showsGenericLoading: p.showsGenericLoading,
+            supportsSearch: p.supportsSearch(path: path, isSVGSourceMode: isSVGSourceMode)
+        )
     }
 
     static func allowsPDFExport(for renderType: FileRenderType?) -> Bool {
-        capability(for: renderType).allowsPDFExport
+        PreviewProviderRegistry.allowsPDFExport(for: renderType)
     }
 
     static func usesTextContentLoader(for renderType: FileRenderType?, path: String? = nil) -> Bool {
-        capability(for: renderType, path: path).usesTextContentLoader
+        PreviewProviderRegistry.usesTextContentLoader(for: renderType, path: path)
     }
 
     static func showsGenericLoading(for renderType: FileRenderType?) -> Bool {
-        capability(for: renderType).showsGenericLoading
+        PreviewProviderRegistry.showsGenericLoading(for: renderType)
     }
 
     static func supportsSearch(for renderType: FileRenderType?, path: String? = nil, isSVGSourceMode: Bool = false) -> Bool {
-        capability(for: renderType, path: path, isSVGSourceMode: isSVGSourceMode).supportsSearch
+        PreviewProviderRegistry.supportsSearch(for: renderType, path: path, isSVGSourceMode: isSVGSourceMode)
     }
 }
 
@@ -141,12 +117,12 @@ enum ContentLoadingPresentationPolicy {
 }
 
 enum PreviewContentAreaChrome {
-    enum BackgroundStyle: Equatable {
+    public enum BackgroundStyle: Equatable {
         case appBackground
         case transparent
     }
 
-    enum BorderStyle: Equatable {
+    public enum BorderStyle: Equatable {
         case appBorder
         case none
     }
@@ -292,7 +268,6 @@ struct ContentView: View {
     // Markdown 导出 PDF 状态与本地 Toast 提示
     @State private var isExportingPDFActive: Bool = false
     @State private var isExportingPDF: Bool = false
-    @State private var isPDFHovered: Bool = false
     @State private var showLocalToast: Bool = false
     @State private var localToastMessage: String = ""
     @State private var localToastIcon: String? = nil
@@ -300,15 +275,11 @@ struct ContentView: View {
     // 全文搜索与 SVG 双模预览状态
     @StateObject private var findBarState = FindBarState()
     @State private var isSVGSourceMode: Bool = false
-    @State private var isSearchHovered: Bool = false
-    @State private var isCopySVGHovered: Bool = false
     
     // 状态化分段文件读取器
     @State private var chunkReader: FileChunkReader? = nil
     @State private var markdownPreviewTimeline: MarkdownPreviewTimelineTracker? = nil
     @State private var markdownHasLoadedInitialContent: Bool = false
-    // 头部顶栏 Hover 状态
-    @State private var isHeaderHovered: Bool = false
     @State private var previewReadinessState = PreviewReadinessGate.resetState(for: nil)
     @State private var markdownBootstrapReady: Bool = false
     @State private var loadCoordinator = PreviewContentLoadCoordinator()
@@ -377,12 +348,39 @@ struct ContentView: View {
     var body: some View {
         VStack(spacing: 0) {
             // 工具栏
-            toolbar
-                .zIndex(1) // 锁定层级，确保工具栏处于最前，防止 MarkdownView 的 ScrollView 穿透遮挡
+            PreviewHeaderView(
+                activePath: activePath,
+                activeDisplayName: activeDisplayName,
+                activeRenderType: activeRenderType,
+                activeErrorMessage: activeErrorMessage,
+                isExpanded: isExpanded,
+                onClose: { windowActions.closeOverlay() },
+                onToggleExpanded: { session.toggleExpanded() },
+                findBarState: findBarState,
+                isSVGSourceMode: $isSVGSourceMode,
+                svgContent: content,
+                onShowToast: { msg, icon in
+                    localToastMessage = msg
+                    localToastIcon = icon
+                    showLocalToast = true
+                },
+                isExportingPDF: isExportingPDF,
+                onExportPDF: exportMarkdownToPDF
+            )
+            .zIndex(1) // 锁定层级，确保工具栏处于最前，防止 MarkdownView 的 ScrollView 穿透遮挡
 
-            // 内容区域（去除原本的 padding，改在 contentArea 内部 ZStack 包装）
-            contentArea
-                .zIndex(0)
+            // 内容区域
+            PreviewContentContainer(
+                activeRenderType: activeRenderType,
+                isSVGSourceMode: isSVGSourceMode,
+                findBarState: findBarState,
+                loadState: loadState,
+                shouldShowLoadingOverlay: shouldShowLoadingOverlay,
+                isLocatingSelection: isLocatingSelection
+            ) {
+                mainContent
+            }
+            .zIndex(0)
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .ignoresSafeArea(edges: .top)
@@ -506,321 +504,6 @@ struct ContentView: View {
             startPoint: .top,
             endPoint: .center
         )
-    }
-
-    @ViewBuilder
-    private var toolbar: some View {
-        HStack {
-            // 左侧自定义关闭与展开按钮，控制在 72px 宽度中靠左对齐，替代系统红绿灯
-            HStack(spacing: 8) {
-                // 关闭按钮
-                CircleControlButton(iconName: "xmark", isHovered: isHeaderHovered) {
-                    windowActions.closeOverlay()
-                }
-                
-                // 全屏/还原按钮
-                CircleControlButton(
-                    iconName: isExpanded ? "arrow.down.right.and.arrow.up.left" : "arrow.up.left.and.arrow.down.right",
-                    isHovered: isHeaderHovered
-                ) {
-                    session.toggleExpanded()
-                }
-                .help(isExpanded ? "Exit Full Screen".localized() : "Full Screen".localized())
-            }
-            .frame(width: 72, alignment: .leading)
-            
-            Spacer()
-
-            // 中间文件名 + 文件类型小图标 + 状态修饰点
-            HStack(spacing: 6) {
-                if let displayName = activeDisplayName {
-                    HStack(spacing: 5) {
-                        previewFileIcon(for: activeRenderType)
-
-                        Text(displayName)
-                            .font(.system(size: 13, weight: .semibold, design: .monospaced))
-                            .foregroundColor(Color.appText)
-                    }
-                } else if let path = activePath {
-                    HStack(spacing: 5) {
-                        previewFileIcon(for: activeRenderType)
-                        
-                        Text(URL(fileURLWithPath: path).lastPathComponent)
-                            .font(.system(size: 13, weight: .semibold, design: .monospaced))
-                            .foregroundColor(Color.appText)
-                    }
-                } else if activeErrorMessage != nil {
-                    Text("Failed to Get".localized())
-                        .font(.system(size: 13, weight: .semibold, design: .monospaced))
-                        .foregroundColor(.red.opacity(0.8))
-                } else {
-                    Text("Locating...".localized())
-                        .font(.system(size: 13, weight: .semibold, design: .monospaced))
-                        .foregroundColor(Color.appText.opacity(0.6))
-                }
-                
-                // 状态修饰点
-                Circle()
-                    .fill(activePath == nil ? Color.gray.opacity(0.5) : Color.blue.opacity(0.8))
-                    .frame(width: 6, height: 6)
-            }
-
-            Spacer()
-
-            // 右侧控制区域（外部接力打开、SVG模式切换、⌥F搜索、PDF导出）
-            HStack(spacing: 8) {
-                if let path = activePath, activeErrorMessage == nil {
-                    // SVG 双模切换胶囊 & 源码复制按钮
-                    let isSVG = path.lowercased().hasSuffix(".svg")
-                    if isSVG {
-                        HStack(spacing: 4) {
-                            // 模式切换极简微胶囊（纯图标：photo ⟷ code）
-                            HStack(spacing: 2) {
-                                Button(action: {
-                                    withAnimation(.easeInOut(duration: 0.15)) {
-                                        isSVGSourceMode = false
-                                        findBarState.dismiss()
-                                    }
-                                }) {
-                                    Image(systemName: "photo")
-                                        .font(.system(size: 11, weight: .medium))
-                                        .foregroundColor(isSVGSourceMode ? Color.appText.opacity(0.45) : Color.appText)
-                                        .frame(width: 22, height: 22)
-                                        .background(
-                                            RoundedRectangle(cornerRadius: 5)
-                                                .fill(isSVGSourceMode ? Color.clear : Color.appText.opacity(0.12))
-                                        )
-                                        .contentShape(Rectangle())
-                                }
-                                .buttonStyle(.plain)
-                                .help("Visual Preview".localized())
-
-                                Button(action: {
-                                    withAnimation(.easeInOut(duration: 0.15)) {
-                                        isSVGSourceMode = true
-                                    }
-                                }) {
-                                    Image(systemName: "chevron.left.forwardslash.chevron.right")
-                                        .font(.system(size: 10, weight: .semibold))
-                                        .foregroundColor(isSVGSourceMode ? Color.appText : Color.appText.opacity(0.45))
-                                        .frame(width: 22, height: 22)
-                                        .background(
-                                            RoundedRectangle(cornerRadius: 5)
-                                                .fill(isSVGSourceMode ? Color.appText.opacity(0.12) : Color.clear)
-                                        )
-                                        .contentShape(Rectangle())
-                                }
-                                .buttonStyle(.plain)
-                                .help("Source Code".localized())
-                            }
-                            .padding(2)
-                            .background(
-                                RoundedRectangle(cornerRadius: 7)
-                                    .fill(Color.appText.opacity(0.06))
-                            )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 7)
-                                    .stroke(Color.appBorder.opacity(colorScheme == .dark ? 0.2 : 0.1), lineWidth: 0.5)
-                            )
-
-                            // 源码模式下一键复制 SVG 源码
-                            if isSVGSourceMode {
-                                Button(action: {
-                                    NSPasteboard.general.clearContents()
-                                    NSPasteboard.general.setString(content, forType: .string)
-                                    localToastMessage = "SVG code copied to clipboard".localized()
-                                    localToastIcon = "doc.on.doc"
-                                    showLocalToast = true
-                                }) {
-                                    Image(systemName: "doc.on.doc")
-                                        .font(.system(size: 12, weight: .medium))
-                                        .foregroundColor(Color.appText.opacity(isCopySVGHovered ? 0.95 : 0.75))
-                                        .frame(width: 22, height: 22)
-                                        .background(
-                                            RoundedRectangle(cornerRadius: 5)
-                                                .fill(Color.appText.opacity(isCopySVGHovered ? 0.12 : 0.06))
-                                        )
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 5)
-                                                .stroke(Color.appText.opacity(isCopySVGHovered ? 0.18 : (colorScheme == .dark ? 0.12 : 0.08)), lineWidth: 0.5)
-                                        )
-                                        .contentShape(Rectangle())
-                                }
-                                .buttonStyle(.plain)
-                                .help("Copy SVG Code".localized())
-                                .onHover { hovering in
-                                    isCopySVGHovered = hovering
-                                }
-                            }
-                        }
-                    }
-
-                    // ⌥F 全文搜索按钮 (针对代码、纯文本、Markdown、结构化数据或 SVG 源码模式)
-                    let effectiveRenderType = activeRenderType ?? session.state.target?.renderType
-                    let supportsFind = ContentRenderCapabilityRegistry.supportsSearch(
-                        for: effectiveRenderType,
-                        path: path,
-                        isSVGSourceMode: isSVGSourceMode
-                    )
-                    if supportsFind {
-                        Button(action: {
-                            if findBarState.isPresented {
-                                findBarState.dismiss()
-                            } else {
-                                findBarState.present()
-                            }
-                        }) {
-                            Image(systemName: "magnifyingglass")
-                                .font(.system(size: 12, weight: .medium))
-                                .foregroundColor(findBarState.isPresented ? Color.accentColor : Color.appText.opacity(isSearchHovered ? 0.95 : 0.75))
-                                .frame(width: 22, height: 22)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 5)
-                                        .fill(findBarState.isPresented ? Color.accentColor.opacity(0.15) : Color.appText.opacity(isSearchHovered ? 0.12 : 0.06))
-                                 )
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 5)
-                                        .stroke(findBarState.isPresented ? Color.accentColor.opacity(0.3) : Color.appText.opacity(isSearchHovered ? 0.18 : (colorScheme == .dark ? 0.12 : 0.08)), lineWidth: 0.5)
-                                 )
-                                .contentShape(Rectangle())
-                        }
-                        .buttonStyle(.plain)
-                        .help("Find in file (⌥F)".localized())
-                        .keyboardShortcut("f", modifiers: .option)
-                        .onHover { hovering in
-                            isSearchHovered = hovering
-                        }
-                    }
-
-                    if ContentRenderCapabilityRegistry.allowsPDFExport(for: activeRenderType) {
-                        Group {
-                            if isExportingPDF {
-                                ProgressView()
-                                    .progressViewStyle(LinearProgressViewStyle(tint: Color.appText.opacity(0.6)))
-                                    .frame(width: 50)
-                            } else {
-                                Button(action: exportMarkdownToPDF) {
-                                    Image(systemName: "square.and.arrow.up")
-                                        .font(.system(size: 13, weight: .medium))
-                                        .foregroundColor(Color.appText.opacity(isPDFHovered ? 0.95 : 0.8))
-                                        .frame(width: 22, height: 22)
-                                        .background(
-                                            RoundedRectangle(cornerRadius: 5)
-                                                .fill(Color.appText.opacity(isPDFHovered ? 0.12 : 0.06))
-                                        )
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 5)
-                                                .stroke(Color.appText.opacity(isPDFHovered ? 0.18 : (colorScheme == .dark ? 0.12 : 0.08)), lineWidth: 0.5)
-                                        )
-                                        .contentShape(Rectangle())
-                                }
-                                .buttonStyle(.plain)
-                                .help("Export PDF".localized())
-                                .onHover { hovering in
-                                    isPDFHovered = hovering
-                                }
-                            }
-                        }
-                        .animation(.easeInOut(duration: 0.2), value: isExportingPDF)
-                    }
-
-                    // 外部应用接力打开控件
-                    AppRelayControlView(filePath: path) {
-                        windowActions.closeOverlay()
-                    }
-                }
-            }
-            .frame(minWidth: 72, alignment: .trailing)
-        }
-        .padding(.horizontal, 16)
-        .padding(.top, 8)
-        .padding(.bottom, 8)
-        .background(VisualEffectView(material: .hudWindow, blendingMode: .behindWindow))
-        .onHover { hovering in
-            isHeaderHovered = hovering
-        }
-    }
-
-    @ViewBuilder
-    private func previewFileIcon(for renderType: FileRenderType?) -> some View {
-        if let assetName = PreviewFileIconAssetRegistry.assetName(for: renderType) {
-            Image(assetName)
-                .renderingMode(.template)
-                .resizable()
-                .frame(width: 12, height: 12)
-                .foregroundColor(Color.appText.opacity(0.6))
-        }
-    }
-
-    @ViewBuilder
-    private var contentArea: some View {
-        ZStack(alignment: .bottom) {
-            ZStack(alignment: .topTrailing) {
-                mainContent
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(contentAreaBackgroundColor)
-                    .cornerRadius(15)
-                    .overlay(
-                        Group {
-                            if PreviewContentAreaChrome.borderStyle(for: activeRenderType, isSVGSourceMode: isSVGSourceMode) == .appBorder {
-                                RoundedRectangle(cornerRadius: 15)
-                                    .stroke(Color.appBorder.opacity(colorScheme == .dark ? 0.25 : 0.12), lineWidth: 0.8)
-                            }
-                        }
-                    )
-                    .padding([.horizontal, .bottom], 5) // 调整内边距至 5pt
-
-                FindBarView(state: findBarState)
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-
-            if shouldShowLoadingOverlay {
-                VStack(spacing: 16) {
-                    Spacer()
-                    ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle(tint: .white.opacity(0.4)))
-                    Text("Loading content...".localized())
-                        .font(.system(size: 11, design: .monospaced))
-                        .foregroundColor(.white.opacity(0.3))
-                    Spacer()
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .background(Color.appBackground.opacity(0.98))
-                .cornerRadius(15)
-                .padding([.horizontal, .bottom], 5)
-                .transition(.opacity)
-            }
-            
-            // 增量加载悬浮条
-            if loadState.isIncrementalLoading {
-                HStack(spacing: 8) {
-                    ProgressView()
-                        .progressViewStyle(CircularProgressViewStyle(tint: .white.opacity(0.8)))
-                        .scaleEffect(0.8)
-                    Text("Loading remaining content...".localized())
-                        .font(.system(size: 11, design: .monospaced))
-                        .foregroundColor(.white.opacity(0.9))
-                }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 8)
-                .background(
-                    VisualEffectView(material: .hudWindow, blendingMode: .withinWindow)
-                        .cornerRadius(12)
-                )
-                .shadow(color: Color.black.opacity(0.35), radius: 6, y: 3)
-                .transition(.move(edge: .bottom).combined(with: .opacity))
-                .padding(.bottom, 20)
-            }
-        }
-    }
-
-    private var contentAreaBackgroundColor: Color {
-        switch PreviewContentAreaChrome.backgroundStyle(for: activeRenderType, isSVGSourceMode: isSVGSourceMode) {
-        case .appBackground:
-            return Color.appBackground
-        case .transparent:
-            return Color.clear
-        }
     }
 
     @ViewBuilder
