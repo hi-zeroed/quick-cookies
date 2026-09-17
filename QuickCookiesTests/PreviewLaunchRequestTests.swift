@@ -30,6 +30,17 @@ final class PreviewLaunchRequestTests: XCTestCase {
         XCTAssertEqual(request.presentation, .open)
     }
 
+    func test_openShareCardRequest_preservesPathSourceAndShareCardPresentation() {
+        let request = PreviewLaunchRequest.openShareCard(
+            "/tmp/demo.swift",
+            source: .hotkey
+        )
+
+        XCTAssertEqual(request.source, .hotkey)
+        XCTAssertEqual(request.pathIntent, .direct(path: "/tmp/demo.swift"))
+        XCTAssertEqual(request.presentation, .shareCard)
+    }
+
     func test_internalNavigationOpenRequest_usesDirectPathWithoutFinderSelectionIntent() {
         let request = PreviewLaunchRequest.openPath(
             "/tmp/next.md",

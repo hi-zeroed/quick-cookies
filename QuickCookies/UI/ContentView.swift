@@ -275,7 +275,8 @@ struct ContentView: View {
     // 全文搜索与 SVG 双模预览状态
     @StateObject private var findBarState = FindBarState()
     @State private var isSVGSourceMode: Bool = false
-    @State private var isShareCardPresented: Bool = false
+    @State private var isShareCardPresented: Bool
+    @State private var isDirectShareCardMode: Bool
     
     // 状态化分段文件读取器
     @State private var chunkReader: FileChunkReader? = nil
@@ -300,6 +301,9 @@ struct ContentView: View {
         self.session = session
         self.windowActions = windowActions
         self.cardOuterPadding = cardOuterPadding
+        let initialDirectCard = session.state.initialShareCardMode
+        _isShareCardPresented = State(initialValue: initialDirectCard)
+        _isDirectShareCardMode = State(initialValue: initialDirectCard)
     }
 
     private var sessionState: PreviewSessionState {
@@ -355,7 +359,11 @@ struct ContentView: View {
                     language: activeLanguage,
                     initialMode: (activeRenderType == .markdown || activeRenderType == .plainText) ? .quote : .code,
                     onDismiss: {
-                        isShareCardPresented = false
+                        if isDirectShareCardMode {
+                            windowActions.closeOverlay()
+                        } else {
+                            isShareCardPresented = false
+                        }
                     },
                     onShowToast: { msg, icon in
                         localToastMessage = msg
@@ -387,6 +395,7 @@ struct ContentView: View {
                         isExportingPDF: isExportingPDF,
                         onExportPDF: exportMarkdownToPDF,
                         onShareCard: {
+                            isDirectShareCardMode = false
                             isShareCardPresented = true
                         }
                     )
@@ -424,6 +433,12 @@ struct ContentView: View {
         .onChange(of: isShareCardPresented) { isPresented in
             if let window = windowActions.currentWindow() {
                 window.hasShadow = !isPresented && PreviewOverlayWindowChromePolicy.usesSystemWindowShadow
+                window.invalidateShadow()
+            }
+        }
+        .onAppear {
+            if isShareCardPresented, let window = windowActions.currentWindow() {
+                window.hasShadow = false
                 window.invalidateShadow()
             }
         }
@@ -496,6 +511,7 @@ struct ContentView: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: .previewPresentShareCardDirectly)) { _ in
             withAnimation(.easeInOut(duration: 0.18)) {
+                isDirectShareCardMode = true
                 isShareCardPresented = true
             }
         }

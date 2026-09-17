@@ -65,6 +65,19 @@ final class CodeCardExportTests: XCTestCase {
         }
     }
     
+    func testCardWidthPresets() {
+        let widths = CardWidthPreset.allCases
+        XCTAssertEqual(widths.count, 3)
+        XCTAssertEqual(CardWidthPreset.compact.width, 640.0)
+        XCTAssertEqual(CardWidthPreset.standard.width, 780.0)
+        XCTAssertEqual(CardWidthPreset.wide.width, 860.0)
+        
+        for width in widths {
+            XCTAssertFalse(width.displayName.isEmpty)
+            XCTAssertEqual(width.id, width.rawValue)
+        }
+    }
+    
     func testDefaultConfigValues() {
         let config = CodeCardConfig()
         XCTAssertEqual(config.mode, .code)
@@ -72,6 +85,7 @@ final class CodeCardExportTests: XCTestCase {
         XCTAssertEqual(config.aspectRatio, .auto)
         XCTAssertEqual(config.preset, .aurora)
         XCTAssertEqual(config.padding, .regular)
+        XCTAssertEqual(config.cardWidthPreset, .standard)
         XCTAssertFalse(config.isTransparentBackground)
         XCTAssertTrue(config.showAmbientGlow)
         XCTAssertTrue(config.showLineNumbers)

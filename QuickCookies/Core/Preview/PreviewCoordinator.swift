@@ -27,7 +27,11 @@ final class PreviewCoordinator {
                 return
             }
 
-            session.open(target: target, source: request.source)
+            session.open(
+                target: target,
+                source: request.source,
+                initialShareCardMode: request.presentation == .shareCard
+            )
         } catch let error as PreviewTargetError {
             session.replaceWithFailure(error)
             throw error

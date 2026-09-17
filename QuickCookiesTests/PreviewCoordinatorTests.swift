@@ -50,6 +50,26 @@ final class PreviewCoordinatorTests: XCTestCase {
         XCTAssertEqual(session.state.readiness, .loading)
     }
 
+    func test_coordinator_openShareCard_setsInitialShareCardModeOnSession() throws {
+        let fileURL = temporaryDirectoryURL.appendingPathComponent("demo.swift")
+        try "print(1)".write(to: fileURL, atomically: true, encoding: .utf8)
+
+        let session = PreviewSession()
+        let coordinator = PreviewCoordinator(
+            session: session,
+            resolver: PreviewTargetResolver(
+                finderSelectionPathProvider: StubFinderSelectionPathProvider(
+                    result: .success(fileURL.path)
+                )
+            )
+        )
+
+        try coordinator.handle(.openShareCard(fileURL.path, source: .hotkey))
+
+        XCTAssertEqual(session.state.target?.resolvedPath, fileURL.path)
+        XCTAssertTrue(session.state.initialShareCardMode)
+    }
+
     func test_coordinator_marksSessionFailedWhenResolutionFails() {
         let session = PreviewSession()
         let coordinator = PreviewCoordinator(

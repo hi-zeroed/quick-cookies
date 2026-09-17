@@ -29,7 +29,11 @@ struct CodeCardSnapshotView: View {
     let code: String
     let language: String?
     let config: CodeCardConfig
-    var cardWidth: CGFloat = 620
+    var cardWidth: CGFloat? = nil
+    
+    private var effectiveCardWidth: CGFloat {
+        cardWidth ?? config.cardWidthPreset.width
+    }
     
     private var codeLines: [String] {
         code.components(separatedBy: "\n")
@@ -76,9 +80,9 @@ struct CodeCardSnapshotView: View {
         case .auto:
             return nil
         case .square:
-            return cardWidth
+            return effectiveCardWidth
         case .landscape:
-            return cardWidth * 9.0 / 16.0
+            return effectiveCardWidth * 9.0 / 16.0
         }
     }
     
@@ -87,7 +91,7 @@ struct CodeCardSnapshotView: View {
             // 1. 同源漫反射环境柔光 (Ambient Glow)
             if config.showAmbientGlow && !config.isTransparentBackground {
                 config.preset.gradient
-                    .frame(width: cardWidth * 0.94, height: (targetHeight ?? 240) * 0.94)
+                    .frame(width: effectiveCardWidth * 0.94, height: (targetHeight ?? 240) * 0.94)
                     .blur(radius: 34)
                     .opacity(config.colorTheme == .dark ? 0.46 : 0.28)
                     .offset(y: 12)
@@ -131,11 +135,11 @@ struct CodeCardSnapshotView: View {
                 )
                 .padding(config.padding.rawValue)
             }
-            .frame(width: cardWidth, height: targetHeight)
+            .frame(width: effectiveCardWidth, height: targetHeight)
             .fixedSize(horizontal: true, vertical: targetHeight != nil)
             .clipShape(RoundedRectangle(cornerRadius: 18))
         }
-        .frame(width: cardWidth)
+        .frame(width: effectiveCardWidth)
     }
     
     // MARK: - 代码视图顶栏 (左侧极客红绿灯 + 右侧语言胶囊横向平衡呼应)
@@ -321,19 +325,24 @@ struct CodeCardExportModalView: View {
     @State private var inlineToast: (message: String, icon: String?)? = nil
     @State private var measuredCardHeight: CGFloat = 260
     
-    private let cardWidth: CGFloat = 620
-    private let modalWidth: CGFloat = 720
+    private var currentCardWidth: CGFloat {
+        config.cardWidthPreset.width
+    }
+    
+    private var currentModalWidth: CGFloat {
+        currentCardWidth + 100
+    }
     
     private var canvasHeight: CGFloat {
         // 当选择固定比例时，直接根据比例固定高度
         switch config.aspectRatio {
         case .square:
-            return 480
+            return 520
         case .landscape:
-            return 380
+            return 440
         case .auto:
-            let ideal = measuredCardHeight + 52
-            return min(max(ideal, 190), 470)
+            let ideal = measuredCardHeight + 56
+            return min(max(ideal, 190), 520)
         }
     }
     
@@ -417,7 +426,7 @@ struct CodeCardExportModalView: View {
                             code: code,
                             language: language,
                             config: config,
-                            cardWidth: cardWidth
+                            cardWidth: currentCardWidth
                         )
                         .background(
                             GeometryReader { proxy in
@@ -503,7 +512,7 @@ struct CodeCardExportModalView: View {
                     }
                     .padding(.horizontal, 20)
                     
-                    // 第 2 排：边距选择 + 语言微调(代码模式) + 透明底开关 + 行号开关 + 水印开关
+                    // 第 2 排：边距选择 + 宽度选择 + 语言微调(代码模式) + 透明底开关 + 行号开关 + 水印开关
                     HStack(spacing: 16) {
                         // 边距档位
                         HStack(spacing: 6) {
@@ -518,6 +527,21 @@ struct CodeCardExportModalView: View {
                             }
                             .pickerStyle(.segmented)
                             .frame(width: 155)
+                        }
+                        
+                        // 卡片宽度档位 (防止长代码折行)
+                        HStack(spacing: 6) {
+                            Text("Width".localized())
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(.secondary)
+                            
+                            Picker("", selection: $config.cardWidthPreset) {
+                                ForEach(CardWidthPreset.allCases) { preset in
+                                    Text(preset.displayName).tag(preset)
+                                }
+                            }
+                            .pickerStyle(.segmented)
+                            .frame(width: 165)
                         }
                         
                         // 语言微调 (仅代码模式，支持自选 TSX, JS, JAVA, SWIFT 等)
@@ -605,7 +629,7 @@ struct CodeCardExportModalView: View {
                 .padding(.vertical, 14)
                 .background(VisualEffectView(material: .headerView, blendingMode: .withinWindow))
             }
-            .frame(width: modalWidth)
+            .frame(width: currentModalWidth)
             .background(Color.appBackground)
             .cornerRadius(16)
             .overlay(
@@ -614,6 +638,7 @@ struct CodeCardExportModalView: View {
             )
             .shadow(color: Color.black.opacity(0.55), radius: 36, y: 16)
             .animation(.easeInOut(duration: 0.2), value: canvasHeight)
+            .animation(.easeInOut(duration: 0.2), value: currentModalWidth)
             
             // 弹窗最高层级内联反馈胶囊 (保证 100% 绝对可见)
             if let toast = inlineToast {
@@ -666,7 +691,7 @@ struct CodeCardExportModalView: View {
             code: code,
             language: language,
             config: config,
-            cardWidth: cardWidth
+            cardWidth: currentCardWidth
         )
         let success = CodeCardRenderer.copyImageToPasteboard(view: snapshotView, scale: 2.0)
         if success {
@@ -687,7 +712,7 @@ struct CodeCardExportModalView: View {
             code: code,
             language: language,
             config: config,
-            cardWidth: cardWidth
+            cardWidth: currentCardWidth
         )
         guard let data = CodeCardRenderer.renderToPNGData(view: snapshotView, scale: 2.0) else {
             showInlineToast(message: "Failed to render image".localized(), icon: "exclamationmark.triangle.fill")

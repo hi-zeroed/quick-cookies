@@ -1045,7 +1045,8 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         // 融于底色的一体化毛玻璃/纯色配置
         previewPanel.backgroundColor = .clear
         previewPanel.isOpaque = false
-        previewPanel.hasShadow = PreviewOverlayWindowChromePolicy.usesSystemWindowShadow
+        let isDirectShareCard = session.state.initialShareCardMode
+        previewPanel.hasShadow = !isDirectShareCard && PreviewOverlayWindowChromePolicy.usesSystemWindowShadow
         previewPanel.delegate = self
         previewPanel.canBecomeKeyProvider = { [weak self] in
             self?.canBecomeKeyDynamic ?? false

@@ -162,6 +162,31 @@ enum CardAspectRatio: String, CaseIterable, Identifiable {
     }
 }
 
+/// 代码卡片宽度预设档位 (防止长代码行折行)
+enum CardWidthPreset: String, CaseIterable, Identifiable {
+    case compact = "compact"
+    case standard = "standard"
+    case wide = "wide"
+    
+    var id: String { rawValue }
+    
+    var width: CGFloat {
+        switch self {
+        case .compact: return 640.0
+        case .standard: return 780.0
+        case .wide: return 860.0
+        }
+    }
+    
+    var displayName: String {
+        switch self {
+        case .compact: return "Compact".localized()
+        case .standard: return "Standard".localized()
+        case .wide: return "Wide".localized()
+        }
+    }
+}
+
 /// 代码卡片自定义选项配置模型
 struct CodeCardConfig: Equatable {
     var mode: CardContentMode = .code
@@ -169,6 +194,7 @@ struct CodeCardConfig: Equatable {
     var aspectRatio: CardAspectRatio = .auto
     var preset: CardGradientPreset = .aurora
     var padding: CardPaddingPreset = .regular
+    var cardWidthPreset: CardWidthPreset = .standard
     var isTransparentBackground: Bool = false
     var showAmbientGlow: Bool = true
     var showLineNumbers: Bool = true

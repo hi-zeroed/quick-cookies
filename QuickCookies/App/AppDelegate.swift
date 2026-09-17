@@ -309,10 +309,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             // 剪贴板为空，尝试透视 Finder 选中文件
             switch finderMenuIntegration.resolveOpenSelectedFileRequest() {
             case .request(let request):
-                previewRequestController.submit(request)
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                    NotificationCenter.default.post(name: .previewPresentShareCardDirectly, object: nil)
-                }
+                let cardRequest = PreviewLaunchRequest(
+                    source: request.source,
+                    pathIntent: request.pathIntent,
+                    presentation: .shareCard
+                )
+                previewRequestController.submit(cardRequest)
             case .failure(let message, let icon):
                 previewPresenter.showToast(message: message, icon: icon)
             }
@@ -321,10 +323,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         do {
             if let (filePath, _) = try ClipboardContentSniffer.materialize(result: sniffResult) {
-                previewRequestController.openPath(filePath, source: .urlScheme)
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                    NotificationCenter.default.post(name: .previewPresentShareCardDirectly, object: nil)
-                }
+                previewRequestController.openShareCard(filePath, source: .urlScheme)
             }
         } catch {
             previewPresenter.showToast(message: "Failed to read clipboard".localized(), icon: "exclamationmark.triangle")

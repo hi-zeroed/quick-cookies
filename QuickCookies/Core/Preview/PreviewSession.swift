@@ -15,6 +15,7 @@ struct PreviewSessionState: Equatable {
     var readiness: PreviewReadiness
     var isExpanded: Bool
     var renderTypeOverride: FileRenderType? = nil
+    var initialShareCardMode: Bool = false
 
     var errorMessage: String? {
         guard case .failed(let error) = readiness else {
@@ -33,7 +34,8 @@ struct PreviewSessionState: Equatable {
         runtimeKind: nil,
         readiness: .idle,
         isExpanded: false,
-        renderTypeOverride: nil
+        renderTypeOverride: nil,
+        initialShareCardMode: false
     )
 }
 
@@ -43,14 +45,15 @@ final class PreviewSession: ObservableObject {
     // 纯视图层的局部状态仍应留在各自 view/runtime 内部。
     @Published private(set) var state: PreviewSessionState = .initial
 
-    func open(target: PreviewTarget, source: PreviewLaunchSource) {
+    func open(target: PreviewTarget, source: PreviewLaunchSource, initialShareCardMode: Bool = false) {
         state = PreviewSessionState(
             target: target,
             source: source,
             runtimeKind: PreviewRuntimeKind.forRenderType(target.renderType),
             readiness: .loading,
             isExpanded: false,
-            renderTypeOverride: nil
+            renderTypeOverride: nil,
+            initialShareCardMode: initialShareCardMode
         )
     }
 

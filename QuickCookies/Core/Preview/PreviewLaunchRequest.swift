@@ -119,6 +119,7 @@ enum PreviewLaunchPathIntent: Equatable {
 enum PreviewPresentationIntent: Equatable {
     case open
     case toggle
+    case shareCard
 }
 
 struct PreviewLaunchRequest: Equatable {
@@ -134,6 +135,17 @@ struct PreviewLaunchRequest: Equatable {
             source: source,
             pathIntent: .direct(path: path),
             presentation: .open
+        )
+    }
+
+    static func openShareCard(
+        _ path: String,
+        source: PreviewLaunchSource
+    ) -> PreviewLaunchRequest {
+        PreviewLaunchRequest(
+            source: source,
+            pathIntent: .direct(path: path),
+            presentation: .shareCard
         )
     }
 
@@ -369,6 +381,10 @@ final class PreviewRequestController {
 
     func openPath(_ path: String, source: PreviewLaunchSource) {
         submit(.openPath(path, source: source))
+    }
+
+    func openShareCard(_ path: String, source: PreviewLaunchSource) {
+        submit(.openShareCard(path, source: source))
     }
 
     func toggleFromFinder(
