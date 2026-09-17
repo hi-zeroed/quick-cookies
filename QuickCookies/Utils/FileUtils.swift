@@ -12,17 +12,18 @@ enum FileUtils {
         var errorDescription: String? {
             switch self {
             case .fileNotFound(let path):
-                return "文件不存在: \(path)"
+                return String(format: "File not found: %@".localized(), path)
             case .permissionDenied(let path):
-                return "权限不足，无法访问: \(path)"
+                return String(format: "Permission denied: %@".localized(), path)
             case .readFailed(let path, let reason):
-                return "读取失败: \(path) - \(reason)"
+                return String(format: "Read failed: %@ - %@".localized(), path, reason)
             case .writeFailed(let path, let reason):
-                return "保存失败: \(path) - \(reason)"
+                return String(format: "Write failed: %@ - %@".localized(), path, reason)
             case .binaryFile(let path):
-                return "不支持二进制文件: \(path)"
+                return String(format: "Binary file not supported: %@".localized(), path)
             case .fileTooLarge(let path, let size):
-                return "文件较大 (\(size / 1024 / 1024)MB): \(path)"
+                let mb = size / 1024 / 1024
+                return String(format: "File too large (%dMB): %@".localized(), mb, path)
             }
         }
     }
@@ -43,7 +44,7 @@ enum FileUtils {
 
         // 读取数据
         guard let data = try? Data(contentsOf: url) else {
-            return .failure(.readFailed(path: path, reason: "无法读取数据"))
+            return .failure(.readFailed(path: path, reason: "Failed to read data".localized()))
         }
 
         // 检查文件大小
@@ -59,7 +60,7 @@ enum FileUtils {
         // 检测编码并解码
         let encoding = EncodingDetector.detect(data: data)
         guard let content = String(data: data, encoding: encoding) else {
-            return .failure(.readFailed(path: path, reason: "编码解码失败"))
+            return .failure(.readFailed(path: path, reason: "Failed to decode encoding".localized()))
         }
 
         return .success((content: content, encoding: encoding))
@@ -98,7 +99,7 @@ enum FileUtils {
 
             let encoding = EncodingDetector.detect(data: data)
             guard let content = String(data: data, encoding: encoding) else {
-                return .failure(.readFailed(path: path, reason: "编码解码失败"))
+                return .failure(.readFailed(path: path, reason: "Failed to decode encoding".localized()))
             }
 
             return .success((content: content, isTruncated: isTruncated))
@@ -118,7 +119,7 @@ enum FileUtils {
 
         // 写入数据
         guard let data = content.data(using: encoding) else {
-            return .failure(.writeFailed(path: path, reason: "编码转换失败"))
+            return .failure(.writeFailed(path: path, reason: "Failed to convert encoding".localized()))
         }
 
         do {

@@ -61,7 +61,7 @@ enum MarkdownPreviewBridge {
                 sourceMarkdown = content
             case .failure(let error):
                 sourceMarkdown = fallbackMarkdown.isEmpty
-                    ? "Markdown preview error:\n\n\(error.errorDescription ?? "无法读取文件内容")"
+                    ? "Markdown preview error:\n\n\(error.errorDescription ?? "Failed to read file content".localized())"
                     : fallbackMarkdown
             }
         } else {

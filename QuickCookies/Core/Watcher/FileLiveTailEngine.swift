@@ -39,7 +39,7 @@ final class FileLiveTailEngine {
     /// 读取自上次偏移量之后所有追加的新文本
     func readAppendedText(at path: String) -> LiveTailReadResult {
         guard FileManager.default.fileExists(atPath: path) else {
-            return .failure(reason: "文件不存在")
+            return .failure(reason: "File not found".localized())
         }
 
         let fileURL = URL(fileURLWithPath: path)

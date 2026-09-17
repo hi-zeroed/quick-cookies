@@ -145,7 +145,7 @@ struct ImageFileView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             } else {
                 VStack(spacing: 8) {
-                    Text("无法加载图片".localized())
+                    Text("Failed to load image".localized())
                         .foregroundColor(.secondary)
                 }
             }

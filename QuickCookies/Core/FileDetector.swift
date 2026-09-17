@@ -30,7 +30,7 @@ struct AppleScriptFinderSelectionPathProvider: FinderSelectionPathProviding {
         }
 
         guard let script = selectionScriptFactory() else {
-            return .failure(.scriptingBridgeError("无法初始化 AppleScript 脚本"))
+            return .failure(.scriptingBridgeError("Failed to initialize AppleScript".localized()))
         }
 
         return executeScript(script)
@@ -46,11 +46,11 @@ enum FileDetector {
         var errorDescription: String? {
             switch self {
             case .finderNotRunning:
-                return "请先打开 Finder"
+                return "Finder is not running".localized()
             case .noFileSelected:
-                return "未检测到选中文件 (Finder selection为空)"
+                return "No file selected in Finder".localized()
             case .scriptingBridgeError(let message):
-                return "调试诊断: \(message)"
+                return String(format: "Diagnostics: %@".localized(), message)
             }
         }
     }
@@ -93,7 +93,7 @@ enum FileDetector {
         var error: NSDictionary?
         let descriptor = script.executeAndReturnError(&error)
         if let error = error {
-            let errorMsg = error["NSAppleScriptErrorMessage"] as? String ?? "未知 AppleScript 错误"
+            let errorMsg = error["NSAppleScriptErrorMessage"] as? String ?? "Unknown AppleScript error".localized()
             return .failure(.scriptingBridgeError(errorMsg))
         }
 

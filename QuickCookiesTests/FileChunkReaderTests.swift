@@ -79,7 +79,7 @@ final class FileChunkReaderTests: XCTestCase {
         case .failure(let error):
             XCTAssertEqual(
                 error.errorDescription,
-                FileUtils.FileError.readFailed(path: fileURL.path, reason: "文件句柄已关闭").errorDescription
+                FileUtils.FileError.readFailed(path: fileURL.path, reason: "File handle closed".localized()).errorDescription
             )
         }
     }

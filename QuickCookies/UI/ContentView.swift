@@ -957,7 +957,7 @@ struct ContentView: View {
                         self.isLoading = false
                     }
                 case .failure(let error):
-                    let runtimeErrorMessage = (error.errorDescription ?? "读取文件失败").localized()
+                    let runtimeErrorMessage = error.errorDescription ?? "Read file failed".localized()
                     self.loadedContentPath = nil
                     let renderTypeOverride: FileRenderType?
                     if case .binaryFile = error {
@@ -1027,7 +1027,7 @@ struct ContentView: View {
                 self.loadState.isIncrementalLoading = false
                 self.liveWatchingState.syncOffset(reader.currentOffset)
             case .failure(let error):
-                let runtimeErrorMessage = (error.errorDescription ?? "载入后续文本失败").localized()
+                let runtimeErrorMessage = error.errorDescription ?? "Failed to load remaining text".localized()
                 self.loadState.isIncrementalLoading = false
                 windowActions.showToast(runtimeErrorMessage, "xmark.circle")
             }

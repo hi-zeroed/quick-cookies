@@ -268,7 +268,7 @@ public struct CSVGridView: View {
                     .font(.system(size: 10, weight: .medium))
                     .foregroundColor(Color.appText.opacity(0.55))
 
-                Text("\(dataSet.totalColumns) " + "columns".localized() + " · \(dataSet.totalRows) " + "rows".localized())
+                Text(String(format: "%d columns · %d rows".localized(), dataSet.totalColumns, dataSet.totalRows))
                     .font(.system(size: 11, weight: .medium))
                     .foregroundColor(Color.appText.opacity(0.65))
             }

@@ -35,7 +35,7 @@ class FileChunkReader {
     /// 读取下一个分块
     func readNextChunk(limitBytes: Int) -> Result<(content: String, bytesRead: Int, hasMore: Bool), FileUtils.FileError> {
         guard let fileHandle = fileHandle else {
-            return .failure(.readFailed(path: fileURL.path, reason: "文件句柄已关闭"))
+            return .failure(.readFailed(path: fileURL.path, reason: "File handle closed".localized()))
         }
         
         do {
@@ -96,7 +96,7 @@ class FileChunkReader {
     /// 一次性读完剩余所有内容（适用于切换编辑模式）
     func readRemaining() -> Result<String, FileUtils.FileError> {
         guard let fileHandle = fileHandle else {
-            return .failure(.readFailed(path: fileURL.path, reason: "文件句柄已关闭"))
+            return .failure(.readFailed(path: fileURL.path, reason: "File handle closed".localized()))
         }
         
         do {

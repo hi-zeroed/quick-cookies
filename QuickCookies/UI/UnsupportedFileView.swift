@@ -105,7 +105,7 @@ struct UnsupportedFileView: View {
                         Button(action: {
                             NSWorkspace.shared.open(URL(fileURLWithPath: path))
                         }) {
-                            Text("使用默认应用打开".localized())
+                            Text("Open with Default App".localized())
                                 .font(.system(size: 12, weight: .medium))
                                 .foregroundColor(Color.appText.opacity(0.9))
                                 .padding(.horizontal, 16)

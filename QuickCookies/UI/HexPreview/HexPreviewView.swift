@@ -184,7 +184,7 @@ public struct HexPreviewView: View {
             Spacer()
 
             if let selected = selectedRowOffset {
-                Text("Selected: 0x\(String(format: "%08X", selected))".localized())
+                Text(String(format: "Selected: 0x%08X".localized(), selected))
                     .font(.system(size: 11, design: .monospaced))
                     .foregroundColor(Color.appText.opacity(0.75))
             }

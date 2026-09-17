@@ -51,7 +51,7 @@ enum MarkdownFileStreamReader {
 
             let encoding = EncodingDetector.detect(data: accumulated)
             guard let content = String(data: accumulated, encoding: encoding) else {
-                return .failure(.readFailed(path: path, reason: "编码解码失败"))
+                return .failure(.readFailed(path: path, reason: "Failed to decode encoding".localized()))
             }
 
             return .success(content)

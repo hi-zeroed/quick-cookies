@@ -386,9 +386,9 @@ struct Localization {
             "Reinstall CLI": [.en: "Reinstall CLI", .zhHans: "重新安装 CLI"],
 
             // Launcher Integrations (Raycast & Alfred)
-            "Launcher Integrations": [.en: "Launcher Integrations", .zhHans: "启动器极客集成"],
+            "Launcher Integrations": [.en: "Launcher Integrations", .zhHans: "启动器扩展集成"],
             "Raycast & Alfred 5": [.en: "Raycast & Alfred 5", .zhHans: "Raycast 与 Alfred 5"],
-            "Enhance your keyboard workflow with Raycast extension and Alfred 5 workflow.": [.en: "Enhance your keyboard workflow with Raycast extension and Alfred 5 workflow.", .zhHans: "通过 Raycast 扩展与 Alfred 5 原生工作流无缝融入全键盘流。"],
+            "Enhance your keyboard workflow with Raycast extension and Alfred 5 workflow.": [.en: "Enhance your keyboard workflow with Raycast extension and Alfred 5 workflow.", .zhHans: "通过 Raycast 扩展与 Alfred 5 工作流，在启动器中快速唤起预览与卡片工坊。"],
             "View Extensions": [.en: "View Extensions", .zhHans: "查看扩展套件"],
             "Install Alfred Workflow": [.en: "Install Alfred Workflow", .zhHans: "安装 Alfred 工作流"],
 
@@ -428,10 +428,10 @@ struct Localization {
             "Aspect Ratio": [.en: "Aspect Ratio", .zhHans: "比例"],
             "Transparent": [.en: "Transparent", .zhHans: "透明底"],
             "Ambient Glow": [.en: "Ambient Glow", .zhHans: "微光辉光"],
-            "Inspect Clipboard": [.en: "Inspect Clipboard", .zhHans: "透视剪贴板"],
+            "Inspect Clipboard": [.en: "Inspect Clipboard", .zhHans: "检视剪贴板"],
             "Inspect clipboard content instantly": [.en: "Inspect clipboard content instantly", .zhHans: "一键预览剪贴板中的文本、代码或图片"],
             "Share as Card": [.en: "Share as Card", .zhHans: "分享为卡片"],
-            "Directly preview and export as card": [.en: "Directly preview and export as card", .zhHans: "直接预览并导出精美代码卡片"],
+            "Directly preview and export as card": [.en: "Directly preview and export as card", .zhHans: "直接预览并导出卡片图片"],
             "Clipboard (%@)": [.en: "Clipboard (%@)", .zhHans: "剪贴板 (%@)"],
             "Clipboard (JSON)": [.en: "Clipboard (JSON)", .zhHans: "剪贴板 (JSON)"],
             "Clipboard (Markdown)": [.en: "Clipboard (Markdown)", .zhHans: "剪贴板 (Markdown)"],
@@ -694,7 +694,32 @@ struct Localization {
             "Empty CSV / TSV File": [.en: "Empty CSV / TSV File", .zhHans: "空白 CSV / TSV 表格文件"],
             "columns": [.en: "columns", .zhHans: "列"],
             "rows": [.en: "rows", .zhHans: "行"],
-            "Showing first %d rows": [.en: "Showing first %d rows", .zhHans: "仅展示前 %d 行"]
+            "Showing first %d rows": [.en: "Showing first %d rows", .zhHans: "仅展示前 %d 行"],
+            "%d columns · %d rows": [.en: "%d columns · %d rows", .zhHans: "%d 列 · %d 行"],
+
+            // Dynamic Error & Status Messages
+            "Selected: 0x%08X": [.en: "Selected: 0x%08X", .zhHans: "已选中: 0x%08X"],
+            "Failed to load image": [.en: "Failed to load image", .zhHans: "无法加载图片"],
+            "File not found: %@": [.en: "File not found: %@", .zhHans: "文件不存在: %@"],
+            "Permission denied: %@": [.en: "Permission denied: %@", .zhHans: "权限不足，无法访问: %@"],
+            "Read failed: %@ - %@": [.en: "Read failed: %@ - %@", .zhHans: "读取失败: %@ - %@"],
+            "Write failed: %@ - %@": [.en: "Write failed: %@ - %@", .zhHans: "保存失败: %@ - %@"],
+            "Binary file not supported: %@": [.en: "Binary file not supported: %@", .zhHans: "不支持二进制文件: %@"],
+            "File too large (%dMB): %@": [.en: "File too large (%dMB): %@", .zhHans: "文件过大 (%dMB): %@"],
+            "Read file failed": [.en: "Read file failed", .zhHans: "读取文件失败"],
+            "Failed to load remaining text": [.en: "Failed to load remaining text", .zhHans: "载入后续文本失败"],
+            "Finder is not running": [.en: "Finder is not running", .zhHans: "访达未运行，请先打开访达"],
+            "No file selected in Finder": [.en: "No file selected in Finder", .zhHans: "访达中未选中文件"],
+            "Finder error: %@": [.en: "Finder error: %@", .zhHans: "访达错误: %@"],
+            "Failed to initialize AppleScript": [.en: "Failed to initialize AppleScript", .zhHans: "无法初始化 AppleScript 脚本"],
+            "Unknown AppleScript error": [.en: "Unknown AppleScript error", .zhHans: "未知 AppleScript 错误"],
+            "File handle closed": [.en: "File handle closed", .zhHans: "文件句柄已关闭"],
+            "Failed to decode encoding": [.en: "Failed to decode encoding", .zhHans: "编码解码失败"],
+            "Failed to convert encoding": [.en: "Failed to convert encoding", .zhHans: "编码转换失败"],
+            "Failed to read data": [.en: "Failed to read data", .zhHans: "无法读取数据"],
+            "Failed to read file content": [.en: "Failed to read file content", .zhHans: "无法读取文件内容"],
+            "Unknown error": [.en: "Unknown error", .zhHans: "未知错误"],
+            "Diagnostics: %@": [.en: "Diagnostics: %@", .zhHans: "调试诊断: %@"]
         ]
         return dict[key]?[lang] ?? key
     }

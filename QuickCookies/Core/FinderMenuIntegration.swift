@@ -34,7 +34,7 @@ struct FinderMenuIntegration {
         case .success(let path):
             return .request(.openPath(path, source: .menuBar))
         case .failure(let error):
-            let message = (error.errorDescription ?? "未知错误").localized()
+            let message = error.errorDescription ?? "Unknown error".localized()
             return .failure(message: message, icon: "xmark.circle")
         }
     }
