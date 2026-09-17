@@ -209,6 +209,128 @@ enum MarkdownRendererRuntime {
                 });
             };
 
+            const enhanceCodeBlocksWithCopy = function (root) {
+                if (!root) return;
+                root.querySelectorAll('pre code').forEach(function (codeEl) {
+                    const preEl = codeEl.closest('pre');
+                    if (!preEl || (preEl.parentElement && preEl.parentElement.classList.contains('code-block-wrapper'))) {
+                        return;
+                    }
+                    if (codeEl.classList.contains('language-mermaid') || codeEl.classList.contains('mermaid') || preEl.classList.contains('mermaid-src')) {
+                        return;
+                    }
+
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'code-block-wrapper';
+                    preEl.parentNode.insertBefore(wrapper, preEl);
+                    wrapper.appendChild(preEl);
+
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'copy-code-btn';
+                    btn.setAttribute('aria-label', 'Copy code');
+                    btn.innerHTML = '<svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg><span class="btn-text">Copy</span>';
+
+                    btn.addEventListener('click', function (e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const text = codeEl.innerText || codeEl.textContent || '';
+                        const fallback = function (t) {
+                            const ta = document.createElement('textarea');
+                            ta.value = t;
+                            ta.style.position = 'fixed';
+                            ta.style.opacity = '0';
+                            document.body.appendChild(ta);
+                            ta.focus();
+                            ta.select();
+                            try { document.execCommand('copy'); } catch (_) {}
+                            document.body.removeChild(ta);
+                        };
+
+                        if (navigator.clipboard && navigator.clipboard.writeText) {
+                            navigator.clipboard.writeText(text).catch(function () { fallback(text); });
+                        } else {
+                            fallback(text);
+                        }
+
+                        btn.classList.add('copied');
+                        btn.innerHTML = '<svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg><span class="btn-text">Copied!</span>';
+                        setTimeout(function () {
+                            btn.classList.remove('copied');
+                            btn.innerHTML = '<svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg><span class="btn-text">Copy</span>';
+                        }, 1800);
+                    });
+
+                    wrapper.appendChild(btn);
+                });
+            };
+
+            const renderMermaidInContainer = function (root) {
+                if (typeof mermaid === 'undefined' || !root) return;
+                const nodes = root.querySelectorAll('pre code.language-mermaid, pre code.mermaid, pre.mermaid-src code');
+                if (!nodes || nodes.length === 0) return;
+
+                const isDark = document.body ? getComputedStyle(document.body).color !== 'rgb(31, 35, 40)' : true;
+                try {
+                    mermaid.initialize({
+                        startOnLoad: false,
+                        theme: isDark ? 'dark' : 'default',
+                        securityLevel: 'loose',
+                        fontFamily: 'var(--body-font-family)'
+                    });
+                } catch (_) {}
+
+                nodes.forEach(function (codeEl, index) {
+                    const preEl = codeEl.closest('pre');
+                    if (!preEl || preEl.dataset.mermaidRendered === 'true') return;
+                    preEl.dataset.mermaidRendered = 'true';
+
+                    const codeText = codeEl.innerText || codeEl.textContent || '';
+                    const id = 'qc-mermaid-' + Date.now() + '-' + index;
+                    const wrapper = document.createElement('div');
+                    wrapper.className = 'mermaid-wrapper';
+
+                    try {
+                        mermaid.render(id, codeText.trim()).then(function (res) {
+                            wrapper.innerHTML = res.svg;
+                            if (preEl.parentNode) {
+                                preEl.parentNode.replaceChild(wrapper, preEl);
+                            }
+                        }).catch(function (err) {
+                            console.warn('Mermaid rendering failed:', err);
+                            preEl.dataset.mermaidRendered = 'error';
+                        });
+                    } catch (err) {
+                        console.warn('Mermaid sync exception:', err);
+                    }
+                });
+            };
+
+            const renderMathInContainer = function (root) {
+                if (typeof renderMathInElement === 'undefined' || !root) return;
+                try {
+                    renderMathInElement(root, {
+                        delimiters: [
+                            { left: '$$', right: '$$', display: true },
+                            { left: '$', right: '$', display: false },
+                            { left: '\\(', right: '\\)', display: false },
+                            { left: '\\[', right: '\\]', display: true }
+                        ],
+                        throwOnError: false,
+                        ignoredTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code', 'option']
+                    });
+                } catch (err) {
+                    console.warn('KaTeX rendering exception:', err);
+                }
+            };
+
+            const enhanceContentFeatures = function (root) {
+                if (!root) return;
+                enhanceCodeBlocksWithCopy(root);
+                renderMermaidInContainer(root);
+                renderMathInContainer(root);
+            };
+
             const renderBlockHTML = function (block) {
                 const host = document.createElement('div');
                 host.innerHTML = marked.parse(block.markdown || '');
@@ -219,6 +341,8 @@ enum MarkdownRendererRuntime {
                 host.querySelectorAll('pre code').forEach(function (codeEl) {
                     highlightCodeBlock(codeEl, block.codeLanguage || null);
                 });
+
+                enhanceContentFeatures(host);
 
                 return host.innerHTML;
             };
@@ -352,9 +476,11 @@ enum MarkdownRendererRuntime {
                     });
                     notifyShellReusePhase('bootstrap-render');
                     content.appendChild(fragment);
+                    enhanceContentFeatures(content);
                     notifyShellReusePhase('bootstrap-attach');
                 } else {
                     notifyShellReusePhase('bootstrap-render');
+                    enhanceContentFeatures(content);
                     notifyShellReusePhase('bootstrap-attach');
                 }
 
@@ -401,6 +527,7 @@ enum MarkdownRendererRuntime {
 
                 body.innerHTML = bridgeState.blockHTML.get(id) || '';
                 wrapper.dataset.virtualized = 'false';
+                enhanceContentFeatures(body);
                 measureWrapper(wrapper);
             };
 
@@ -564,6 +691,8 @@ enum MarkdownRendererRuntime {
             if (window.bootstrapSnapshot) {
                 registerBootstrapSnapshot(window.bootstrapSnapshot);
             }
+
+            enhanceContentFeatures(contentEl());
 
             requestAnimationFrame(notifySelectionState);
             requestAnimationFrame(maybeRequestMore);

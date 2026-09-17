@@ -25,6 +25,7 @@
 		A1B2C3010000000000000001 /* MarkdownBlockStreamParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3010000000000000011 /* MarkdownBlockStreamParser.swift */; };
 		A1B2C3010000000000000002 /* MarkdownFileStreamReader.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3010000000000000012 /* MarkdownFileStreamReader.swift */; };
 		A1B2C3010000000000000003 /* MarkdownHTMLShell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3010000000000000013 /* MarkdownHTMLShell.swift */; };
+		MKDVNDBLD00000000000001 /* MarkdownVendorAssetLoader.swift in Sources */ = {isa = PBXBuildFile; fileRef = MKDVNDREF00000000000001 /* MarkdownVendorAssetLoader.swift */; };
 		A1B2C3010000000000000004 /* MarkdownImageProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3010000000000000014 /* MarkdownImageProbe.swift */; };
 		A1B2C3010000000000000005 /* MarkdownPreprocessor.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3010000000000000015 /* MarkdownPreprocessor.swift */; };
 		A1B2C3010000000000000006 /* MarkdownPreviewBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3010000000000000016 /* MarkdownPreviewBridge.swift */; };
@@ -80,6 +81,8 @@
 		CLPSNIFFBLD0000000000001 /* ClipboardContentSniffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CLPSNIFFREF0000000000001 /* ClipboardContentSniffer.swift */; };
 		CARDEXPTSTBLD00000000001 /* CodeCardExportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CARDEXPTSTREF00000000001 /* CodeCardExportTests.swift */; };
 		CLPSNFTSTBLD000000000001 /* ClipboardContentSnifferTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CLPSNFTSTREF000000000001 /* ClipboardContentSnifferTests.swift */; };
+		MKDVNDTSTBLD000000000001 /* MarkdownVendorAssetLoaderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = MKDVNDTSTREF000000000001 /* MarkdownVendorAssetLoaderTests.swift */; };
+		MKDEXTTSTBLD000000000001 /* MarkdownDeepExtensionTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = MKDEXTTSTREF000000000001 /* MarkdownDeepExtensionTests.swift */; };
 		APPRELAYBLD00000000000001 /* AppRelayControlView.swift in Sources */ = {isa = PBXBuildFile; fileRef = APPRELAYREF00000000000001 /* AppRelayControlView.swift */; };
 		835FB7022FCA950400D23AAB /* UnsupportedFileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835FB7012FCA950400D23AAA /* UnsupportedFileView.swift */; };
 		962C8A503D0B4CA6963E2B94 /* QuickLookOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = B76F46CEB24C42779E84EBBE /* QuickLookOverlay.swift */; };
@@ -125,6 +128,7 @@
 		MEDPREVBLD00000000000001 /* MediaPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = MEDPREVREF00000000000001 /* MediaPreviewView.swift */; };
 		ONBOARDBLD00000000000001 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = ONBOARDREF00000000000001 /* OnboardingView.swift */; };
 		FNT141414141414141414141 /* Fonts in Resources */ = {isa = PBXBuildFile; fileRef = FNT141414141414141414142 /* Fonts */; };
+		VND141414141414141414141 /* Vendor in Resources */ = {isa = PBXBuildFile; fileRef = VND141414141414141414142 /* Vendor */; };
 		835FBA022FCA950400D23A02 /* OfficePreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835FBA012FCA950400D23A01 /* OfficePreviewView.swift */; };
 		835FBA042FCA950400D23A04 /* MarkedJS.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835FBA032FCA950400D23A03 /* MarkedJS.swift */; };
 		835FBA062FCA950400D23A06 /* MarkdownPDFExporter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835FBA052FCA950400D23A05 /* MarkdownPDFExporter.swift */; };
@@ -177,6 +181,7 @@
 		A1B2C3010000000000000011 /* MarkdownBlockStreamParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownBlockStreamParser.swift; sourceTree = "<group>"; };
 		A1B2C3010000000000000012 /* MarkdownFileStreamReader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownFileStreamReader.swift; sourceTree = "<group>"; };
 		A1B2C3010000000000000013 /* MarkdownHTMLShell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownHTMLShell.swift; sourceTree = "<group>"; };
+		MKDVNDREF00000000000001 /* MarkdownVendorAssetLoader.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownVendorAssetLoader.swift; sourceTree = "<group>"; };
 		A1B2C3010000000000000014 /* MarkdownImageProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownImageProbe.swift; sourceTree = "<group>"; };
 		A1B2C3010000000000000015 /* MarkdownPreprocessor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownPreprocessor.swift; sourceTree = "<group>"; };
 		A1B2C3010000000000000016 /* MarkdownPreviewBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownPreviewBridge.swift; sourceTree = "<group>"; };
@@ -265,6 +270,7 @@
 		ONBOARDREF00000000000001 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		835FB7012FCA950400D23AAA /* UnsupportedFileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UnsupportedFileView.swift; sourceTree = "<group>"; };
 		FNT141414141414141414142 /* Fonts */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Fonts; sourceTree = "<group>"; };
+		VND141414141414141414142 /* Vendor */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Vendor; sourceTree = "<group>"; };
 		835FBA012FCA950400D23A01 /* OfficePreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OfficePreviewView.swift; sourceTree = "<group>"; };
 		835FBA032FCA950400D23A03 /* MarkedJS.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkedJS.swift; sourceTree = "<group>"; };
 		835FBA052FCA950400D23A05 /* MarkdownPDFExporter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownPDFExporter.swift; sourceTree = "<group>"; };
@@ -281,6 +287,8 @@
 		CLPSNIFFREF0000000000001 /* ClipboardContentSniffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardContentSniffer.swift; sourceTree = "<group>"; };
 		CARDEXPTSTREF00000000001 /* CodeCardExportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeCardExportTests.swift; sourceTree = "<group>"; };
 		CLPSNFTSTREF000000000001 /* ClipboardContentSnifferTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardContentSnifferTests.swift; sourceTree = "<group>"; };
+		MKDVNDTSTREF000000000001 /* MarkdownVendorAssetLoaderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownVendorAssetLoaderTests.swift; sourceTree = "<group>"; };
+		MKDEXTTSTREF000000000001 /* MarkdownDeepExtensionTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownDeepExtensionTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -399,6 +407,7 @@
 				A1B2C3010000000000000011 /* MarkdownBlockStreamParser.swift */,
 				A1B2C3010000000000000012 /* MarkdownFileStreamReader.swift */,
 				A1B2C3010000000000000013 /* MarkdownHTMLShell.swift */,
+				MKDVNDREF00000000000001 /* MarkdownVendorAssetLoader.swift */,
 				A1B2C3010000000000000014 /* MarkdownImageProbe.swift */,
 				A1B2C3010000000000000015 /* MarkdownPreprocessor.swift */,
 				A1B2C3010000000000000016 /* MarkdownPreviewBridge.swift */,
@@ -502,6 +511,7 @@
 			children = (
 				AST141414141414141414142 /* Assets.xcassets */,
 				FNT141414141414141414142 /* Fonts */,
+				VND141414141414141414142 /* Vendor */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -562,6 +572,8 @@
 				CLIINSTLTSTREF0000000001 /* CLIInstallerTests.swift */,
 				CARDEXPTSTREF00000000001 /* CodeCardExportTests.swift */,
 				CLPSNFTSTREF000000000001 /* ClipboardContentSnifferTests.swift */,
+				MKDVNDTSTREF000000000001 /* MarkdownVendorAssetLoaderTests.swift */,
+				MKDEXTTSTREF000000000001 /* MarkdownDeepExtensionTests.swift */,
 			);
 			path = QuickCookiesTests;
 			sourceTree = "<group>";
@@ -677,6 +689,7 @@
 			files = (
 				AST141414141414141414141 /* Assets.xcassets in Resources */,
 				FNT141414141414141414141 /* Fonts in Resources */,
+				VND141414141414141414141 /* Vendor in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -710,6 +723,7 @@
 				A1B2C3010000000000000001 /* MarkdownBlockStreamParser.swift in Sources */,
 				A1B2C3010000000000000002 /* MarkdownFileStreamReader.swift in Sources */,
 				A1B2C3010000000000000003 /* MarkdownHTMLShell.swift in Sources */,
+				MKDVNDBLD00000000000001 /* MarkdownVendorAssetLoader.swift in Sources */,
 				A1B2C3010000000000000004 /* MarkdownImageProbe.swift in Sources */,
 				A1B2C3010000000000000005 /* MarkdownPreprocessor.swift in Sources */,
 				A1B2C3010000000000000006 /* MarkdownPreviewBridge.swift in Sources */,
@@ -813,6 +827,8 @@
 				CLIINSTLTSTBLD0000000001 /* CLIInstallerTests.swift in Sources */,
 				CARDEXPTSTBLD00000000001 /* CodeCardExportTests.swift in Sources */,
 				CLPSNFTSTBLD000000000001 /* ClipboardContentSnifferTests.swift in Sources */,
+				MKDVNDTSTBLD000000000001 /* MarkdownVendorAssetLoaderTests.swift in Sources */,
+				MKDEXTTSTBLD000000000001 /* MarkdownDeepExtensionTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

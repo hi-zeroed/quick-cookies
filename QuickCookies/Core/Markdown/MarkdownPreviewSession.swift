@@ -844,6 +844,15 @@ private enum MarkdownBootstrapSnapshotRenderer {
                 let className = Range(match.range(at: 1), in: html).map { String(html[$0]) } ?? ""
                 let hintedLanguage = preferredLanguage ?? Self.extractLanguage(fromClassName: className)
                 let rawCode = Self.decodeHTMLEntities(String(html[codeRange]))
+
+                if hintedLanguage?.lowercased() == "mermaid" {
+                    result += """
+                    <pre class="mermaid-src"><code class="language-mermaid">\(Self.escapeHTML(rawCode))</code></pre>
+                    """
+                    cursor = wholeRange.upperBound
+                    continue
+                }
+
                 let highlighted = highlight(code: rawCode, language: hintedLanguage)
                 let resolvedLanguage = highlighted.language ?? hintedLanguage
                 let languageClass = resolvedLanguage.map { " language-\($0)" } ?? ""

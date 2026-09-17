@@ -84,6 +84,34 @@ enum MarkdownHTMLShell {
         let safeTrailingScript = trailingScript?
             .replacingOccurrences(of: "</script>", with: "<\\/script>", options: .caseInsensitive) ?? ""
 
+        let fullTextToProbe = initialContentHTML + (trailingScript ?? "")
+        let hasMermaid = fullTextToProbe.localizedCaseInsensitiveContains("mermaid")
+        let hasMath = fullTextToProbe.contains("$") || fullTextToProbe.contains("\\[") || fullTextToProbe.contains("\\(")
+
+        var vendorStyles: [String] = []
+        var vendorScripts: [String] = []
+
+        if hasMath, let katexCSS = MarkdownVendorAssetLoader.loadKaTeXCSS() {
+            vendorStyles.append(katexCSS)
+        }
+
+        if hasMermaid, let mermaidJS = MarkdownVendorAssetLoader.loadMermaidScript() {
+            let safeMermaid = mermaidJS.replacingOccurrences(of: "</script>", with: "<\\/script>", options: .caseInsensitive)
+            vendorScripts.append("<script>\(safeMermaid)</script>")
+        }
+
+        if hasMath,
+           let katexJS = MarkdownVendorAssetLoader.loadKaTeXScript(),
+           let autoRenderJS = MarkdownVendorAssetLoader.loadKaTeXAutoRenderScript() {
+            let safeKaTeX = katexJS.replacingOccurrences(of: "</script>", with: "<\\/script>", options: .caseInsensitive)
+            let safeAutoRender = autoRenderJS.replacingOccurrences(of: "</script>", with: "<\\/script>", options: .caseInsensitive)
+            vendorScripts.append("<script>\(safeKaTeX)</script>")
+            vendorScripts.append("<script>\(safeAutoRender)</script>")
+        }
+
+        let combinedVendorStyles = vendorStyles.joined(separator: "\n")
+        let combinedVendorScripts = vendorScripts.joined(separator: "\n")
+
         return """
         <!DOCTYPE html>
         <html>
@@ -257,6 +285,76 @@ enum MarkdownHTMLShell {
             margin: 24px 0;
         }
         \(syntaxTheme)
+        /* 代码块复制按钮与容器 */
+        .code-block-wrapper {
+            position: relative;
+            margin-top: 0;
+            margin-bottom: 16px;
+        }
+        .code-block-wrapper pre {
+            margin-top: 0 !important;
+            margin-bottom: 0 !important;
+        }
+        .copy-code-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 8px;
+            font-size: 11px;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            color: var(--muted-text-color, #888888);
+            background: rgba(120, 120, 130, 0.15);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            cursor: pointer;
+            opacity: 0;
+            transition: opacity 0.15s ease, background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+            user-select: none;
+            z-index: 10;
+        }
+        .code-block-wrapper:hover .copy-code-btn {
+            opacity: 1;
+        }
+        .copy-code-btn:hover {
+            background: rgba(120, 120, 130, 0.3);
+            color: var(--body-color, #e1e1e6);
+        }
+        .copy-code-btn.copied {
+            opacity: 1;
+            color: #10b981;
+            border-color: rgba(16, 185, 129, 0.4);
+            background: rgba(16, 185, 129, 0.15);
+        }
+        .copy-code-btn svg {
+            width: 12px;
+            height: 12px;
+            fill: none;
+            stroke: currentColor;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        /* Mermaid 渲染容器 */
+        .mermaid-wrapper {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0;
+            padding: 12px;
+            overflow-x: auto;
+            background: transparent;
+        }
+        .mermaid-wrapper svg {
+            max-width: 100%;
+            height: auto;
+        }
+        \(combinedVendorStyles)
         </style>
         <script>
         \(MarkedJS.source)
@@ -264,6 +362,7 @@ enum MarkdownHTMLShell {
         <script>
         \(safeHighlightScript)
         </script>
+        \(combinedVendorScripts)
         <script>
         \(safeRuntimeScript)
         </script>
