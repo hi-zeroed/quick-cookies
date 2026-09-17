@@ -22,6 +22,8 @@ final class CLIInstallerTests: XCTestCase {
         let content = CLIInstallerPolicy.defaultScriptContent()
         XCTAssertTrue(content.contains("VERSION=\"\(CLIInstallerPolicy.currentVersion)\""))
         XCTAssertTrue(content.contains("quickcookies://preview?path="))
+        XCTAssertTrue(content.contains("quickcookies://preview?source=clipboard"))
+        XCTAssertTrue(content.contains("-c|--clipboard"))
         XCTAssertTrue(content.contains("-g"))
     }
     

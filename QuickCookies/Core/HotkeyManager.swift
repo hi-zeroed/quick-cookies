@@ -11,6 +11,16 @@ class HotkeyManager {
     private var localFlagsChangedMonitor: Any?
     private var onKeyDown: (() -> Void)?
 
+    // 剪贴板透视独立快捷键
+    private var clipboardEventMonitor: Any?
+    private var localClipboardEventMonitor: Any?
+    private var onClipboardKeyDown: (() -> Void)?
+
+    // 分享卡片独立快捷键 (⌃⌥C)
+    private var shareCardEventMonitor: Any?
+    private var localShareCardEventMonitor: Any?
+    private var onShareCardKeyDown: (() -> Void)?
+
     // 双击修饰键检测
     private var lastModifierPressTime: Date?
     private var isModifierPressed: Bool = false
@@ -124,7 +134,111 @@ class HotkeyManager {
         }
     }
 
-    /// 移除热键监听
+    /// 注册剪贴板透视独立快捷键监听
+    func registerClipboardHotkey(modifiers: NSEvent.ModifierFlags, keyCode: UInt16, handler: @escaping () -> Void) {
+        unregisterClipboardHotkey()
+
+        onClipboardKeyDown = handler
+
+        // 1. 全局监听（当其他 App 处于前台时）
+        clipboardEventMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            guard let self = self else { return }
+            if self.matchEvent(event, modifiers: modifiers, keyCode: keyCode) {
+                DispatchQueue.main.async {
+                    handler()
+                }
+            }
+        }
+
+        // 2. 本地监听（当 QuickCookies 本身处于前台时）
+        localClipboardEventMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            guard let self = self else { return event }
+            if self.matchEvent(event, modifiers: modifiers, keyCode: keyCode) {
+                DispatchQueue.main.async {
+                    handler()
+                }
+                return nil
+            }
+            return event
+        }
+    }
+
+    /// 使用当前设置注册剪贴板快捷键
+    func registerClipboardWithSettings(handler: @escaping () -> Void) {
+        let settings = Settings.shared
+        registerClipboardHotkey(
+            modifiers: settings.clipboardHotkeyModifiers,
+            keyCode: settings.clipboardHotkeyKeyCode,
+            handler: handler
+        )
+    }
+
+    /// 移除剪贴板快捷键监听
+    func unregisterClipboardHotkey() {
+        if let monitor = clipboardEventMonitor {
+            NSEvent.removeMonitor(monitor)
+            clipboardEventMonitor = nil
+        }
+        if let monitor = localClipboardEventMonitor {
+            NSEvent.removeMonitor(monitor)
+            localClipboardEventMonitor = nil
+        }
+        onClipboardKeyDown = nil
+    }
+
+    /// 注册直接分享卡片独立快捷键监听 (⌃⌥C)
+    func registerShareCardHotkey(modifiers: NSEvent.ModifierFlags, keyCode: UInt16, handler: @escaping () -> Void) {
+        unregisterShareCardHotkey()
+
+        onShareCardKeyDown = handler
+
+        // 1. 全局监听（当其他 App 处于前台时）
+        shareCardEventMonitor = NSEvent.addGlobalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            guard let self = self else { return }
+            if self.matchEvent(event, modifiers: modifiers, keyCode: keyCode) {
+                DispatchQueue.main.async {
+                    handler()
+                }
+            }
+        }
+
+        // 2. 本地监听（当 QuickCookies 本身处于前台时）
+        localShareCardEventMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
+            guard let self = self else { return event }
+            if self.matchEvent(event, modifiers: modifiers, keyCode: keyCode) {
+                DispatchQueue.main.async {
+                    handler()
+                }
+                return nil
+            }
+            return event
+        }
+    }
+
+    /// 使用当前设置注册直接分享卡片快捷键
+    func registerShareCardWithSettings(handler: @escaping () -> Void) {
+        let settings = Settings.shared
+        registerShareCardHotkey(
+            modifiers: settings.shareCardHotkeyModifiers,
+            keyCode: settings.shareCardHotkeyKeyCode,
+            handler: handler
+        )
+    }
+
+    /// 移除直接分享卡片快捷键监听
+    func unregisterShareCardHotkey() {
+        if let monitor = shareCardEventMonitor {
+            NSEvent.removeMonitor(monitor)
+            shareCardEventMonitor = nil
+        }
+        if let monitor = localShareCardEventMonitor {
+            NSEvent.removeMonitor(monitor)
+            localShareCardEventMonitor = nil
+        }
+        onShareCardKeyDown = nil
+    }
+
+    /// 移除常规热键监听
     func unregister() {
         if let monitor = eventMonitor {
             NSEvent.removeMonitor(monitor)
@@ -149,5 +263,7 @@ class HotkeyManager {
 
     deinit {
         unregister()
+        unregisterClipboardHotkey()
+        unregisterShareCardHotkey()
     }
 }

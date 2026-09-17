@@ -46,6 +46,10 @@ class Settings: ObservableObject {
     // 快捷键配置
     @Published var hotkeyModifiers: NSEvent.ModifierFlags
     @Published var hotkeyKeyCode: UInt16
+    @Published var clipboardHotkeyModifiers: NSEvent.ModifierFlags
+    @Published var clipboardHotkeyKeyCode: UInt16
+    @Published var shareCardHotkeyModifiers: NSEvent.ModifierFlags
+    @Published var shareCardHotkeyKeyCode: UInt16
 
     // 外观配置
     @Published var fontSize: CGFloat
@@ -94,6 +98,10 @@ class Settings: ObservableObject {
         // 先初始化所有 stored properties（使用默认值）
         hotkeyModifiers = Constants.defaultHotkeyModifiers
         hotkeyKeyCode = Constants.defaultHotkeyKeyCode
+        clipboardHotkeyModifiers = Constants.defaultClipboardHotkeyModifiers
+        clipboardHotkeyKeyCode = Constants.defaultClipboardHotkeyKeyCode
+        shareCardHotkeyModifiers = Constants.defaultShareCardHotkeyModifiers
+        shareCardHotkeyKeyCode = Constants.defaultShareCardHotkeyKeyCode
         fontSize = 13
         showLineNumbers = true
         themeMode = .system
@@ -116,6 +124,26 @@ class Settings: ObservableObject {
 
         if defaults.hasKey(Keys.hotkeyKeyCode) {
             hotkeyKeyCode = UInt16(defaults.integer(forKey: Keys.hotkeyKeyCode))
+        }
+
+        if defaults.hasKey(Keys.clipboardHotkeyModifiers) {
+            clipboardHotkeyModifiers = NSEvent.ModifierFlags(
+                rawValue: UInt(defaults.integer(forKey: Keys.clipboardHotkeyModifiers))
+            )
+        }
+
+        if defaults.hasKey(Keys.clipboardHotkeyKeyCode) {
+            clipboardHotkeyKeyCode = UInt16(defaults.integer(forKey: Keys.clipboardHotkeyKeyCode))
+        }
+
+        if defaults.hasKey(Keys.shareCardHotkeyModifiers) {
+            shareCardHotkeyModifiers = NSEvent.ModifierFlags(
+                rawValue: UInt(defaults.integer(forKey: Keys.shareCardHotkeyModifiers))
+            )
+        }
+
+        if defaults.hasKey(Keys.shareCardHotkeyKeyCode) {
+            shareCardHotkeyKeyCode = UInt16(defaults.integer(forKey: Keys.shareCardHotkeyKeyCode))
         }
 
         // 外观
@@ -163,6 +191,22 @@ class Settings: ObservableObject {
         NotificationCenter.default.post(name: .settingsHotkeyDidChange, object: self)
     }
 
+    func saveClipboardHotkey(modifiers: NSEvent.ModifierFlags, keyCode: UInt16) {
+        clipboardHotkeyModifiers = modifiers
+        clipboardHotkeyKeyCode = keyCode
+        defaults.set(modifiers.rawValue, forKey: Keys.clipboardHotkeyModifiers)
+        defaults.set(Int(keyCode), forKey: Keys.clipboardHotkeyKeyCode)
+        NotificationCenter.default.post(name: .settingsClipboardHotkeyDidChange, object: self)
+    }
+
+    func saveShareCardHotkey(modifiers: NSEvent.ModifierFlags, keyCode: UInt16) {
+        shareCardHotkeyModifiers = modifiers
+        shareCardHotkeyKeyCode = keyCode
+        defaults.set(modifiers.rawValue, forKey: Keys.shareCardHotkeyModifiers)
+        defaults.set(Int(keyCode), forKey: Keys.shareCardHotkeyKeyCode)
+        NotificationCenter.default.post(name: .settingsShareCardHotkeyDidChange, object: self)
+    }
+
     func saveFontSize(_ size: CGFloat) {
         fontSize = size
         defaults.set(Float(size), forKey: Keys.fontSize)
@@ -189,6 +233,10 @@ class Settings: ObservableObject {
     private enum Keys {
         static let hotkeyModifiers = "hotkeyModifiers"
         static let hotkeyKeyCode = "hotkeyKeyCode"
+        static let clipboardHotkeyModifiers = "clipboardHotkeyModifiers"
+        static let clipboardHotkeyKeyCode = "clipboardHotkeyKeyCode"
+        static let shareCardHotkeyModifiers = "shareCardHotkeyModifiers"
+        static let shareCardHotkeyKeyCode = "shareCardHotkeyKeyCode"
         static let fontSize = "fontSize"
         static let showLineNumbers = "showLineNumbers"
         static let themeMode = "themeMode"
@@ -348,6 +396,46 @@ struct Localization {
             "Install CLI Tool": [.en: "Install CLI Tool", .zhHans: "安装命令行工具"],
             "Reinstall CLI": [.en: "Reinstall CLI", .zhHans: "重新安装 CLI"],
             "CLI installed to /usr/local/bin/qc": [.en: "CLI installed to /usr/local/bin/qc", .zhHans: "已成功安装命令行工具至 /usr/local/bin/qc"],
+
+            // Code Card Export & Clipboard Inspector
+            "Share Code Card": [.en: "Share Code Card", .zhHans: "分享代码卡片"],
+            "Share Card": [.en: "Share Card", .zhHans: "分享卡片"],
+            "Text / Quote": [.en: "Text / Quote", .zhHans: "文本 / 引用"],
+            "Cancel": [.en: "Cancel", .zhHans: "取消"],
+            "Padding": [.en: "Padding", .zhHans: "边距"],
+            "Aurora": [.en: "Aurora", .zhHans: "极光"],
+            "Sunset": [.en: "Sunset", .zhHans: "加州日落"],
+            "Charcoal": [.en: "Charcoal", .zhHans: "黑曜石"],
+            "Cyberpunk": [.en: "Cyberpunk", .zhHans: "赛博朋克"],
+            "Monochrome": [.en: "Monochrome", .zhHans: "黑白极简"],
+            "Theme": [.en: "Theme", .zhHans: "背景主题"],
+            "Line Numbers": [.en: "Line Numbers", .zhHans: "显示行号"],
+            "Watermark": [.en: "Watermark", .zhHans: "品牌水印"],
+            "Compact": [.en: "Compact", .zhHans: "紧凑"],
+            "Regular": [.en: "Regular", .zhHans: "适中"],
+            "Spacious": [.en: "Spacious", .zhHans: "舒展"],
+            "Copy Image (⌘C)": [.en: "Copy Image (⌘C)", .zhHans: "拷贝图片 (⌘C)"],
+            "Save Image... (⌘S)": [.en: "Save Image... (⌘S)", .zhHans: "保存图片... (⌘S)"],
+            "Copied card image to clipboard": [.en: "Copied card image to clipboard", .zhHans: "已拷贝卡片图片至剪贴板"],
+            "Saved card image successfully": [.en: "Saved card image successfully", .zhHans: "卡片图片保存成功"],
+            "Failed to copy image": [.en: "Failed to copy image", .zhHans: "拷贝卡片图片失败"],
+            "Failed to render image": [.en: "Failed to render image", .zhHans: "渲染卡片失败"],
+            "Auto": [.en: "Auto", .zhHans: "自适应"],
+            "Aspect Ratio": [.en: "Aspect Ratio", .zhHans: "比例"],
+            "Transparent": [.en: "Transparent", .zhHans: "透明底"],
+            "Ambient Glow": [.en: "Ambient Glow", .zhHans: "微光辉光"],
+            "Inspect Clipboard": [.en: "Inspect Clipboard", .zhHans: "透视剪贴板"],
+            "Inspect Clipboard (⌃⌥V)": [.en: "Inspect Clipboard (⌃⌥V)", .zhHans: "透视剪贴板 (⌃⌥V)"],
+            "Inspect clipboard content instantly": [.en: "Inspect clipboard content instantly", .zhHans: "极速透视剪贴板中的文本、代码、JSON 或图片"],
+            "Share as Card": [.en: "Share as Card", .zhHans: "分享为卡片"],
+            "Share as Card (⌃⌥C)": [.en: "Share as Card (⌃⌥C)", .zhHans: "分享为卡片 (⌃⌥C)"],
+            "Directly preview and export as card": [.en: "Directly preview and export as card", .zhHans: "直接预览并导出为社交分享卡片"],
+            "Clipboard (JSON)": [.en: "Clipboard (JSON)", .zhHans: "剪贴板 (JSON)"],
+            "Clipboard (Markdown)": [.en: "Clipboard (Markdown)", .zhHans: "剪贴板 (Markdown)"],
+            "Clipboard Image (PNG)": [.en: "Clipboard Image (PNG)", .zhHans: "剪贴板图片 (PNG)"],
+            "Clipboard Text": [.en: "Clipboard Text", .zhHans: "剪贴板文本"],
+            "Clipboard is empty": [.en: "Clipboard is empty", .zhHans: "剪贴板为空"],
+            "Failed to read clipboard": [.en: "Failed to read clipboard", .zhHans: "读取剪贴板失败"],
 
             // Ready & Personalize
             "You're all set": [.en: "You're all set", .zhHans: "一切就绪"],

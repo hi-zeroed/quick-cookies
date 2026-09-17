@@ -10,15 +10,21 @@ struct FinderMenuIntegration {
     }
 
     let openSelectedFile: () -> Void
+    let inspectClipboard: () -> Void
+    let openShareCard: () -> Void
     let showSettings: () -> Void
     let finderSelectionPathProvider: any FinderSelectionPathProviding
 
     init(
         openSelectedFile: @escaping () -> Void,
+        inspectClipboard: @escaping () -> Void = {},
+        openShareCard: @escaping () -> Void = {},
         showSettings: @escaping () -> Void,
         finderSelectionPathProvider: any FinderSelectionPathProviding = AppleScriptFinderSelectionPathProvider()
     ) {
         self.openSelectedFile = openSelectedFile
+        self.inspectClipboard = inspectClipboard
+        self.openShareCard = openShareCard
         self.showSettings = showSettings
         self.finderSelectionPathProvider = finderSelectionPathProvider
     }
@@ -39,6 +45,16 @@ struct FinderMenuIntegration {
             Label("Open Selected File".localized(), image: "MenuOpen")
         }
         .help("Double-press Option or click here to open the selected Finder file".localized())
+
+        Button(action: inspectClipboard) {
+            Label("Inspect Clipboard".localized(), systemImage: "doc.on.clipboard")
+        }
+        .keyboardShortcut("v", modifiers: [.control, .option])
+
+        Button(action: openShareCard) {
+            Label("Share as Card".localized(), systemImage: "sparkles.square.filled.on.square")
+        }
+        .keyboardShortcut("c", modifiers: [.control, .option])
 
         Divider()
 

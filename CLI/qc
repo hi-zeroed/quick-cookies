@@ -4,7 +4,7 @@
 # 用法: qc [选项] <文件或目录路径>
 #
 
-VERSION="1.5.0"
+VERSION="1.6.0"
 
 show_help() {
     cat << EOF
@@ -14,6 +14,7 @@ QuickCookies CLI (qc) v${VERSION}
 用法:
     qc <文件或目录路径>     在 QuickCookies 浮层中打开预览
     qc .                   预览当前目录
+    qc -c, --clipboard     透视剪贴板中的文本、代码、JSON 或图片
     qc -h, --help          查看帮助信息
     qc -v, --version       查看版本号
 
@@ -21,62 +22,11 @@ QuickCookies CLI (qc) v${VERSION}
     qc README.md
     qc src/main.swift
     qc archive.zip
+    qc -c
     qc .
 
 EOF
 }
-
-if [ $# -eq 0 ]; then
-    show_help
-    exit 0
-fi
-
-case "$1" in
-    -h|--help)
-        show_help
-        exit 0
-        ;;
-    -v|--version)
-        echo "QuickCookies CLI (qc) v${VERSION}"
-        exit 0
-        ;;
-    *)
-        TARGET="$1"
-        ;;
-esac
-
-# 检查目标文件或目录是否存在
-if [ ! -e "$TARGET" ]; then
-    echo "qc: 找不到指定的文件或目录: $TARGET" >&2
-    exit 1
-fi
-
-# 获取绝对物理路径
-if [ -d "$TARGET" ]; then
-    ABS_PATH="$(cd "$TARGET" 2>/dev/null && pwd -P)"
-else
-    DIR="$(dirname "$TARGET")"
-    BASE="$(basename "$TARGET")"
-    ABS_DIR="$(cd "$DIR" 2>/dev/null && pwd -P)"
-    ABS_PATH="${ABS_DIR}/${BASE}"
-fi
-
-if [ -z "$ABS_PATH" ] || [ ! -e "$ABS_PATH" ]; then
-    echo "qc: 无法解析绝对路径: $TARGET" >&2
-    exit 1
-fi
-
-# 对路径进行 URL 编码
-python_urlencode() {
-    python3 -c "import urllib.parse, sys; print(urllib.parse.quote(sys.argv[1]))" "$1" 2>/dev/null
-}
-
-ENCODED_PATH="$(python_urlencode "$ABS_PATH")"
-
-if [ -z "$ENCODED_PATH" ]; then
-    # 若无 python3 兜底直接传递
-    ENCODED_PATH="$ABS_PATH"
-fi
 
 # 寻找可用的 QuickCookies.app 路径，避免被系统中其它陈旧版本或历史构建拦截
 find_quickcookies_app() {
@@ -121,6 +71,73 @@ find_quickcookies_app() {
 
     return 1
 }
+
+if [ $# -eq 0 ]; then
+    show_help
+    exit 0
+fi
+
+case "$1" in
+    -h|--help)
+        show_help
+        exit 0
+        ;;
+    -v|--version)
+        echo "QuickCookies CLI (qc) v${VERSION}"
+        exit 0
+        ;;
+    -c|--clipboard)
+        TARGET_APP="$(find_quickcookies_app 2>/dev/null)"
+        if [ -n "$TARGET_APP" ] && [ -d "$TARGET_APP" ]; then
+            open -a "$TARGET_APP" -g "quickcookies://preview?source=clipboard"
+        else
+            if pgrep -x "QuickCookies" >/dev/null 2>&1; then
+                open -b com.quickcookies.app -g "quickcookies://preview?source=clipboard"
+            else
+                echo "qc: 未找到可用的 QuickCookies.app。" >&2
+                echo "请先启动 QuickCookies，或将其安装至 /Applications 目录。" >&2
+                exit 1
+            fi
+        fi
+        exit 0
+        ;;
+    *)
+        TARGET="$1"
+        ;;
+esac
+
+# 检查目标文件或目录是否存在
+if [ ! -e "$TARGET" ]; then
+    echo "qc: 找不到指定的文件或目录: $TARGET" >&2
+    exit 1
+fi
+
+# 获取绝对物理路径
+if [ -d "$TARGET" ]; then
+    ABS_PATH="$(cd "$TARGET" 2>/dev/null && pwd -P)"
+else
+    DIR="$(dirname "$TARGET")"
+    BASE="$(basename "$TARGET")"
+    ABS_DIR="$(cd "$DIR" 2>/dev/null && pwd -P)"
+    ABS_PATH="${ABS_DIR}/${BASE}"
+fi
+
+if [ -z "$ABS_PATH" ] || [ ! -e "$ABS_PATH" ]; then
+    echo "qc: 无法解析绝对路径: $TARGET" >&2
+    exit 1
+fi
+
+# 对路径进行 URL 编码
+python_urlencode() {
+    python3 -c "import urllib.parse, sys; print(urllib.parse.quote(sys.argv[1]))" "$1" 2>/dev/null
+}
+
+ENCODED_PATH="$(python_urlencode "$ABS_PATH")"
+
+if [ -z "$ENCODED_PATH" ]; then
+    # 若无 python3 兜底直接传递
+    ENCODED_PATH="$ABS_PATH"
+fi
 
 TARGET_APP="$(find_quickcookies_app 2>/dev/null)"
 

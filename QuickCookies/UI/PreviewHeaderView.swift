@@ -22,11 +22,15 @@ struct PreviewHeaderView: View {
     // Markdown 导出 PDF
     let isExportingPDF: Bool
     let onExportPDF: () -> Void
+
+    // 分享代码卡片
+    var onShareCard: (() -> Void)? = nil
     
     @State private var isHeaderHovered: Bool = false
     @State private var isSearchHovered: Bool = false
     @State private var isCopySVGHovered: Bool = false
     @State private var isPDFHovered: Bool = false
+    @State private var isShareCardHovered: Bool = false
 
     var body: some View {
         HStack {
@@ -238,6 +242,32 @@ struct PreviewHeaderView: View {
                             }
                         }
                         .animation(.easeInOut(duration: 0.2), value: isExportingPDF)
+                    }
+
+                    // 分享精美代码卡片按钮
+                    if (activeRenderType == .code || activeRenderType == .plainText || activeRenderType == .markdown), onShareCard != nil {
+                        Button(action: {
+                            onShareCard?()
+                        }) {
+                            Image(systemName: "sparkles.rectangle.stack")
+                                .font(.system(size: 12, weight: .medium))
+                                .foregroundColor(Color.appText.opacity(isShareCardHovered ? 0.95 : 0.75))
+                                .frame(width: 22, height: 22)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 5)
+                                        .fill(Color.appText.opacity(isShareCardHovered ? 0.12 : 0.06))
+                                )
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 5)
+                                        .stroke(Color.appText.opacity(isShareCardHovered ? 0.18 : (colorScheme == .dark ? 0.12 : 0.08)), lineWidth: 0.5)
+                                )
+                                .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        .help((activeRenderType == .code ? "Share Code Card" : "Share Card").localized())
+                        .onHover { hovering in
+                            isShareCardHovered = hovering
+                        }
                     }
 
                     // 外部应用接力打开控件

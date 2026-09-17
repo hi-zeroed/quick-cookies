@@ -6,6 +6,14 @@ enum Constants {
     static let defaultHotkeyModifiers: NSEvent.ModifierFlags = [.command]
     static let defaultHotkeyKeyCode: UInt16 = 0 // 0 表示“双击修饰键”模式，而不是普通 keyDown keyCode
 
+    // 默认剪贴板透视热键：Control + Option + V (Keycode 9 为字母 V，无任何主流编辑器冲突)
+    static let defaultClipboardHotkeyModifiers: NSEvent.ModifierFlags = [.control, .option]
+    static let defaultClipboardHotkeyKeyCode: UInt16 = 9
+
+    // 默认直接唤起分享卡片热键：Control + Option + C (Keycode 8 为字母 C)
+    static let defaultShareCardHotkeyModifiers: NSEvent.ModifierFlags = [.control, .option]
+    static let defaultShareCardHotkeyKeyCode: UInt16 = 8
+
     // 双击修饰键触发的时间间隔（秒）
     static let doublePressInterval: TimeInterval = 0.5 // 500ms
 

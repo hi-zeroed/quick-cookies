@@ -59,6 +59,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         openSelectedFile: { [weak self] in
             self?.openSelectedFileFromMenuBar()
         },
+        inspectClipboard: { [weak self] in
+            self?.inspectClipboard()
+        },
+        openShareCard: { [weak self] in
+            self?.openShareCardDirectly()
+        },
         showSettings: {
             DispatchQueue.main.async {
                 SettingsWindowController.shared.show()
@@ -115,6 +121,16 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             requestController: previewRequestController,
             presenter: previewPresenter
         )
+
+        // 注册剪贴板透视全局快捷键（默认 ⌃⌥V）
+        HotkeyManager.shared.registerClipboardWithSettings { [weak self] in
+            self?.inspectClipboard()
+        }
+
+        // 注册直接分享卡片全局快捷键（默认 ⌃⌥C）
+        HotkeyManager.shared.registerShareCardWithSettings { [weak self] in
+            self?.openShareCardDirectly()
+        }
 
         // 注册 Services 菜单项
         NSApp.servicesProvider = QuickCookiesServiceProvider(
@@ -249,14 +265,76 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         guard let url = urls.first, url.scheme == "quickcookies", url.host == "preview" else { return }
 
         let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
+        
+        // 剪贴板透视: quickcookies://preview?source=clipboard
+        if let sourceItem = components?.queryItems?.first(where: { $0.name == "source" }),
+           sourceItem.value == "clipboard" {
+            inspectClipboard()
+            return
+        }
+
         if let pathItem = components?.queryItems?.first(where: { $0.name == "path" }),
            let path = pathItem.value {
             previewRequestController.openPath(path, source: .urlScheme)
         }
     }
 
+    @MainActor
+    func inspectClipboard() {
+        let sniffResult = ClipboardContentSniffer.sniff()
+        if case .empty = sniffResult {
+            previewPresenter.showToast(message: "Clipboard is empty".localized(), icon: "doc.on.clipboard")
+            return
+        }
+        do {
+            if let (filePath, _) = try ClipboardContentSniffer.materialize(result: sniffResult) {
+                previewRequestController.openPath(filePath, source: .urlScheme)
+            }
+        } catch {
+            previewPresenter.showToast(message: "Failed to read clipboard".localized(), icon: "exclamationmark.triangle")
+        }
+    }
+
+    @MainActor
+    func openShareCardDirectly() {
+        // 1. 若当前预览浮层已经可见，直接原地切换为 Card Studio
+        if previewPresenter.isPreviewVisible {
+            NotificationCenter.default.post(name: .previewPresentShareCardDirectly, object: nil)
+            return
+        }
+
+        // 2. 如果剪贴板有内容，优先嗅探剪贴板并直达 Card Studio
+        let sniffResult = ClipboardContentSniffer.sniff()
+        if case .empty = sniffResult {
+            // 剪贴板为空，尝试透视 Finder 选中文件
+            switch finderMenuIntegration.resolveOpenSelectedFileRequest() {
+            case .request(let request):
+                previewRequestController.submit(request)
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                    NotificationCenter.default.post(name: .previewPresentShareCardDirectly, object: nil)
+                }
+            case .failure(let message, let icon):
+                previewPresenter.showToast(message: message, icon: icon)
+            }
+            return
+        }
+
+        do {
+            if let (filePath, _) = try ClipboardContentSniffer.materialize(result: sniffResult) {
+                previewRequestController.openPath(filePath, source: .urlScheme)
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                    NotificationCenter.default.post(name: .previewPresentShareCardDirectly, object: nil)
+                }
+            }
+        } catch {
+            previewPresenter.showToast(message: "Failed to read clipboard".localized(), icon: "exclamationmark.triangle")
+        }
+    }
+
     func applicationWillTerminate(_ notification: Notification) {
         HotkeyManager.shared.unregister()
+        HotkeyManager.shared.unregisterClipboardHotkey()
+        HotkeyManager.shared.unregisterShareCardHotkey()
         notificationObservers.forEach(NotificationCenter.default.removeObserver)
         notificationObservers.removeAll()
         previewRequestController.onRequest = nil
@@ -310,6 +388,26 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
 
+        let clipboardHotkeyObserver = NotificationCenter.default.addObserver(
+            forName: .settingsClipboardHotkeyDidChange,
+            object: Settings.shared,
+            queue: .main
+        ) { [weak self] _ in
+            HotkeyManager.shared.registerClipboardWithSettings { [weak self] in
+                self?.inspectClipboard()
+            }
+        }
+
+        let shareCardHotkeyObserver = NotificationCenter.default.addObserver(
+            forName: .settingsShareCardHotkeyDidChange,
+            object: Settings.shared,
+            queue: .main
+        ) { [weak self] _ in
+            HotkeyManager.shared.registerShareCardWithSettings { [weak self] in
+                self?.openShareCardDirectly()
+            }
+        }
+
         let themeObserver = NotificationCenter.default.addObserver(
             forName: .settingsThemeModeDidChange,
             object: Settings.shared,
@@ -330,7 +428,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             }
         }
 
-        notificationObservers = [hotkeyObserver, themeObserver, languageObserver]
+        notificationObservers = [hotkeyObserver, clipboardHotkeyObserver, shareCardHotkeyObserver, themeObserver, languageObserver]
     }
 
 }

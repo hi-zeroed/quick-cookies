@@ -904,43 +904,71 @@ struct SettingsView: View {
             VStack(alignment: .leading, spacing: 6) {
                 InsetSectionHeader(title: "GLOBAL HOTKEY".localized())
                 InsetGroupCard {
-                    InsetGroupRow(
-                        title: "Global Preview Hotkey".localized(),
-                        subtitle: "Toggle overlay instantly when files are selected in Finder".localized()
-                    ) {
-                        HStack(spacing: 8) {
-                            if isRecordingHotkey {
-                                Text("Press new shortcut keys...".localized())
-                                    .font(.system(size: 11, weight: .medium, design: .monospaced))
-                                    .foregroundColor(.orange)
-                                    .padding(.horizontal, 8)
-                                    .padding(.vertical, 4)
-                                    .background(Color.orange.opacity(0.12))
-                                    .cornerRadius(6)
-                            } else {
-                                Button(action: { isRecordingHotkey = true }) {
-                                    HStack(spacing: 4) {
-                                        ForEach(0..<hotkeyKeyNames.count, id: \.self) { index in
-                                            KbdKeyView(key: hotkeyKeyNames[index])
+                    VStack(spacing: 0) {
+                        InsetGroupRow(
+                            title: "Global Preview Hotkey".localized(),
+                            subtitle: "Toggle overlay instantly when files are selected in Finder".localized()
+                        ) {
+                            HStack(spacing: 8) {
+                                if isRecordingHotkey {
+                                    Text("Press new shortcut keys...".localized())
+                                        .font(.system(size: 11, weight: .medium, design: .monospaced))
+                                        .foregroundColor(.orange)
+                                        .padding(.horizontal, 8)
+                                        .padding(.vertical, 4)
+                                        .background(Color.orange.opacity(0.12))
+                                        .cornerRadius(6)
+                                } else {
+                                    Button(action: { isRecordingHotkey = true }) {
+                                        HStack(spacing: 4) {
+                                            ForEach(0..<hotkeyKeyNames.count, id: \.self) { index in
+                                                KbdKeyView(key: hotkeyKeyNames[index])
+                                            }
                                         }
                                     }
+                                    .buttonStyle(.plain)
+                                    .help("Click keys on the right to record custom hotkey".localized())
+                                }
+                                
+                                Button(action: {
+                                    settings.saveHotkey(
+                                        modifiers: Constants.defaultHotkeyModifiers,
+                                        keyCode: Constants.defaultHotkeyKeyCode
+                                    )
+                                }) {
+                                    Image(systemName: "arrow.counterclockwise")
+                                        .font(.system(size: 10, weight: .medium))
+                                        .foregroundColor(.secondary)
                                 }
                                 .buttonStyle(.plain)
-                                .help("Click keys on the right to record custom hotkey".localized())
+                                .help("Reset Hotkey".localized())
                             }
-                            
-                            Button(action: {
-                                settings.saveHotkey(
-                                    modifiers: Constants.defaultHotkeyModifiers,
-                                    keyCode: Constants.defaultHotkeyKeyCode
-                                )
-                            }) {
-                                Image(systemName: "arrow.counterclockwise")
-                                    .font(.system(size: 10, weight: .medium))
-                                    .foregroundColor(.secondary)
+                        }
+
+                        Divider().padding(.horizontal, 14)
+
+                        InsetGroupRow(
+                            title: "Inspect Clipboard".localized(),
+                            subtitle: "Inspect clipboard content instantly".localized()
+                        ) {
+                            HStack(spacing: 4) {
+                                KbdKeyView(key: "⌃")
+                                KbdKeyView(key: "⌥")
+                                KbdKeyView(key: "V")
                             }
-                            .buttonStyle(.plain)
-                            .help("Reset Hotkey".localized())
+                        }
+
+                        Divider().padding(.horizontal, 14)
+
+                        InsetGroupRow(
+                            title: "Share as Card".localized(),
+                            subtitle: "Directly preview and export as card".localized()
+                        ) {
+                            HStack(spacing: 4) {
+                                KbdKeyView(key: "⌃")
+                                KbdKeyView(key: "⌥")
+                                KbdKeyView(key: "C")
+                            }
                         }
                     }
                 }

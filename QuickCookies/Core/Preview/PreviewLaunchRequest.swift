@@ -54,6 +54,9 @@ struct PreviewUIPresenter {
 
 extension Notification.Name {
     static let settingsHotkeyDidChange = Notification.Name("Settings.hotkeyDidChange")
+    static let settingsClipboardHotkeyDidChange = Notification.Name("Settings.clipboardHotkeyDidChange")
+    static let settingsShareCardHotkeyDidChange = Notification.Name("Settings.shareCardHotkeyDidChange")
+    static let previewPresentShareCardDirectly = Notification.Name("Preview.presentShareCardDirectly")
     static let settingsThemeModeDidChange = Notification.Name("Settings.themeModeDidChange")
     static let settingsLanguageDidChange = Notification.Name("Settings.languageDidChange")
 }

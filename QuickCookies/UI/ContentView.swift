@@ -275,6 +275,7 @@ struct ContentView: View {
     // 全文搜索与 SVG 双模预览状态
     @StateObject private var findBarState = FindBarState()
     @State private var isSVGSourceMode: Bool = false
+    @State private var isShareCardPresented: Bool = false
     
     // 状态化分段文件读取器
     @State private var chunkReader: FileChunkReader? = nil
@@ -346,53 +347,91 @@ struct ContentView: View {
     }
 
     var body: some View {
-        VStack(spacing: 0) {
-            // 工具栏
-            PreviewHeaderView(
-                activePath: activePath,
-                activeDisplayName: activeDisplayName,
-                activeRenderType: activeRenderType,
-                activeErrorMessage: activeErrorMessage,
-                isExpanded: isExpanded,
-                onClose: { windowActions.closeOverlay() },
-                onToggleExpanded: { session.toggleExpanded() },
-                findBarState: findBarState,
-                isSVGSourceMode: $isSVGSourceMode,
-                svgContent: content,
-                onShowToast: { msg, icon in
-                    localToastMessage = msg
-                    localToastIcon = icon
-                    showLocalToast = true
-                },
-                isExportingPDF: isExportingPDF,
-                onExportPDF: exportMarkdownToPDF
-            )
-            .zIndex(1) // 锁定层级，确保工具栏处于最前，防止 MarkdownView 的 ScrollView 穿透遮挡
+        ZStack {
+            if isShareCardPresented {
+                CodeCardExportModalView(
+                    title: activeDisplayName ?? (activePath.map { URL(fileURLWithPath: $0).lastPathComponent } ?? "Snippet"),
+                    code: content,
+                    language: activeLanguage,
+                    initialMode: (activeRenderType == .markdown || activeRenderType == .plainText) ? .quote : .code,
+                    onDismiss: {
+                        isShareCardPresented = false
+                    },
+                    onShowToast: { msg, icon in
+                        localToastMessage = msg
+                        localToastIcon = icon
+                        showLocalToast = true
+                    }
+                )
+                .transition(.opacity.combined(with: .scale(scale: 0.96)))
+                .zIndex(100)
+            } else {
+                VStack(spacing: 0) {
+                    // 工具栏
+                    PreviewHeaderView(
+                        activePath: activePath,
+                        activeDisplayName: activeDisplayName,
+                        activeRenderType: activeRenderType,
+                        activeErrorMessage: activeErrorMessage,
+                        isExpanded: isExpanded,
+                        onClose: { windowActions.closeOverlay() },
+                        onToggleExpanded: { session.toggleExpanded() },
+                        findBarState: findBarState,
+                        isSVGSourceMode: $isSVGSourceMode,
+                        svgContent: content,
+                        onShowToast: { msg, icon in
+                            localToastMessage = msg
+                            localToastIcon = icon
+                            showLocalToast = true
+                        },
+                        isExportingPDF: isExportingPDF,
+                        onExportPDF: exportMarkdownToPDF,
+                        onShareCard: {
+                            isShareCardPresented = true
+                        }
+                    )
+                    .zIndex(1) // 锁定层级，确保工具栏处于最前，防止 MarkdownView 的 ScrollView 穿透遮挡
 
-            // 内容区域
-            PreviewContentContainer(
-                activeRenderType: activeRenderType,
-                isSVGSourceMode: isSVGSourceMode,
-                findBarState: findBarState,
-                loadState: loadState,
-                shouldShowLoadingOverlay: shouldShowLoadingOverlay,
-                isLocatingSelection: isLocatingSelection
-            ) {
-                mainContent
+                    // 内容区域
+                    PreviewContentContainer(
+                        activeRenderType: activeRenderType,
+                        isSVGSourceMode: isSVGSourceMode,
+                        findBarState: findBarState,
+                        loadState: loadState,
+                        shouldShowLoadingOverlay: shouldShowLoadingOverlay,
+                        isLocatingSelection: isLocatingSelection
+                    ) {
+                        mainContent
+                    }
+                    .zIndex(0)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .ignoresSafeArea(edges: .top)
+                .background(
+                    VisualEffectView(material: .hudWindow, blendingMode: .behindWindow)
+                )
+                .clipShape(RoundedRectangle(cornerRadius: PreviewCardChromePolicy.cornerRadius, style: .continuous))
+                .overlay {
+                    cardChromeBorder
+                }
+                .transition(.opacity)
             }
-            .zIndex(0)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .ignoresSafeArea(edges: .top)
-        .background(
-            VisualEffectView(material: .hudWindow, blendingMode: .behindWindow)
-        )
-        .clipShape(RoundedRectangle(cornerRadius: PreviewCardChromePolicy.cornerRadius, style: .continuous))
-        .overlay(cardChromeBorder)
-        .padding(cardOuterPadding)
+        .animation(.easeInOut(duration: 0.18), value: isShareCardPresented)
+        .padding(isShareCardPresented ? 0 : cardOuterPadding)
         .background(Color.clear) // 根容器背景必须是透明 clear，保持留白边缘穿透
         .toast(isShowing: $showLocalToast, message: localToastMessage, icon: localToastIcon)
+        .onChange(of: isShareCardPresented) { isPresented in
+            if let window = windowActions.currentWindow() {
+                window.hasShadow = !isPresented && PreviewOverlayWindowChromePolicy.usesSystemWindowShadow
+                window.invalidateShadow()
+            }
+        }
         .onDisappear {
+            if let window = windowActions.currentWindow() {
+                window.hasShadow = PreviewOverlayWindowChromePolicy.usesSystemWindowShadow
+                window.invalidateShadow()
+            }
             findBarState.dismiss()
             isSVGSourceMode = false
             chunkReader?.close()
@@ -453,6 +492,11 @@ struct ContentView: View {
                 if !findBarState.isPresented {
                     findBarState.present()
                 }
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .previewPresentShareCardDirectly)) { _ in
+            withAnimation(.easeInOut(duration: 0.18)) {
+                isShareCardPresented = true
             }
         }
     }

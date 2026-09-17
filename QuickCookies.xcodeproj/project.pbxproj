@@ -75,6 +75,11 @@
 		PRVFTRHUDBLD0000000000001 /* PreviewFooterHUD.swift in Sources */ = {isa = PBXBuildFile; fileRef = PRVFTRHUDREF0000000000001 /* PreviewFooterHUD.swift */; };
 		PRVPROVTSTBLD00000000001 /* PreviewProviderRegistryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = PRVPROVTSTREF00000000001 /* PreviewProviderRegistryTests.swift */; };
 		CLIINSTLTSTBLD0000000001 /* CLIInstallerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CLIINSTLTSTREF0000000001 /* CLIInstallerTests.swift */; };
+		CODECRDBLD00000000000001 /* CodeCardConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = CODECRDREF00000000000001 /* CodeCardConfig.swift */; };
+		CARDEXPVWBLD000000000001 /* CodeCardExportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CARDEXPVWREF000000000001 /* CodeCardExportView.swift */; };
+		CLPSNIFFBLD0000000000001 /* ClipboardContentSniffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CLPSNIFFREF0000000000001 /* ClipboardContentSniffer.swift */; };
+		CARDEXPTSTBLD00000000001 /* CodeCardExportTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CARDEXPTSTREF00000000001 /* CodeCardExportTests.swift */; };
+		CLPSNFTSTBLD000000000001 /* ClipboardContentSnifferTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CLPSNFTSTREF000000000001 /* ClipboardContentSnifferTests.swift */; };
 		APPRELAYBLD00000000000001 /* AppRelayControlView.swift in Sources */ = {isa = PBXBuildFile; fileRef = APPRELAYREF00000000000001 /* AppRelayControlView.swift */; };
 		835FB7022FCA950400D23AAB /* UnsupportedFileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 835FB7012FCA950400D23AAA /* UnsupportedFileView.swift */; };
 		962C8A503D0B4CA6963E2B94 /* QuickLookOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = B76F46CEB24C42779E84EBBE /* QuickLookOverlay.swift */; };
@@ -271,6 +276,11 @@
 		PRVFTRHUDREF0000000000001 /* PreviewFooterHUD.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewFooterHUD.swift; sourceTree = "<group>"; };
 		PRVPROVTSTREF00000000001 /* PreviewProviderRegistryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewProviderRegistryTests.swift; sourceTree = "<group>"; };
 		CLIINSTLTSTREF0000000001 /* CLIInstallerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLIInstallerTests.swift; sourceTree = "<group>"; };
+		CODECRDREF00000000000001 /* CodeCardConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeCardConfig.swift; sourceTree = "<group>"; };
+		CARDEXPVWREF000000000001 /* CodeCardExportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeCardExportView.swift; sourceTree = "<group>"; };
+		CLPSNIFFREF0000000000001 /* ClipboardContentSniffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardContentSniffer.swift; sourceTree = "<group>"; };
+		CARDEXPTSTREF00000000001 /* CodeCardExportTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeCardExportTests.swift; sourceTree = "<group>"; };
+		CLPSNFTSTREF000000000001 /* ClipboardContentSnifferTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardContentSnifferTests.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -352,8 +362,26 @@
 				835FBA052FCA950400D23A05 /* MarkdownPDFExporter.swift */,
 				PRVPROVGROUP00000000000001 /* PreviewProvider */,
 				CLIINSTLREF0000000000001 /* CLIInstaller.swift */,
+				CODECARDGROUP00000000001 /* CodeCard */,
+				CLIPBOARDGROUP00000000001 /* Clipboard */,
 			);
 			path = Core;
+			sourceTree = "<group>";
+		};
+		CODECARDGROUP00000000001 /* CodeCard */ = {
+			isa = PBXGroup;
+			children = (
+				CODECRDREF00000000000001 /* CodeCardConfig.swift */,
+			);
+			path = CodeCard;
+			sourceTree = "<group>";
+		};
+		CLIPBOARDGROUP00000000001 /* Clipboard */ = {
+			isa = PBXGroup;
+			children = (
+				CLPSNIFFREF0000000000001 /* ClipboardContentSniffer.swift */,
+			);
+			path = Clipboard;
 			sourceTree = "<group>";
 		};
 		PRVPROVGROUP00000000000001 /* PreviewProvider */ = {
@@ -436,6 +464,7 @@
 				PRVHDRVWREF00000000000001 /* PreviewHeaderView.swift */,
 				PRVCNTCTRREF0000000000001 /* PreviewContentContainer.swift */,
 				PRVFTRHUDREF0000000000001 /* PreviewFooterHUD.swift */,
+				CARDEXPVWREF000000000001 /* CodeCardExportView.swift */,
 			);
 			path = UI;
 			sourceTree = "<group>";
@@ -531,6 +560,8 @@
 				SRCHPOLTSTREF00000000001 /* PreviewOverlaySearchShortcutPolicyTests.swift */,
 				PRVPROVTSTREF00000000001 /* PreviewProviderRegistryTests.swift */,
 				CLIINSTLTSTREF0000000001 /* CLIInstallerTests.swift */,
+				CARDEXPTSTREF00000000001 /* CodeCardExportTests.swift */,
+				CLPSNFTSTREF000000000001 /* ClipboardContentSnifferTests.swift */,
 			);
 			path = QuickCookiesTests;
 			sourceTree = "<group>";
@@ -739,6 +770,9 @@
 				PRVHDRVWBLD00000000000001 /* PreviewHeaderView.swift in Sources */,
 				PRVCNTCTRBLD0000000000001 /* PreviewContentContainer.swift in Sources */,
 				PRVFTRHUDBLD0000000000001 /* PreviewFooterHUD.swift in Sources */,
+				CODECRDBLD00000000000001 /* CodeCardConfig.swift in Sources */,
+				CARDEXPVWBLD000000000001 /* CodeCardExportView.swift in Sources */,
+				CLPSNIFFBLD0000000000001 /* ClipboardContentSniffer.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -777,6 +811,8 @@
 				SRCHPOLTSTBLD00000000001 /* PreviewOverlaySearchShortcutPolicyTests.swift in Sources */,
 				PRVPROVTSTBLD00000000001 /* PreviewProviderRegistryTests.swift in Sources */,
 				CLIINSTLTSTBLD0000000001 /* CLIInstallerTests.swift in Sources */,
+				CARDEXPTSTBLD00000000001 /* CodeCardExportTests.swift in Sources */,
+				CLPSNFTSTBLD000000000001 /* ClipboardContentSnifferTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

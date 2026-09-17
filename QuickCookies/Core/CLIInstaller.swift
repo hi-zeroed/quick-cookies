@@ -27,7 +27,7 @@ struct CLIInstallStatus: Equatable {
 }
 
 enum CLIInstallerPolicy {
-    static let currentVersion = "1.5.0"
+    static let currentVersion = "1.6.0"
     
     /// 检查指定路径中的 qc 脚本状态
     static func checkStatus(
@@ -53,7 +53,7 @@ enum CLIInstallerPolicy {
         guard let content = try? String(contentsOfFile: path, encoding: .utf8) else {
             return nil
         }
-        // 解析形如 VERSION="1.5.0"
+        // 解析形如 VERSION="1.6.0"
         let lines = content.components(separatedBy: .newlines)
         for line in lines {
             let trimmed = line.trimmingCharacters(in: .whitespaces)
@@ -88,6 +88,7 @@ enum CLIInstallerPolicy {
         用法:
             qc <文件或目录路径>     在 QuickCookies 浮层中打开预览
             qc .                   预览当前目录
+            qc -c, --clipboard     透视剪贴板中的文本、代码、JSON 或图片
             qc -h, --help          查看帮助信息
             qc -v, --version       查看版本号
 
@@ -95,9 +96,54 @@ enum CLIInstallerPolicy {
             qc README.md
             qc src/main.swift
             qc archive.zip
+            qc -c
             qc .
 
         EOF
+        }
+
+        # 寻找可用的 QuickCookies.app 路径，避免被系统中其它陈旧版本或历史构建拦截
+        find_quickcookies_app() {
+            # 1. 显式环境变量指定的 App 路径
+            if [ -n "$QUICKCOOKIES_APP" ] && [ -d "$QUICKCOOKIES_APP" ]; then
+                echo "$QUICKCOOKIES_APP"
+                return 0
+            fi
+
+            # 2. 系统/用户标准安装目录 (生产环境)
+            if [ -d "/Applications/QuickCookies.app" ]; then
+                echo "/Applications/QuickCookies.app"
+                return 0
+            fi
+            if [ -d "$HOME/Applications/QuickCookies.app" ]; then
+                echo "$HOME/Applications/QuickCookies.app"
+                return 0
+            fi
+
+            # 3. 检查当前或父级工作区中的本地开发构建产物 (开发调试场景)
+            local cur_dir="$PWD"
+            while [ "$cur_dir" != "/" ] && [ -n "$cur_dir" ]; do
+                for candidate in \\
+                    "$cur_dir/buildClean/Build/Products/Debug/QuickCookies.app" \\
+                    "$cur_dir/build/Build/Products/Debug/QuickCookies.app" \\
+                    "$cur_dir/buildRelease/Build/Products/Release/QuickCookies.app"; do
+                    if [ -d "$candidate" ]; then
+                        echo "$candidate"
+                        return 0
+                    fi
+                done
+                cur_dir="$(dirname "$cur_dir")"
+            done
+
+            # 4. 系统 DerivedData 中的最新 Debug 产物
+            local dd_match
+            dd_match=$(ls -td "$HOME"/Library/Developer/Xcode/DerivedData/QuickCookies-*/Build/Products/Debug/QuickCookies.app 2>/dev/null | head -n 1)
+            if [ -n "$dd_match" ] && [ -d "$dd_match" ]; then
+                echo "$dd_match"
+                return 0
+            fi
+
+            return 1
         }
 
         if [ $# -eq 0 ]; then
@@ -112,6 +158,21 @@ enum CLIInstallerPolicy {
                 ;;
             -v|--version)
                 echo "QuickCookies CLI (qc) v${VERSION}"
+                exit 0
+                ;;
+            -c|--clipboard)
+                TARGET_APP="$(find_quickcookies_app 2>/dev/null)"
+                if [ -n "$TARGET_APP" ] && [ -d "$TARGET_APP" ]; then
+                    open -a "$TARGET_APP" -g "quickcookies://preview?source=clipboard"
+                else
+                    if pgrep -x "QuickCookies" >/dev/null 2>&1; then
+                        open -b com.quickcookies.app -g "quickcookies://preview?source=clipboard"
+                    else
+                        echo "qc: 未找到可用的 QuickCookies.app。" >&2
+                        echo "请先启动 QuickCookies，或将其安装至 /Applications 目录。" >&2
+                        exit 1
+                    fi
+                fi
                 exit 0
                 ;;
             *)
@@ -150,50 +211,6 @@ enum CLIInstallerPolicy {
         if [ -z "$ENCODED_PATH" ]; then
             ENCODED_PATH="$ABS_PATH"
         fi
-
-        # 寻找可用的 QuickCookies.app 路径，避免被系统中其它陈旧版本或历史构建拦截
-        find_quickcookies_app() {
-            # 1. 显式环境变量指定的 App 路径
-            if [ -n "$QUICKCOOKIES_APP" ] && [ -d "$QUICKCOOKIES_APP" ]; then
-                echo "$QUICKCOOKIES_APP"
-                return 0
-            fi
-
-            # 2. 系统/用户标准安装目录 (生产环境)
-            if [ -d "/Applications/QuickCookies.app" ]; then
-                echo "/Applications/QuickCookies.app"
-                return 0
-            fi
-            if [ -d "$HOME/Applications/QuickCookies.app" ]; then
-                echo "$HOME/Applications/QuickCookies.app"
-                return 0
-            fi
-
-            # 3. 检查当前或父级工作区中的本地开发构建产物 (开发调试场景)
-            local cur_dir="$PWD"
-            while [ "$cur_dir" != "/" ] && [ -n "$cur_dir" ]; do
-                for candidate in \
-                    "$cur_dir/buildClean/Build/Products/Debug/QuickCookies.app" \
-                    "$cur_dir/build/Build/Products/Debug/QuickCookies.app" \
-                    "$cur_dir/buildRelease/Build/Products/Release/QuickCookies.app"; do
-                    if [ -d "$candidate" ]; then
-                        echo "$candidate"
-                        return 0
-                    fi
-                done
-                cur_dir="$(dirname "$cur_dir")"
-            done
-
-            # 4. 系统 DerivedData 中的最新 Debug 产物
-            local dd_match
-            dd_match=$(ls -td "$HOME"/Library/Developer/Xcode/DerivedData/QuickCookies-*/Build/Products/Debug/QuickCookies.app 2>/dev/null | head -n 1)
-            if [ -n "$dd_match" ] && [ -d "$dd_match" ]; then
-                echo "$dd_match"
-                return 0
-            fi
-
-            return 1
-        }
 
         TARGET_APP="$(find_quickcookies_app 2>/dev/null)"
 
