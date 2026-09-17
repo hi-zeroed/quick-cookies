@@ -729,7 +729,9 @@ struct CodeCardExportModalView: View {
             title: title,
             code: code
         ).lowercased()
-        let timestamp = Int(Date().timeIntervalSince1970)
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyyMMdd-HHmm"
+        let timestamp = dateFormatter.string(from: Date())
         savePanel.nameFieldStringValue = "card-\(badge)-\(timestamp).png"
         savePanel.level = .modalPanel
         
@@ -744,8 +746,9 @@ struct CodeCardExportModalView: View {
                         onDismiss()
                     }
                 } catch {
-                    showInlineToast(message: "Failed to save image: \(error.localizedDescription)", icon: "exclamationmark.triangle.fill")
-                    onShowToast("Failed to save image: \(error.localizedDescription)", "exclamationmark.triangle.fill")
+                    let errorMessage = String(format: "Failed to save image: %@".localized(), error.localizedDescription)
+                    showInlineToast(message: errorMessage, icon: "exclamationmark.triangle.fill")
+                    onShowToast(errorMessage, "exclamationmark.triangle.fill")
                 }
             }
         }

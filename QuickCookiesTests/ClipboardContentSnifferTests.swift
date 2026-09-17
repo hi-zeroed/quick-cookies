@@ -137,10 +137,34 @@ final class ClipboardContentSnifferTests: XCTestCase {
         
         XCTAssertTrue(FileManager.default.fileExists(atPath: filePath))
         XCTAssertTrue(filePath.hasSuffix("clipboard.js"))
-        XCTAssertEqual(displayName, "Clipboard (JavaScript)")
+        XCTAssertTrue(displayName.contains("JavaScript"))
         
         let savedContent = try String(contentsOfFile: filePath, encoding: .utf8)
         XCTAssertEqual(savedContent, snippet)
+    }
+    
+    func testMaterialize_code_supportsLocalization() throws {
+        let savedLang = Settings.currentLanguage
+        defer { Settings.currentLanguage = savedLang }
+        
+        let result = ClipboardSniffResult.code(content: "print(1)", language: "Python", fileExtension: "py")
+        
+        Settings.currentLanguage = .en
+        let (_, enName) = try XCTUnwrap(ClipboardContentSniffer.materialize(result: result))
+        XCTAssertEqual(enName, "Clipboard (Python)")
+        
+        Settings.currentLanguage = .zhHans
+        let (_, zhName) = try XCTUnwrap(ClipboardContentSniffer.materialize(result: result))
+        XCTAssertEqual(zhName, "剪贴板 (Python)")
+    }
+    
+    func testPurgeCacheDirectory_removesFiles() throws {
+        let result = ClipboardSniffResult.plainText(content: "temp")
+        _ = try ClipboardContentSniffer.materialize(result: result)
+        XCTAssertTrue(FileManager.default.fileExists(atPath: ClipboardContentSniffer.cacheDirectory.path))
+        
+        ClipboardContentSniffer.purgeCacheDirectory()
+        XCTAssertFalse(FileManager.default.fileExists(atPath: ClipboardContentSniffer.cacheDirectory.path))
     }
     
     func testMaterialize_json_createsJsonFile() throws {

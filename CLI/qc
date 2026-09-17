@@ -6,8 +6,16 @@
 
 VERSION="1.6.0"
 
+is_chinese() {
+    case "${LC_ALL:-${LANG:-}}" in
+        zh*|*zh_CN*|*zh_TW*|*zh_HK*) return 0 ;;
+        *) return 1 ;;
+    esac
+}
+
 show_help() {
-    cat << EOF
+    if is_chinese; then
+        cat << EOF
 QuickCookies CLI (qc) v${VERSION}
 在访达与终端中极速预览代码、Markdown、配置、归档与各类文件。
 
@@ -26,6 +34,27 @@ QuickCookies CLI (qc) v${VERSION}
     qc .
 
 EOF
+    else
+        cat << EOF
+QuickCookies CLI (qc) v${VERSION}
+Instantly preview code, Markdown, configs, archives and files from Finder and Terminal.
+
+Usage:
+    qc <file or directory path>    Open preview in QuickCookies overlay
+    qc .                           Preview current directory
+    qc -c, --clipboard             Inspect text, code, JSON, or image from clipboard
+    qc -h, --help                  Show help information
+    qc -v, --version               Show version number
+
+Examples:
+    qc README.md
+    qc src/main.swift
+    qc archive.zip
+    qc -c
+    qc .
+
+EOF
+    fi
 }
 
 # 寻找可用的 QuickCookies.app 路径，避免被系统中其它陈旧版本或历史构建拦截
@@ -94,8 +123,13 @@ case "$1" in
             if pgrep -x "QuickCookies" >/dev/null 2>&1; then
                 open -b com.quickcookies.app -g "quickcookies://preview?source=clipboard"
             else
-                echo "qc: 未找到可用的 QuickCookies.app。" >&2
-                echo "请先启动 QuickCookies，或将其安装至 /Applications 目录。" >&2
+                if is_chinese; then
+                    echo "qc: 未找到可用的 QuickCookies.app。" >&2
+                    echo "请先启动 QuickCookies，或将其安装至 /Applications 目录。" >&2
+                else
+                    echo "qc: QuickCookies.app not found." >&2
+                    echo "Please launch QuickCookies first or install it to /Applications." >&2
+                fi
                 exit 1
             fi
         fi
@@ -108,7 +142,11 @@ esac
 
 # 检查目标文件或目录是否存在
 if [ ! -e "$TARGET" ]; then
-    echo "qc: 找不到指定的文件或目录: $TARGET" >&2
+    if is_chinese; then
+        echo "qc: 找不到指定的文件或目录: $TARGET" >&2
+    else
+        echo "qc: Cannot find specified file or directory: $TARGET" >&2
+    fi
     exit 1
 fi
 
@@ -123,7 +161,11 @@ else
 fi
 
 if [ -z "$ABS_PATH" ] || [ ! -e "$ABS_PATH" ]; then
-    echo "qc: 无法解析绝对路径: $TARGET" >&2
+    if is_chinese; then
+        echo "qc: 无法解析绝对路径: $TARGET" >&2
+    else
+        echo "qc: Cannot resolve absolute path: $TARGET" >&2
+    fi
     exit 1
 fi
 
@@ -149,8 +191,13 @@ else
     if pgrep -x "QuickCookies" >/dev/null 2>&1; then
         open -b com.quickcookies.app -g "quickcookies://preview?path=${ENCODED_PATH}"
     else
-        echo "qc: 未找到可用的 QuickCookies.app。" >&2
-        echo "请先启动 QuickCookies，或将其安装至 /Applications 目录。" >&2
+        if is_chinese; then
+            echo "qc: 未找到可用的 QuickCookies.app。" >&2
+            echo "请先启动 QuickCookies，或将其安装至 /Applications 目录。" >&2
+        else
+            echo "qc: QuickCookies.app not found." >&2
+            echo "Please launch QuickCookies first or install it to /Applications." >&2
+        fi
         exit 1
     fi
 fi

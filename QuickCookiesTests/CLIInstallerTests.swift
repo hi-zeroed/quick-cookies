@@ -26,6 +26,13 @@ final class CLIInstallerTests: XCTestCase {
         XCTAssertTrue(content.contains("-c|--clipboard"))
         XCTAssertTrue(content.contains("-g"))
     }
+
+    func test_defaultScriptContent_containsBilingualHelp() {
+        let content = CLIInstallerPolicy.defaultScriptContent()
+        XCTAssertTrue(content.contains("is_chinese()"))
+        XCTAssertTrue(content.contains("在访达与终端中极速预览代码"))
+        XCTAssertTrue(content.contains("Instantly preview code"))
+    }
     
     func test_extractVersion_fromValidScript() throws {
         let scriptPath = tempDirURL.appendingPathComponent("qc_mock").path

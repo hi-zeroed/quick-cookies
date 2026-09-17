@@ -334,6 +334,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         HotkeyManager.shared.unregister()
         HotkeyManager.shared.unregisterClipboardHotkey()
         HotkeyManager.shared.unregisterShareCardHotkey()
+        ClipboardContentSniffer.purgeCacheDirectory()
         notificationObservers.forEach(NotificationCenter.default.removeObserver)
         notificationObservers.removeAll()
         previewRequestController.onRequest = nil

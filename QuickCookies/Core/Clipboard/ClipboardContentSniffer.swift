@@ -102,7 +102,7 @@ enum ClipboardContentSniffer {
         case .code(let content, let language, let ext):
             let fileURL = try prepareTemporaryFile(named: "clipboard.\(ext)")
             try content.write(to: fileURL, atomically: true, encoding: .utf8)
-            return (fileURL.path, "Clipboard (\(language))")
+            return (fileURL.path, String(format: "Clipboard (%@)".localized(), language))
             
         case .markdown(let content):
             let fileURL = try prepareTemporaryFile(named: "clipboard.md")
@@ -113,6 +113,14 @@ enum ClipboardContentSniffer {
             let fileURL = try prepareTemporaryFile(named: "clipboard.txt")
             try content.write(to: fileURL, atomically: true, encoding: .utf8)
             return (fileURL.path, "Clipboard Text".localized())
+        }
+    }
+    
+    /// 清理所有受管剪贴板临时文件缓存
+    static func purgeCacheDirectory() {
+        let dir = cacheDirectory
+        if FileManager.default.fileExists(atPath: dir.path) {
+            try? FileManager.default.removeItem(at: dir)
         }
     }
     

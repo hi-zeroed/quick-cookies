@@ -349,4 +349,17 @@ final class CodeCardExportTests: XCTestCase {
         let imgSys = CodeCardRenderer.renderToImage(view: viewSys, scale: 1.0)
         XCTAssertNotNil(imgSys)
     }
+
+    func testFailedToSaveImageLocalization() {
+        let savedLang = Settings.currentLanguage
+        defer { Settings.currentLanguage = savedLang }
+        
+        Settings.currentLanguage = .en
+        let enMsg = String(format: "Failed to save image: %@".localized(), "Disk full")
+        XCTAssertEqual(enMsg, "Failed to save image: Disk full")
+        
+        Settings.currentLanguage = .zhHans
+        let zhMsg = String(format: "Failed to save image: %@".localized(), "磁盘已满")
+        XCTAssertEqual(zhMsg, "保存卡片图片失败：磁盘已满")
+    }
 }
