@@ -241,6 +241,7 @@ struct ContentView: View {
     @StateObject private var goToLineState = GoToLineState()
     @StateObject private var telemetryState = TelemetryInspectorState()
     @StateObject private var liveWatchingState = LiveWatchingState()
+    @StateObject private var gitDiffState = GitDiffState()
     @State private var isSVGSourceMode: Bool = false
     @State private var isShareCardPresented: Bool
     @State private var isDirectShareCardMode: Bool
@@ -366,6 +367,7 @@ struct ContentView: View {
                             isShareCardPresented = true
                         },
                         liveWatchingState: liveWatchingState,
+                        gitDiffState: gitDiffState,
                         canGoBack: historyNavigator.canGoBack,
                         canGoForward: historyNavigator.canGoForward,
                         onGoBack: {
@@ -459,6 +461,7 @@ struct ContentView: View {
                 }
             } else {
                 liveWatchingState.stop()
+                gitDiffState.reset()
                 telemetryState.dismiss()
                 loadCoordinator.reset()
                 inflightLoadPath = nil
@@ -698,6 +701,7 @@ struct ContentView: View {
                         findBarState: findBarState,
                         goToLineState: goToLineState,
                         liveWatchingState: liveWatchingState,
+                        gitDiffState: gitDiffState,
                         initialTargetLine: session.state.initialTargetLine,
                         onInitialTargetLineConsumed: {
                             session.clearInitialTargetLine()
@@ -717,6 +721,7 @@ struct ContentView: View {
                     findBarState: findBarState,
                     goToLineState: goToLineState,
                     liveWatchingState: liveWatchingState,
+                    gitDiffState: gitDiffState,
                     initialTargetLine: session.state.initialTargetLine,
                     onInitialTargetLineConsumed: {
                         session.clearInitialTargetLine()
@@ -737,6 +742,7 @@ struct ContentView: View {
                         findBarState: findBarState,
                         goToLineState: goToLineState,
                         liveWatchingState: liveWatchingState,
+                        gitDiffState: gitDiffState,
                         initialTargetLine: session.state.initialTargetLine,
                         onInitialTargetLineConsumed: {
                             session.clearInitialTargetLine()
@@ -909,6 +915,7 @@ struct ContentView: View {
                     } else {
                         self.liveWatchingState.syncOffset(fileSize)
                     }
+                    self.gitDiffState.loadDiff(for: path)
                     if self.activeRenderType == .markdown {
                         self.markdownHasLoadedInitialContent = true
                         self.markdownPreviewTimeline?.mark(.firstChunkReady)
@@ -1212,6 +1219,7 @@ struct PreviewCodeView: View {
     var findBarState: FindBarState? = nil
     var goToLineState: GoToLineState? = nil
     var liveWatchingState: LiveWatchingState? = nil
+    var gitDiffState: GitDiffState? = nil
     var initialTargetLine: Int? = nil
     var onInitialTargetLineConsumed: (() -> Void)? = nil
 
@@ -1228,6 +1236,7 @@ struct PreviewCodeView: View {
         findBarState: FindBarState? = nil,
         goToLineState: GoToLineState? = nil,
         liveWatchingState: LiveWatchingState? = nil,
+        gitDiffState: GitDiffState? = nil,
         initialTargetLine: Int? = nil,
         onInitialTargetLineConsumed: (() -> Void)? = nil
     ) {
@@ -1240,6 +1249,7 @@ struct PreviewCodeView: View {
         self.findBarState = findBarState
         self.goToLineState = goToLineState
         self.liveWatchingState = liveWatchingState
+        self.gitDiffState = gitDiffState
         self.initialTargetLine = initialTargetLine
         self.onInitialTargetLineConsumed = onInitialTargetLineConsumed
     }
@@ -1257,6 +1267,7 @@ struct PreviewCodeView: View {
             findBarState: findBarState,
             goToLineState: goToLineState,
             liveWatchingState: liveWatchingState,
+            gitDiffState: gitDiffState,
             initialTargetLine: initialTargetLine,
             onInitialTargetLineConsumed: onInitialTargetLineConsumed
         )

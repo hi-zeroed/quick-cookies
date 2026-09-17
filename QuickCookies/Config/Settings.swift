@@ -661,7 +661,11 @@ struct Localization {
             
             // Live Tail & Watching
             "Live Tail: Auto-scrolling (Click to pause)": [.en: "Live Tail: Auto-scrolling (Click to pause)", .zhHans: "实时追尾：自动跟随滚屏 (点击暂停)"],
-            "Live Tail: Paused (Click to follow)": [.en: "Live Tail: Paused (Click to follow)", .zhHans: "实时追尾：已暂停 (点击恢复跟随)"]
+            "Live Tail: Paused (Click to follow)": [.en: "Live Tail: Paused (Click to follow)", .zhHans: "实时追尾：已暂停 (点击恢复跟随)"],
+            
+            // Git Diff
+            "Git Uncommitted Changes (Click to jump to next hunk)": [.en: "Git Uncommitted Changes (Click to jump to next hunk)", .zhHans: "Git 未提交改动 (点击跳转下一个改动块)"],
+            "Git Untracked File": [.en: "Git Untracked File", .zhHans: "Git 未跟踪文件 (全新)"]
         ]
         return dict[key]?[lang] ?? key
     }
