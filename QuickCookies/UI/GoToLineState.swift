@@ -12,8 +12,17 @@ public final class GoToLineState: ObservableObject {
 
     public init() {}
 
-    public func present(totalLines: Int = 1) {
-        self.totalLines = max(1, totalLines)
+    /// 安全更新总行数，如果数值未改变则不触发 objectWillChange 重新渲染
+    public func updateTotalLines(_ lines: Int) {
+        let clamped = max(1, lines)
+        guard totalLines != clamped else { return }
+        totalLines = clamped
+    }
+
+    public func present(totalLines: Int? = nil) {
+        if let totalLines = totalLines {
+            updateTotalLines(totalLines)
+        }
         self.inputLine = ""
         self.errorMessage = nil
         self.isPresented = true

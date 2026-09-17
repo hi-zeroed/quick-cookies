@@ -185,6 +185,20 @@ struct CodeView: NSViewRepresentable {
         private var activePulseRange: NSRange?
         private var pulseWorkItem: DispatchWorkItem?
         var hasConsumedInitialTargetLine: Bool = false
+        private var lastCalculatedLineCount: Int?
+        private var lastCalculatedContentHash: Int?
+
+        /// 缓存计算总行数，避免在没有内容变动的 updateNSView 周期重复切分超大文本
+        func calculateTotalLines(for content: String) -> Int {
+            let contentHash = content.hashValue
+            if let cached = lastCalculatedLineCount, lastCalculatedContentHash == contentHash {
+                return cached
+            }
+            let count = max(1, (content as NSString).components(separatedBy: "\n").count)
+            lastCalculatedContentHash = contentHash
+            lastCalculatedLineCount = count
+            return count
+        }
 
         func setupFindBarSubscription(findBarState: FindBarState?, textView: NSTextView) {
             findBarCancellables.removeAll()
@@ -715,8 +729,12 @@ struct CodeView: NSViewRepresentable {
             context.coordinator.setupGitDiffSubscription(gitDiffState: gitDiffState, textView: textView)
         }
 
-        let totalLineCount = (content as NSString).components(separatedBy: "\n").count
-        goToLineState?.totalLines = max(1, totalLineCount)
+        let totalLineCount = context.coordinator.calculateTotalLines(for: content)
+        if goToLineState?.totalLines != totalLineCount {
+            DispatchQueue.main.async { [weak goToLineState] in
+                goToLineState?.updateTotalLines(totalLineCount)
+            }
+        }
 
         if let targetLine = initialTargetLine, !context.coordinator.hasConsumedInitialTargetLine {
             context.coordinator.hasConsumedInitialTargetLine = true

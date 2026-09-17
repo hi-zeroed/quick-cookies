@@ -46,8 +46,10 @@ private struct VideoPlayerRepresentable: NSViewRepresentable {
         let url = URL(fileURLWithPath: filePath)
         let player = AVPlayer(url: url)
         playerView.player = player
-        self.player = player
         context.coordinator.player = player
+        DispatchQueue.main.async {
+            self.player = player
+        }
 
         player.play()
         return playerView
@@ -59,10 +61,17 @@ private struct VideoPlayerRepresentable: NSViewRepresentable {
             let url = URL(fileURLWithPath: filePath)
             let player = AVPlayer(url: url)
             nsView.player = player
-            self.player = player
             context.coordinator.player = player
+            DispatchQueue.main.async {
+                self.player = player
+            }
             player.play()
         }
+    }
+
+    static func dismantleNSView(_ nsView: AVPlayerView, coordinator: Coordinator) {
+        coordinator.player?.pause()
+        nsView.player = nil
     }
 
     class Coordinator {

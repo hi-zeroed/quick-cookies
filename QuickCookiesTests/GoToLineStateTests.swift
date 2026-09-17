@@ -92,4 +92,36 @@ final class GoToLineStateTests: XCTestCase {
         XCTAssertEqual(state.inputLine, "")
         XCTAssertNil(state.errorMessage)
     }
+
+    func test_updateTotalLines_clampsToMinimumOne() {
+        let state = GoToLineState()
+        state.updateTotalLines(0)
+        XCTAssertEqual(state.totalLines, 1)
+
+        state.updateTotalLines(350)
+        XCTAssertEqual(state.totalLines, 350)
+
+        state.updateTotalLines(-10)
+        XCTAssertEqual(state.totalLines, 1)
+    }
+
+    func test_updateTotalLines_sameValue_doesNotEmitObjectWillChange() {
+        let state = GoToLineState()
+        state.updateTotalLines(50)
+
+        var changeCount = 0
+        state.objectWillChange
+            .sink {
+                changeCount += 1
+            }
+            .store(in: &cancellables)
+
+        // 传入相同的值，应当被 guard 拦截，不触发 objectWillChange
+        state.updateTotalLines(50)
+        XCTAssertEqual(changeCount, 0)
+
+        // 传入不同的值，应触发一次 objectWillChange
+        state.updateTotalLines(60)
+        XCTAssertEqual(changeCount, 1)
+    }
 }
