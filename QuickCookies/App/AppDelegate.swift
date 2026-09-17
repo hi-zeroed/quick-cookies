@@ -275,7 +275,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         if let pathItem = components?.queryItems?.first(where: { $0.name == "path" }),
            let path = pathItem.value {
-            previewRequestController.openPath(path, source: .urlScheme)
+            let lineItem = components?.queryItems?.first(where: { $0.name == "line" })?.value
+            let targetLine = lineItem.flatMap(Int.init)
+            previewRequestController.openPath(path, source: .urlScheme, targetLine: targetLine)
         }
     }
 

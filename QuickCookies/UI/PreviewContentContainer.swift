@@ -6,6 +6,7 @@ struct PreviewContentContainer<Content: View>: View {
     let activeRenderType: FileRenderType?
     let isSVGSourceMode: Bool
     @ObservedObject var findBarState: FindBarState
+    var goToLineState: GoToLineState? = nil
     @ObservedObject var loadState: PreviewLoadState
     let shouldShowLoadingOverlay: Bool
     let isLocatingSelection: Bool
@@ -29,6 +30,10 @@ struct PreviewContentContainer<Content: View>: View {
                     .padding([.horizontal, .bottom], 5)
 
                 FindBarView(state: findBarState)
+
+                if let goToLineState = goToLineState {
+                    GoToLineBarView(state: goToLineState)
+                }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
 

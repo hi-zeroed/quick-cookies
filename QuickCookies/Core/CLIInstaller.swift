@@ -97,6 +97,8 @@ enum CLIInstallerPolicy {
 
         用法:
             qc <文件或目录路径>     在 QuickCookies 浮层中打开预览
+            qc <文件路径:行号>      在浮层中打开并精准定位到指定行（如 qc App.swift:142）
+            qc -l, --line <行号>   指定预览跳转的目标行号（如 qc -l 142 App.swift）
             qc .                   预览当前目录
             qc -c, --clipboard     透视剪贴板中的文本、代码、JSON 或图片
             qc -h, --help          查看帮助信息
@@ -104,7 +106,8 @@ enum CLIInstallerPolicy {
 
         示例:
             qc README.md
-            qc src/main.swift
+            qc src/main.swift:142
+            qc -l 142 src/main.swift
             qc archive.zip
             qc -c
             qc .
@@ -117,6 +120,8 @@ enum CLIInstallerPolicy {
 
         Usage:
             qc <file or directory path>    Open preview in QuickCookies overlay
+            qc <file:line>                 Open preview and jump to target line (e.g. qc App.swift:142)
+            qc -l, --line <number>         Specify target line number (e.g. qc -l 142 App.swift)
             qc .                           Preview current directory
             qc -c, --clipboard             Inspect text, code, JSON, or image from clipboard
             qc -h, --help                  Show help information
@@ -124,7 +129,8 @@ enum CLIInstallerPolicy {
 
         Examples:
             qc README.md
-            qc src/main.swift
+            qc src/main.swift:142
+            qc -l 142 src/main.swift
             qc archive.zip
             qc -c
             qc .
@@ -154,9 +160,9 @@ enum CLIInstallerPolicy {
             # 3. 检查当前或父级工作区中的本地开发构建产物 (开发调试场景)
             local cur_dir="$PWD"
             while [ "$cur_dir" != "/" ] && [ -n "$cur_dir" ]; do
-                for candidate in \\
-                    "$cur_dir/buildClean/Build/Products/Debug/QuickCookies.app" \\
-                    "$cur_dir/build/Build/Products/Debug/QuickCookies.app" \\
+                for candidate in \
+                    "$cur_dir/buildClean/Build/Products/Debug/QuickCookies.app" \
+                    "$cur_dir/build/Build/Products/Debug/QuickCookies.app" \
                     "$cur_dir/buildRelease/Build/Products/Release/QuickCookies.app"; do
                     if [ -d "$candidate" ]; then
                         echo "$candidate"
@@ -182,39 +188,85 @@ enum CLIInstallerPolicy {
             exit 0
         fi
 
-        case "$1" in
-            -h|--help)
-                show_help
-                exit 0
-                ;;
-            -v|--version)
-                echo "QuickCookies CLI (qc) v${VERSION}"
-                exit 0
-                ;;
-            -c|--clipboard)
-                TARGET_APP="$(find_quickcookies_app 2>/dev/null)"
-                if [ -n "$TARGET_APP" ] && [ -d "$TARGET_APP" ]; then
-                    open -a "$TARGET_APP" -g "quickcookies://preview?source=clipboard"
-                else
-                    if pgrep -x "QuickCookies" >/dev/null 2>&1; then
-                        open -b com.quickcookies.app -g "quickcookies://preview?source=clipboard"
+        TARGET_LINE=""
+        RAW_TARGET=""
+
+        while [ $# -gt 0 ]; do
+            case "$1" in
+                -h|--help)
+                    show_help
+                    exit 0
+                    ;;
+                -v|--version)
+                    echo "QuickCookies CLI (qc) v${VERSION}"
+                    exit 0
+                    ;;
+                -c|--clipboard)
+                    TARGET_APP="$(find_quickcookies_app 2>/dev/null)"
+                    if [ -n "$TARGET_APP" ] && [ -d "$TARGET_APP" ]; then
+                        open -a "$TARGET_APP" -g "quickcookies://preview?source=clipboard"
                     else
-                        if is_chinese; then
-                            echo "qc: 未找到可用的 QuickCookies.app。" >&2
-                            echo "请先启动 QuickCookies，或将其安装至 /Applications 目录。" >&2
+                        if pgrep -x "QuickCookies" >/dev/null 2>&1; then
+                            open -b com.quickcookies.app -g "quickcookies://preview?source=clipboard"
                         else
-                            echo "qc: QuickCookies.app not found." >&2
-                            echo "Please launch QuickCookies first or install it to /Applications." >&2
+                            if is_chinese; then
+                                echo "qc: 未找到可用的 QuickCookies.app。" >&2
+                                echo "请先启动 QuickCookies，或将其安装至 /Applications 目录。" >&2
+                            else
+                                echo "qc: QuickCookies.app not found." >&2
+                                echo "Please launch QuickCookies first or install it to /Applications." >&2
+                            fi
+                            exit 1
                         fi
-                        exit 1
                     fi
-                fi
-                exit 0
-                ;;
-            *)
-                TARGET="$1"
-                ;;
-        esac
+                    exit 0
+                    ;;
+                -l|--line)
+                    if [ -n "$2" ]; then
+                        TARGET_LINE="$2"
+                        shift 2
+                    else
+                        shift
+                    fi
+                    ;;
+                *)
+                    if [ -z "$RAW_TARGET" ]; then
+                        RAW_TARGET="$1"
+                    fi
+                    shift
+                    ;;
+            esac
+        done
+
+        if [ -z "$RAW_TARGET" ]; then
+            show_help
+            exit 0
+        fi
+
+        TARGET="$RAW_TARGET"
+
+        # 若目标文件未直接存在，尝试剥离 file:line 或 file:line:col 模式
+        if [ ! -e "$TARGET" ]; then
+            case "$TARGET" in
+                *:*:[0-9]*)
+                    CANDIDATE="${TARGET%:*:*}"
+                    POSSIBLE_LINE="${TARGET%:[0-9]*}"
+                    POSSIBLE_LINE="${POSSIBLE_LINE##*:}"
+                    if [ -e "$CANDIDATE" ] && [ -n "$POSSIBLE_LINE" ]; then
+                        TARGET="$CANDIDATE"
+                        [ -z "$TARGET_LINE" ] && TARGET_LINE="$POSSIBLE_LINE"
+                    fi
+                    ;;
+                *:[0-9]*)
+                    CANDIDATE="${TARGET%:*}"
+                    POSSIBLE_LINE="${TARGET##*:}"
+                    if [ -e "$CANDIDATE" ] && [ -n "$POSSIBLE_LINE" ]; then
+                        TARGET="$CANDIDATE"
+                        [ -z "$TARGET_LINE" ] && TARGET_LINE="$POSSIBLE_LINE"
+                    fi
+                    ;;
+            esac
+        fi
 
         # 检查目标文件或目录是否存在
         if [ ! -e "$TARGET" ]; then
@@ -258,13 +310,18 @@ enum CLIInstallerPolicy {
 
         TARGET_APP="$(find_quickcookies_app 2>/dev/null)"
 
+        FINAL_URL="quickcookies://preview?path=${ENCODED_PATH}"
+        if [ -n "$TARGET_LINE" ]; then
+            FINAL_URL="${FINAL_URL}&line=${TARGET_LINE}"
+        fi
+
         if [ -n "$TARGET_APP" ] && [ -d "$TARGET_APP" ]; then
             # 精确定向唤起指定应用，避免被系统中其它陈旧或脏版本（如 QuickView/历史构建）拦截
-            open -a "$TARGET_APP" -g "quickcookies://preview?path=${ENCODED_PATH}"
+            open -a "$TARGET_APP" -g "$FINAL_URL"
         else
             # 兜底：若系统已有实例在运行，尝试以 bundle id 发送
             if pgrep -x "QuickCookies" >/dev/null 2>&1; then
-                open -b com.quickcookies.app -g "quickcookies://preview?path=${ENCODED_PATH}"
+                open -b com.quickcookies.app -g "$FINAL_URL"
             else
                 if is_chinese; then
                     echo "qc: 未找到可用的 QuickCookies.app。" >&2
@@ -277,6 +334,7 @@ enum CLIInstallerPolicy {
             fi
         fi
         exit 0
+
         """
     }
     

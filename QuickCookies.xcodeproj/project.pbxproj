@@ -26,6 +26,9 @@
 		HISTNAVBLD00000000000001 /* SessionHistoryNavigator.swift in Sources */ = {isa = PBXBuildFile; fileRef = HISTNAVREF00000000000001 /* SessionHistoryNavigator.swift */; };
 		HISTKEYBLD00000000000001 /* PreviewOverlayHistoryNavigationKeyPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = HISTKEYREF00000000000001 /* PreviewOverlayHistoryNavigationKeyPolicy.swift */; };
 		READYVWBLD00000000000001 /* PreviewReadyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = READYVWREF00000000000001 /* PreviewReadyStateView.swift */; };
+		CLILINEPRSBLD00000000001 /* CLILineParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = CLILINEPRSREF00000000001 /* CLILineParser.swift */; };
+		GOTOLNSTBLD0000000000001 /* GoToLineState.swift in Sources */ = {isa = PBXBuildFile; fileRef = GOTOLNSTREF0000000000001 /* GoToLineState.swift */; };
+		GOTOLNBARBLD000000000001 /* GoToLineBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = GOTOLNBARREF000000000001 /* GoToLineBarView.swift */; };
 		HISTNAVTSTB0000000000001 /* SessionHistoryNavigatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = HISTNAVTSTR0000000000001 /* SessionHistoryNavigatorTests.swift */; };
 		HISTKEYTSTB0000000000001 /* PreviewOverlayHistoryNavigationKeyPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = HISTKEYTSTR0000000000001 /* PreviewOverlayHistoryNavigationKeyPolicyTests.swift */; };
 		A1B2C3010000000000000004 /* MarkdownImageProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3010000000000000014 /* MarkdownImageProbe.swift */; };
@@ -78,6 +81,8 @@
 		PRVFTRHUDBLD0000000000001 /* PreviewFooterHUD.swift in Sources */ = {isa = PBXBuildFile; fileRef = PRVFTRHUDREF0000000000001 /* PreviewFooterHUD.swift */; };
 		PRVPROVTSTBLD00000000001 /* PreviewProviderRegistryTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = PRVPROVTSTREF00000000001 /* PreviewProviderRegistryTests.swift */; };
 		CLIINSTLTSTBLD0000000001 /* CLIInstallerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CLIINSTLTSTREF0000000001 /* CLIInstallerTests.swift */; };
+		CLILNTSTBLD0000000000001 /* CLILineParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CLILNTSTREF0000000000001 /* CLILineParserTests.swift */; };
+		GOTOLNTSTBLD000000000001 /* GoToLineStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = GOTOLNTSTREF000000000001 /* GoToLineStateTests.swift */; };
 		CODECRDBLD00000000000001 /* CodeCardConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = CODECRDREF00000000000001 /* CodeCardConfig.swift */; };
 		CARDEXPVWBLD000000000001 /* CodeCardExportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CARDEXPVWREF000000000001 /* CodeCardExportView.swift */; };
 		CLPSNIFFBLD0000000000001 /* ClipboardContentSniffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CLPSNIFFREF0000000000001 /* ClipboardContentSniffer.swift */; };
@@ -185,6 +190,9 @@
 		HISTNAVREF00000000000001 /* SessionHistoryNavigator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionHistoryNavigator.swift; sourceTree = "<group>"; };
 		HISTKEYREF00000000000001 /* PreviewOverlayHistoryNavigationKeyPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewOverlayHistoryNavigationKeyPolicy.swift; sourceTree = "<group>"; };
 		READYVWREF00000000000001 /* PreviewReadyStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewReadyStateView.swift; sourceTree = "<group>"; };
+		CLILINEPRSREF00000000001 /* CLILineParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLILineParser.swift; sourceTree = "<group>"; };
+		GOTOLNSTREF0000000000001 /* GoToLineState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoToLineState.swift; sourceTree = "<group>"; };
+		GOTOLNBARREF000000000001 /* GoToLineBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoToLineBarView.swift; sourceTree = "<group>"; };
 		HISTNAVTSTR0000000000001 /* SessionHistoryNavigatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionHistoryNavigatorTests.swift; sourceTree = "<group>"; };
 		HISTKEYTSTR0000000000001 /* PreviewOverlayHistoryNavigationKeyPolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewOverlayHistoryNavigationKeyPolicyTests.swift; sourceTree = "<group>"; };
 		A1B2C3010000000000000014 /* MarkdownImageProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownImageProbe.swift; sourceTree = "<group>"; };
@@ -287,6 +295,8 @@
 		PRVFTRHUDREF0000000000001 /* PreviewFooterHUD.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewFooterHUD.swift; sourceTree = "<group>"; };
 		PRVPROVTSTREF00000000001 /* PreviewProviderRegistryTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewProviderRegistryTests.swift; sourceTree = "<group>"; };
 		CLIINSTLTSTREF0000000001 /* CLIInstallerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLIInstallerTests.swift; sourceTree = "<group>"; };
+		CLILNTSTREF0000000000001 /* CLILineParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLILineParserTests.swift; sourceTree = "<group>"; };
+		GOTOLNTSTREF000000000001 /* GoToLineStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoToLineStateTests.swift; sourceTree = "<group>"; };
 		CODECRDREF00000000000001 /* CodeCardConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeCardConfig.swift; sourceTree = "<group>"; };
 		CARDEXPVWREF000000000001 /* CodeCardExportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeCardExportView.swift; sourceTree = "<group>"; };
 		CLPSNIFFREF0000000000001 /* ClipboardContentSniffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardContentSniffer.swift; sourceTree = "<group>"; };
@@ -374,6 +384,7 @@
 				835FBA052FCA950400D23A05 /* MarkdownPDFExporter.swift */,
 				PRVPROVGROUP00000000000001 /* PreviewProvider */,
 				CLIINSTLREF0000000000001 /* CLIInstaller.swift */,
+				CLILINEPRSREF00000000001 /* CLILineParser.swift */,
 				CODECARDGROUP00000000001 /* CodeCard */,
 				CLIPBOARDGROUP00000000001 /* Clipboard */,
 			);
@@ -480,6 +491,8 @@
 				PRVFTRHUDREF0000000000001 /* PreviewFooterHUD.swift */,
 				CARDEXPVWREF000000000001 /* CodeCardExportView.swift */,
 				READYVWREF00000000000001 /* PreviewReadyStateView.swift */,
+				GOTOLNSTREF0000000000001 /* GoToLineState.swift */,
+				GOTOLNBARREF000000000001 /* GoToLineBarView.swift */,
 			);
 			path = UI;
 			sourceTree = "<group>";
@@ -575,6 +588,8 @@
 				SRCHPOLTSTREF00000000001 /* PreviewOverlaySearchShortcutPolicyTests.swift */,
 				PRVPROVTSTREF00000000001 /* PreviewProviderRegistryTests.swift */,
 				CLIINSTLTSTREF0000000001 /* CLIInstallerTests.swift */,
+				CLILNTSTREF0000000000001 /* CLILineParserTests.swift */,
+				GOTOLNTSTREF000000000001 /* GoToLineStateTests.swift */,
 				CARDEXPTSTREF00000000001 /* CodeCardExportTests.swift */,
 				CLPSNFTSTREF000000000001 /* ClipboardContentSnifferTests.swift */,
 				MKDVNDTSTREF000000000001 /* MarkdownVendorAssetLoaderTests.swift */,
@@ -793,6 +808,9 @@
 				HISTNAVBLD00000000000001 /* SessionHistoryNavigator.swift in Sources */,
 				HISTKEYBLD00000000000001 /* PreviewOverlayHistoryNavigationKeyPolicy.swift in Sources */,
 				READYVWBLD00000000000001 /* PreviewReadyStateView.swift in Sources */,
+				CLILINEPRSBLD00000000001 /* CLILineParser.swift in Sources */,
+				GOTOLNSTBLD0000000000001 /* GoToLineState.swift in Sources */,
+				GOTOLNBARBLD000000000001 /* GoToLineBarView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -831,6 +849,8 @@
 				SRCHPOLTSTBLD00000000001 /* PreviewOverlaySearchShortcutPolicyTests.swift in Sources */,
 				PRVPROVTSTBLD00000000001 /* PreviewProviderRegistryTests.swift in Sources */,
 				CLIINSTLTSTBLD0000000001 /* CLIInstallerTests.swift in Sources */,
+				CLILNTSTBLD0000000000001 /* CLILineParserTests.swift in Sources */,
+				GOTOLNTSTBLD000000000001 /* GoToLineStateTests.swift in Sources */,
 				CARDEXPTSTBLD00000000001 /* CodeCardExportTests.swift in Sources */,
 				CLPSNFTSTBLD000000000001 /* ClipboardContentSnifferTests.swift in Sources */,
 				MKDVNDTSTBLD000000000001 /* MarkdownVendorAssetLoaderTests.swift in Sources */,

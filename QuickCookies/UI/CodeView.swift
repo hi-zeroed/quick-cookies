@@ -79,6 +79,9 @@ struct CodeView: NSViewRepresentable {
     let loadState: PreviewLoadState
     let onLoadMore: () -> Void
     var findBarState: FindBarState? = nil
+    var goToLineState: GoToLineState? = nil
+    var initialTargetLine: Int? = nil
+    var onInitialTargetLineConsumed: (() -> Void)? = nil
 
     func makeCoordinator() -> Coordinator {
         Coordinator()
@@ -156,13 +159,18 @@ struct CodeView: NSViewRepresentable {
             }
         }
 
-        var cancellables = Set<AnyCancellable>()
+        var findBarCancellables = Set<AnyCancellable>()
+        var goToLineCancellables = Set<AnyCancellable>()
         weak var textView: NSTextView?
         var findBarState: FindBarState?
+        var goToLineState: GoToLineState?
         var currentMatches: [NSRange] = []
+        private var activePulseRange: NSRange?
+        private var pulseWorkItem: DispatchWorkItem?
+        var hasConsumedInitialTargetLine: Bool = false
 
         func setupFindBarSubscription(findBarState: FindBarState?, textView: NSTextView) {
-            cancellables.removeAll()
+            findBarCancellables.removeAll()
             self.findBarState = findBarState
             self.textView = textView
 
@@ -178,7 +186,7 @@ struct CodeView: NSViewRepresentable {
                     guard let self = self, let textView = textView else { return }
                     self.performSearch(query: query, in: textView)
                 }
-                .store(in: &cancellables)
+                .store(in: &findBarCancellables)
 
             findBarState.$isPresented
                 .removeDuplicates()
@@ -191,7 +199,7 @@ struct CodeView: NSViewRepresentable {
                         self.performSearch(query: findBarState.query, in: textView)
                     }
                 }
-                .store(in: &cancellables)
+                .store(in: &findBarCancellables)
 
             findBarState.findNextTrigger
                 .receive(on: DispatchQueue.main)
@@ -199,7 +207,7 @@ struct CodeView: NSViewRepresentable {
                     guard let self = self, let textView = textView else { return }
                     self.nextMatch(in: textView)
                 }
-                .store(in: &cancellables)
+                .store(in: &findBarCancellables)
 
             findBarState.findPreviousTrigger
                 .receive(on: DispatchQueue.main)
@@ -207,12 +215,103 @@ struct CodeView: NSViewRepresentable {
                     guard let self = self, let textView = textView else { return }
                     self.previousMatch(in: textView)
                 }
-                .store(in: &cancellables)
+                .store(in: &findBarCancellables)
 
             if findBarState.isPresented && !findBarState.query.isEmpty {
                 performSearch(query: findBarState.query, in: textView)
             }
         }
+
+        func setupGoToLineSubscription(goToLineState: GoToLineState?, textView: NSTextView) {
+            goToLineCancellables.removeAll()
+            self.goToLineState = goToLineState
+            self.textView = textView
+
+            guard let goToLineState = goToLineState else { return }
+
+            goToLineState.jumpToLineTrigger
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self, weak textView] line in
+                    guard let self = self, let textView = textView else { return }
+                    self.jumpToLine(line, in: textView, pulse: true)
+                }
+                .store(in: &goToLineCancellables)
+        }
+
+        /// 精准跳转至指定行号（1-indexed），并将目标行平滑居中展示，触发脉冲微光
+        func jumpToLine(_ targetLine: Int, in textView: NSTextView, pulse: Bool = true) {
+            let text = (textView.string as NSString)
+            guard text.length > 0, targetLine >= 1 else { return }
+
+            var currentLine = 1
+            var index = 0
+            let length = text.length
+            var foundRange: NSRange? = nil
+
+            while index < length {
+                let lineRange = text.lineRange(for: NSRange(location: index, length: 0))
+                if currentLine == targetLine {
+                    foundRange = lineRange
+                    break
+                }
+                currentLine += 1
+                index = NSMaxRange(lineRange)
+            }
+
+            let lineRange = foundRange ?? text.lineRange(for: NSRange(location: max(0, length - 1), length: 0))
+
+            guard let layoutManager = textView.layoutManager,
+                  let textContainer = textView.textContainer else {
+                textView.scrollRangeToVisible(lineRange)
+                return
+            }
+
+            // 1. 视口滚动并垂直居中
+            let glyphRange = layoutManager.glyphRange(forCharacterRange: lineRange, actualCharacterRange: nil)
+            let rect = layoutManager.boundingRect(forGlyphRange: glyphRange, in: textContainer)
+
+            if let scrollView = textView.enclosingScrollView {
+                let clipView = scrollView.contentView
+                let visibleHeight = clipView.bounds.height
+                let targetY = max(0, rect.origin.y - (visibleHeight - rect.height) / 2)
+                clipView.scroll(to: NSPoint(x: 0, y: targetY))
+                scrollView.reflectScrolledClipView(clipView)
+            } else {
+                textView.scrollRangeToVisible(lineRange)
+            }
+
+            // 2. 原生系统指示圈
+            textView.showFindIndicator(for: lineRange)
+
+            // 3. 脉冲高亮动效（1.2s 平滑淡出）
+            if pulse {
+                applyLinePulseHighlight(lineRange: lineRange, in: textView)
+            }
+        }
+
+        func applyLinePulseHighlight(lineRange: NSRange, in textView: NSTextView) {
+            guard let layoutManager = textView.layoutManager else { return }
+
+            pulseWorkItem?.cancel()
+            if let prev = activePulseRange, prev.location + prev.length <= (textView.textStorage?.length ?? 0) {
+                layoutManager.removeTemporaryAttribute(.backgroundColor, forCharacterRange: prev)
+            }
+
+            activePulseRange = lineRange
+            let pulseColor = NSColor.systemYellow.withAlphaComponent(0.38)
+            layoutManager.addTemporaryAttribute(.backgroundColor, value: pulseColor, forCharacterRange: lineRange)
+
+            let item = DispatchWorkItem { [weak self, weak textView] in
+                guard let self = self, let textView = textView, let lm = textView.layoutManager else { return }
+                if let current = self.activePulseRange, current.location + current.length <= (textView.textStorage?.length ?? 0) {
+                    lm.removeTemporaryAttribute(.backgroundColor, forCharacterRange: current)
+                    self.activePulseRange = nil
+                }
+            }
+            pulseWorkItem = item
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.2, execute: item)
+        }
+
 
         func performSearch(query: String, in textView: NSTextView) {
             guard let layoutManager = textView.layoutManager,
@@ -459,6 +558,9 @@ struct CodeView: NSViewRepresentable {
         // 挂载搜索监听
         context.coordinator.setupFindBarSubscription(findBarState: findBarState, textView: textView)
 
+        // 挂载行号跳转监听
+        context.coordinator.setupGoToLineSubscription(goToLineState: goToLineState, textView: textView)
+
         return scrollView
     }
 
@@ -473,6 +575,20 @@ struct CodeView: NSViewRepresentable {
         if context.coordinator.findBarState !== findBarState {
             context.coordinator.setupFindBarSubscription(findBarState: findBarState, textView: textView)
         }
+        if context.coordinator.goToLineState !== goToLineState {
+            context.coordinator.setupGoToLineSubscription(goToLineState: goToLineState, textView: textView)
+        }
+
+        let totalLineCount = (content as NSString).components(separatedBy: "\n").count
+        goToLineState?.totalLines = max(1, totalLineCount)
+
+        if let targetLine = initialTargetLine, !context.coordinator.hasConsumedInitialTargetLine {
+            context.coordinator.hasConsumedInitialTargetLine = true
+            DispatchQueue.main.async {
+                context.coordinator.jumpToLine(targetLine, in: textView, pulse: true)
+                onInitialTargetLineConsumed?()
+            }
+        }
 
         guard !CodeViewRepresentableUpdatePolicy.shouldSkipRenderSync(
             previousIdentity: previousIdentity,
@@ -482,6 +598,9 @@ struct CodeView: NSViewRepresentable {
         }
 
         let isSameFile = context.coordinator.lastFilePath == filePath
+        if !isSameFile {
+            context.coordinator.hasConsumedInitialTargetLine = false
+        }
         let contentChanged = context.coordinator.lastRenderedContent != content
         let lastRendered = context.coordinator.lastRenderedContent
         let lastLength = lastRendered.count

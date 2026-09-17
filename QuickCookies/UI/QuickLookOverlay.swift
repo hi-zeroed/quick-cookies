@@ -349,6 +349,24 @@ enum PreviewOverlaySearchShortcutPolicy {
     }
 }
 
+enum PreviewOverlayGoToLineShortcutPolicy {
+    /// 判定键盘事件是否应当激活行号精准跳转 (⌘L)
+    /// - Parameters:
+    ///   - keyCode: 键盘物理键码（37 对应 ANSI 'L' 键）
+    ///   - modifierFlags: 修饰键掩码
+    ///   - isKeyWindow: 当前 QuickCookies 预览窗口是否处于 Key 状态
+    /// - Returns: 是否触发行号跳转
+    static func shouldTriggerGoToLine(
+        keyCode: UInt16,
+        modifierFlags: NSEvent.ModifierFlags,
+        isKeyWindow: Bool
+    ) -> Bool {
+        guard keyCode == 37 else { return false }
+        let modifiers = modifierFlags.intersection([.command, .control, .option, .shift])
+        return modifiers == .command
+    }
+}
+
 enum PreviewOverlayInternalNavigationKeyPolicy {
     static func direction(
         isVisible: Bool,
@@ -531,6 +549,7 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
     private let loadState = PreviewLoadState()
     private(set) var isSearchActive: Bool = false
     private let searchTriggerSubject = PassthroughSubject<Void, Never>()
+    private let goToLineTriggerSubject = PassthroughSubject<Void, Never>()
     private lazy var windowActions = PreviewWindowActions(
         closeOverlay: { [weak self] in
             self?.closeWithAnimation()
@@ -545,6 +564,7 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
             self?.handleSearchStateChanged(isSearching)
         },
         triggerSearchSubject: searchTriggerSubject,
+        triggerGoToLineSubject: goToLineTriggerSubject,
         openPath: { [weak self] path, source in
             self?.dispatchPreviewLaunchRequest(.openPath(path, source: source))
         }
@@ -620,6 +640,22 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         window.makeKeyAndOrderFront(nil)
 
         searchTriggerSubject.send()
+    }
+
+    @MainActor
+    func activateGoToLineFromShortcut() {
+        guard let window = previewWindow, window.isVisible else { return }
+        let effectiveRenderType = activeSessionState?.displayRenderType
+        let isSVG = currentFilePath?.lowercased().hasSuffix(".svg") == true
+        guard effectiveRenderType == .code || effectiveRenderType == .plainText || (effectiveRenderType == .image && isSVG) else {
+            return
+        }
+
+        self.isSearchActive = true
+        NSApp.activate(ignoringOtherApps: true)
+        window.makeKeyAndOrderFront(nil)
+
+        goToLineTriggerSubject.send()
     }
 
     @MainActor
@@ -1133,6 +1169,17 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
                 return nil
             }
 
+            if PreviewOverlayGoToLineShortcutPolicy.shouldTriggerGoToLine(
+                keyCode: event.keyCode,
+                modifierFlags: event.modifierFlags,
+                isKeyWindow: self.previewWindow?.isKeyWindow == true
+            ) {
+                DispatchQueue.main.async {
+                    self.activateGoToLineFromShortcut()
+                }
+                return nil
+            }
+
             if self.handleHistoryNavigationIfNeeded(for: event) {
                 return nil
             }
@@ -1161,6 +1208,16 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
             ) {
                 DispatchQueue.main.async {
                     self.activateSearchFromShortcut()
+                }
+                return
+            }
+            if event.type == .keyDown && PreviewOverlayGoToLineShortcutPolicy.shouldTriggerGoToLine(
+                keyCode: event.keyCode,
+                modifierFlags: event.modifierFlags,
+                isKeyWindow: false
+            ) {
+                DispatchQueue.main.async {
+                    self.activateGoToLineFromShortcut()
                 }
                 return
             }

@@ -30,7 +30,8 @@ final class PreviewCoordinator {
             session.open(
                 target: target,
                 source: request.source,
-                initialShareCardMode: request.presentation == .shareCard
+                initialShareCardMode: request.presentation == .shareCard,
+                initialTargetLine: request.targetLine
             )
 
             if request.source != .internalNavigation {

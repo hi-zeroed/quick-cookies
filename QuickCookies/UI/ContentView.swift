@@ -8,6 +8,7 @@ struct PreviewWindowActions {
     let currentWindow: () -> NSWindow?
     var onSearchStateChanged: ((Bool) -> Void)? = nil
     var triggerSearchSubject: PassthroughSubject<Void, Never>? = nil
+    var triggerGoToLineSubject: PassthroughSubject<Void, Never>? = nil
     var openPath: ((String, PreviewLaunchSource) -> Void)? = nil
 }
 
@@ -234,8 +235,9 @@ struct ContentView: View {
     @State private var localToastMessage: String = ""
     @State private var localToastIcon: String? = nil
     
-    // 全文搜索与 SVG 双模预览状态
+    // 全文搜索、行号跳转与 SVG 双模预览状态
     @StateObject private var findBarState = FindBarState()
+    @StateObject private var goToLineState = GoToLineState()
     @State private var isSVGSourceMode: Bool = false
     @State private var isShareCardPresented: Bool
     @State private var isDirectShareCardMode: Bool
@@ -384,6 +386,7 @@ struct ContentView: View {
                         activeRenderType: activeRenderType,
                         isSVGSourceMode: isSVGSourceMode,
                         findBarState: findBarState,
+                        goToLineState: goToLineState,
                         loadState: loadState,
                         shouldShowLoadingOverlay: shouldShowLoadingOverlay,
                         isLocatingSelection: isLocatingSelection
@@ -469,9 +472,18 @@ struct ContentView: View {
                 markdownHasLoadedInitialContent = false
             }
         }
+        .onChange(of: goToLineState.isPresented) { isPresented in
+            windowActions.onSearchStateChanged?(isPresented || findBarState.isPresented)
+            if isPresented && findBarState.isPresented {
+                findBarState.dismiss()
+            }
+        }
         .onChange(of: findBarState.isPresented) { isPresented in
-            windowActions.onSearchStateChanged?(isPresented)
+            windowActions.onSearchStateChanged?(isPresented || goToLineState.isPresented)
             if isPresented {
+                if goToLineState.isPresented {
+                    goToLineState.dismiss()
+                }
                 triggerFullLoadForSearchIfNeeded()
             }
         }
@@ -482,8 +494,21 @@ struct ContentView: View {
         }
         .onReceive(windowActions.triggerSearchSubject ?? PassthroughSubject<Void, Never>()) {
             withAnimation(.easeInOut(duration: 0.15)) {
+                if goToLineState.isPresented {
+                    goToLineState.dismiss()
+                }
                 if !findBarState.isPresented {
                     findBarState.present()
+                }
+            }
+        }
+        .onReceive(windowActions.triggerGoToLineSubject ?? PassthroughSubject<Void, Never>()) {
+            withAnimation(.easeInOut(duration: 0.15)) {
+                if findBarState.isPresented {
+                    findBarState.dismiss()
+                }
+                if !goToLineState.isPresented {
+                    goToLineState.present(totalLines: goToLineState.totalLines)
                 }
             }
         }
@@ -640,7 +665,12 @@ struct ContentView: View {
                         onLoadMore: {
                             Task { await loadNextChunkAsync(for: path) }
                         },
-                        findBarState: findBarState
+                        findBarState: findBarState,
+                        goToLineState: goToLineState,
+                        initialTargetLine: session.state.initialTargetLine,
+                        onInitialTargetLineConsumed: {
+                            session.clearInitialTargetLine()
+                        }
                     )
                 }
             case .plainText:
@@ -653,7 +683,12 @@ struct ContentView: View {
                     onLoadMore: {
                         Task { await loadNextChunkAsync(for: path) }
                     },
-                    findBarState: findBarState
+                    findBarState: findBarState,
+                    goToLineState: goToLineState,
+                    initialTargetLine: session.state.initialTargetLine,
+                    onInitialTargetLineConsumed: {
+                        session.clearInitialTargetLine()
+                    }
                 )
             case .image:
                 let isSVG = path.lowercased().hasSuffix(".svg")
@@ -667,7 +702,12 @@ struct ContentView: View {
                         onLoadMore: {
                             Task { await loadNextChunkAsync(for: path) }
                         },
-                        findBarState: findBarState
+                        findBarState: findBarState,
+                        goToLineState: goToLineState,
+                        initialTargetLine: session.state.initialTargetLine,
+                        onInitialTargetLineConsumed: {
+                            session.clearInitialTargetLine()
+                        }
                     )
                 } else {
                     heavyPreviewContainer(
@@ -1129,11 +1169,25 @@ struct PreviewCodeView: View {
     let loadState: PreviewLoadState
     let onLoadMore: () -> Void
     var findBarState: FindBarState? = nil
+    var goToLineState: GoToLineState? = nil
+    var initialTargetLine: Int? = nil
+    var onInitialTargetLineConsumed: (() -> Void)? = nil
 
     // NOTE: 恢复 @ObservedObject 绑定，以实现设置修改时文本字号与字体的实时热联动
     @ObservedObject private var settings = Settings.shared
 
-    init(path: String, content: String, language: String?, isDark: Bool, loadState: PreviewLoadState, onLoadMore: @escaping () -> Void, findBarState: FindBarState? = nil) {
+    init(
+        path: String,
+        content: String,
+        language: String?,
+        isDark: Bool,
+        loadState: PreviewLoadState,
+        onLoadMore: @escaping () -> Void,
+        findBarState: FindBarState? = nil,
+        goToLineState: GoToLineState? = nil,
+        initialTargetLine: Int? = nil,
+        onInitialTargetLineConsumed: (() -> Void)? = nil
+    ) {
         self.path = path
         self.content = content
         self.language = language
@@ -1141,6 +1195,9 @@ struct PreviewCodeView: View {
         self.loadState = loadState
         self.onLoadMore = onLoadMore
         self.findBarState = findBarState
+        self.goToLineState = goToLineState
+        self.initialTargetLine = initialTargetLine
+        self.onInitialTargetLineConsumed = onInitialTargetLineConsumed
     }
 
     var body: some View {
@@ -1153,7 +1210,10 @@ struct PreviewCodeView: View {
             isDark: isDark,
             loadState: loadState,
             onLoadMore: onLoadMore,
-            findBarState: findBarState
+            findBarState: findBarState,
+            goToLineState: goToLineState,
+            initialTargetLine: initialTargetLine,
+            onInitialTargetLineConsumed: onInitialTargetLineConsumed
         )
     }
 }

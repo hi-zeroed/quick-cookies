@@ -126,15 +126,30 @@ struct PreviewLaunchRequest: Equatable {
     let source: PreviewLaunchSource
     let pathIntent: PreviewLaunchPathIntent
     let presentation: PreviewPresentationIntent
+    let targetLine: Int?
+
+    init(
+        source: PreviewLaunchSource,
+        pathIntent: PreviewLaunchPathIntent,
+        presentation: PreviewPresentationIntent,
+        targetLine: Int? = nil
+    ) {
+        self.source = source
+        self.pathIntent = pathIntent
+        self.presentation = presentation
+        self.targetLine = targetLine
+    }
 
     static func openPath(
         _ path: String,
-        source: PreviewLaunchSource
+        source: PreviewLaunchSource,
+        targetLine: Int? = nil
     ) -> PreviewLaunchRequest {
         PreviewLaunchRequest(
             source: source,
             pathIntent: .direct(path: path),
-            presentation: .open
+            presentation: .open,
+            targetLine: targetLine
         )
     }
 
@@ -379,8 +394,8 @@ final class PreviewRequestController {
         onRequest?(request)
     }
 
-    func openPath(_ path: String, source: PreviewLaunchSource) {
-        submit(.openPath(path, source: source))
+    func openPath(_ path: String, source: PreviewLaunchSource, targetLine: Int? = nil) {
+        submit(.openPath(path, source: source, targetLine: targetLine))
     }
 
     func openShareCard(_ path: String, source: PreviewLaunchSource) {
