@@ -7,6 +7,7 @@ struct PreviewContentContainer<Content: View>: View {
     let isSVGSourceMode: Bool
     @ObservedObject var findBarState: FindBarState
     var goToLineState: GoToLineState? = nil
+    var telemetryState: TelemetryInspectorState? = nil
     @ObservedObject var loadState: PreviewLoadState
     let shouldShowLoadingOverlay: Bool
     let isLocatingSelection: Bool
@@ -54,8 +55,14 @@ struct PreviewContentContainer<Content: View>: View {
                 .transition(.opacity)
             }
             
-            // 增量加载悬浮条
-            PreviewFooterHUD(loadState: loadState, isLocatingSelection: isLocatingSelection)
+            // 底部悬浮条：工程元数据洞察微 HUD 与大文件增量加载条
+            VStack(spacing: 4) {
+                Spacer()
+                if let telemetryState = telemetryState {
+                    TelemetryInspectorBarView(state: telemetryState)
+                }
+                PreviewFooterHUD(loadState: loadState, isLocatingSelection: isLocatingSelection)
+            }
         }
     }
 

@@ -9,6 +9,7 @@ struct PreviewWindowActions {
     var onSearchStateChanged: ((Bool) -> Void)? = nil
     var triggerSearchSubject: PassthroughSubject<Void, Never>? = nil
     var triggerGoToLineSubject: PassthroughSubject<Void, Never>? = nil
+    var triggerTelemetrySubject: PassthroughSubject<Void, Never>? = nil
     var openPath: ((String, PreviewLaunchSource) -> Void)? = nil
 }
 
@@ -235,9 +236,10 @@ struct ContentView: View {
     @State private var localToastMessage: String = ""
     @State private var localToastIcon: String? = nil
     
-    // 全文搜索、行号跳转与 SVG 双模预览状态
+    // 全文搜索、行号跳转、工程元数据洞察与 SVG 双模预览状态
     @StateObject private var findBarState = FindBarState()
     @StateObject private var goToLineState = GoToLineState()
+    @StateObject private var telemetryState = TelemetryInspectorState()
     @State private var isSVGSourceMode: Bool = false
     @State private var isShareCardPresented: Bool
     @State private var isDirectShareCardMode: Bool
@@ -387,6 +389,7 @@ struct ContentView: View {
                         isSVGSourceMode: isSVGSourceMode,
                         findBarState: findBarState,
                         goToLineState: goToLineState,
+                        telemetryState: telemetryState,
                         loadState: loadState,
                         shouldShowLoadingOverlay: shouldShowLoadingOverlay,
                         isLocatingSelection: isLocatingSelection
@@ -448,10 +451,12 @@ struct ContentView: View {
             isSVGSourceMode = false
             if let path = newPath {
                 prepareForIncomingPath(path)
+                telemetryState.reloadIfPresented(path: path, renderType: activeRenderType ?? .plainText, content: content)
                 Task {
                     await triggerPathLoadIfNeeded(path: path)
                 }
             } else {
+                telemetryState.dismiss()
                 loadCoordinator.reset()
                 inflightLoadPath = nil
                 chunkReader?.close()
@@ -510,6 +515,11 @@ struct ContentView: View {
                 if !goToLineState.isPresented {
                     goToLineState.present(totalLines: goToLineState.totalLines)
                 }
+            }
+        }
+        .onReceive(windowActions.triggerTelemetrySubject ?? PassthroughSubject<Void, Never>()) {
+            if let path = activePath, let renderType = activeRenderType {
+                telemetryState.toggle(path: path, renderType: renderType, content: content)
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: .previewPresentShareCardDirectly)) { _ in

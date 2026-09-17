@@ -367,6 +367,24 @@ enum PreviewOverlayGoToLineShortcutPolicy {
     }
 }
 
+enum PreviewOverlayTelemetryShortcutPolicy {
+    /// 判定键盘事件是否应当激活工程元数据洞察微 HUD (⌘I)
+    /// - Parameters:
+    ///   - keyCode: 键盘物理键码（34 对应 ANSI 'I' 键）
+    ///   - modifierFlags: 修饰键掩码
+    ///   - isKeyWindow: 当前 QuickCookies 预览窗口是否处于 Key 状态
+    /// - Returns: 是否触发元数据微 HUD
+    static func shouldTriggerTelemetry(
+        keyCode: UInt16,
+        modifierFlags: NSEvent.ModifierFlags,
+        isKeyWindow: Bool
+    ) -> Bool {
+        guard keyCode == 34 else { return false }
+        let modifiers = modifierFlags.intersection([.command, .control, .option, .shift])
+        return modifiers == .command
+    }
+}
+
 enum PreviewOverlayInternalNavigationKeyPolicy {
     static func direction(
         isVisible: Bool,
@@ -550,6 +568,7 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
     private(set) var isSearchActive: Bool = false
     private let searchTriggerSubject = PassthroughSubject<Void, Never>()
     private let goToLineTriggerSubject = PassthroughSubject<Void, Never>()
+    private let telemetryTriggerSubject = PassthroughSubject<Void, Never>()
     private lazy var windowActions = PreviewWindowActions(
         closeOverlay: { [weak self] in
             self?.closeWithAnimation()
@@ -565,6 +584,7 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         },
         triggerSearchSubject: searchTriggerSubject,
         triggerGoToLineSubject: goToLineTriggerSubject,
+        triggerTelemetrySubject: telemetryTriggerSubject,
         openPath: { [weak self] path, source in
             self?.dispatchPreviewLaunchRequest(.openPath(path, source: source))
         }
@@ -656,6 +676,12 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         window.makeKeyAndOrderFront(nil)
 
         goToLineTriggerSubject.send()
+    }
+
+    @MainActor
+    func activateTelemetryFromShortcut() {
+        guard let window = previewWindow, window.isVisible else { return }
+        telemetryTriggerSubject.send()
     }
 
     @MainActor
@@ -1180,6 +1206,17 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
                 return nil
             }
 
+            if PreviewOverlayTelemetryShortcutPolicy.shouldTriggerTelemetry(
+                keyCode: event.keyCode,
+                modifierFlags: event.modifierFlags,
+                isKeyWindow: self.previewWindow?.isKeyWindow == true
+            ) {
+                DispatchQueue.main.async {
+                    self.activateTelemetryFromShortcut()
+                }
+                return nil
+            }
+
             if self.handleHistoryNavigationIfNeeded(for: event) {
                 return nil
             }
@@ -1218,6 +1255,16 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
             ) {
                 DispatchQueue.main.async {
                     self.activateGoToLineFromShortcut()
+                }
+                return
+            }
+            if event.type == .keyDown && PreviewOverlayTelemetryShortcutPolicy.shouldTriggerTelemetry(
+                keyCode: event.keyCode,
+                modifierFlags: event.modifierFlags,
+                isKeyWindow: false
+            ) {
+                DispatchQueue.main.async {
+                    self.activateTelemetryFromShortcut()
                 }
                 return
             }
