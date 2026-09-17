@@ -81,7 +81,6 @@ struct CodeView: NSViewRepresentable {
     var findBarState: FindBarState? = nil
     var goToLineState: GoToLineState? = nil
     var liveWatchingState: LiveWatchingState? = nil
-    var gitDiffState: GitDiffState? = nil
     var initialTargetLine: Int? = nil
     var onInitialTargetLineConsumed: (() -> Void)? = nil
 
@@ -174,13 +173,10 @@ struct CodeView: NSViewRepresentable {
         var findBarCancellables = Set<AnyCancellable>()
         var goToLineCancellables = Set<AnyCancellable>()
         var liveWatchingCancellables = Set<AnyCancellable>()
-        var gitDiffCancellables = Set<AnyCancellable>()
         weak var textView: NSTextView?
         var findBarState: FindBarState?
         var goToLineState: GoToLineState?
         var liveWatchingState: LiveWatchingState?
-        weak var gitDiffState: GitDiffState?
-        var activeGitDiffRanges: [NSRange] = []
         var currentMatches: [NSRange] = []
         private var activePulseRange: NSRange?
         private var pulseWorkItem: DispatchWorkItem?
@@ -285,95 +281,6 @@ struct CodeView: NSViewRepresentable {
                     textView.scrollRangeToVisible(bottomRange)
                 }
                 .store(in: &liveWatchingCancellables)
-        }
-
-        @MainActor
-        func setupGitDiffSubscription(gitDiffState: GitDiffState?, textView: NSTextView) {
-            gitDiffCancellables.removeAll()
-            self.gitDiffState = gitDiffState
-            self.textView = textView
-
-            guard let gitDiffState = gitDiffState else {
-                clearGitDiffHighlights(in: textView)
-                return
-            }
-
-            gitDiffState.jumpToLineSubject
-                .receive(on: DispatchQueue.main)
-                .sink { [weak self, weak textView] line in
-                    guard let self = self, let textView = textView else { return }
-                    self.jumpToLine(line, in: textView, pulse: true)
-                }
-                .store(in: &gitDiffCancellables)
-
-            gitDiffState.$report
-                .receive(on: DispatchQueue.main)
-                .sink { [weak self, weak textView] _ in
-                    guard let self = self, let textView = textView else { return }
-                    self.applyGitDiffHighlights(in: textView)
-                }
-                .store(in: &gitDiffCancellables)
-        }
-
-        @MainActor
-        func clearGitDiffHighlights(in textView: NSTextView) {
-            guard let layoutManager = textView.layoutManager else { return }
-            for range in activeGitDiffRanges {
-                if range.location + range.length <= (textView.textStorage?.length ?? 0) {
-                    layoutManager.removeTemporaryAttribute(.backgroundColor, forCharacterRange: range)
-                }
-            }
-            activeGitDiffRanges.removeAll()
-        }
-
-        @MainActor
-        func applyGitDiffHighlights(in textView: NSTextView) {
-            guard let layoutManager = textView.layoutManager,
-                  let textStorage = textView.textStorage,
-                  let gitDiffState = gitDiffState else {
-                clearGitDiffHighlights(in: textView)
-                return
-            }
-
-            clearGitDiffHighlights(in: textView)
-
-            let report = gitDiffState.report
-            guard report.status == .modified, !report.changedLines.isEmpty else { return }
-
-            let text = (textView.string as NSString)
-            guard text.length > 0 else { return }
-
-            var lineRanges: [NSRange] = []
-            var index = 0
-            let length = text.length
-            while index < length {
-                let lineRange = text.lineRange(for: NSRange(location: index, length: 0))
-                lineRanges.append(lineRange)
-                index = NSMaxRange(lineRange)
-            }
-
-            let isDark = self.lastIsDark ?? false
-            let greenColor = NSColor.systemGreen.withAlphaComponent(isDark ? 0.16 : 0.10)
-            let orangeColor = NSColor.systemOrange.withAlphaComponent(isDark ? 0.18 : 0.12)
-
-            for (lineNum, diffType) in report.changedLines {
-                guard lineNum >= 1, lineNum <= lineRanges.count else { continue }
-                let range = lineRanges[lineNum - 1]
-                guard range.location + range.length <= textStorage.length else { continue }
-
-                let color: NSColor
-                switch diffType {
-                case .added:
-                    color = greenColor
-                case .modified:
-                    color = orangeColor
-                case .deleted:
-                    continue
-                }
-
-                layoutManager.addTemporaryAttribute(.backgroundColor, value: color, forCharacterRange: range)
-                activeGitDiffRanges.append(range)
-            }
         }
 
         /// 精准跳转至指定行号（1-indexed），并将目标行平滑居中展示，触发脉冲微光
@@ -702,9 +609,6 @@ struct CodeView: NSViewRepresentable {
         // 挂载实时监听与追尾状态监听
         context.coordinator.setupLiveWatchingSubscription(liveWatchingState: liveWatchingState, textView: textView)
 
-        // 挂载 Git 差异监听
-        context.coordinator.setupGitDiffSubscription(gitDiffState: gitDiffState, textView: textView)
-
         return scrollView
     }
 
@@ -724,9 +628,6 @@ struct CodeView: NSViewRepresentable {
         }
         if context.coordinator.liveWatchingState !== liveWatchingState {
             context.coordinator.setupLiveWatchingSubscription(liveWatchingState: liveWatchingState, textView: textView)
-        }
-        if context.coordinator.gitDiffState !== gitDiffState {
-            context.coordinator.setupGitDiffSubscription(gitDiffState: gitDiffState, textView: textView)
         }
 
         let totalLineCount = context.coordinator.calculateTotalLines(for: content)
@@ -865,7 +766,6 @@ struct CodeView: NSViewRepresentable {
                 ) else { return }
                 textView.textStorage?.setAttributedString(attributed)
                 coordinator.refreshSearchPreservingPosition(in: textView)
-                coordinator.applyGitDiffHighlights(in: textView)
             }
             return
         }
@@ -880,7 +780,6 @@ struct CodeView: NSViewRepresentable {
             ) {
                 textView.textStorage?.setAttributedString(cached)
                 coordinator.refreshSearchPreservingPosition(in: textView)
-                coordinator.applyGitDiffHighlights(in: textView)
             }
             return
         }
@@ -914,7 +813,6 @@ struct CodeView: NSViewRepresentable {
                     // NOTE: 直接替换，无 CATransition 动画
                     textView.textStorage?.setAttributedString(customAttributed)
                     coordinator.refreshSearchPreservingPosition(in: textView)
-                    coordinator.applyGitDiffHighlights(in: textView)
                 }
             } else {
                 // 超大文件首段：先高亮前 500 行，剩下普通文本显示，实现窗口 0ms 秒开
@@ -939,7 +837,6 @@ struct CodeView: NSViewRepresentable {
                         ) else { return }
                         textView.textStorage?.setAttributedString(fallbackAttributed)
                         coordinator.refreshSearchPreservingPosition(in: textView)
-                        coordinator.applyGitDiffHighlights(in: textView)
                     }
                     return
                 }
@@ -963,7 +860,6 @@ struct CodeView: NSViewRepresentable {
                     ) else { return }
                     textView.textStorage?.setAttributedString(tempFull)
                     coordinator.refreshSearchPreservingPosition(in: textView)
-                    coordinator.applyGitDiffHighlights(in: textView)
                 }
                 
                 // 随后在后台默默做首段文本的全量高亮（使用 utility 优先级避免与主线程滚动抢占 CPU 资源）
@@ -994,7 +890,6 @@ struct CodeView: NSViewRepresentable {
                         // 避免在主线程使用 enumerateAttributes 产生上千次 ObjC 桥接调用阻塞主线程
                         textStorage.setAttributedString(customFull)
                         coordinator.refreshSearchPreservingPosition(in: textView)
-                        coordinator.applyGitDiffHighlights(in: textView)
                     }
                 }
             }
@@ -1068,7 +963,6 @@ struct CodeView: NSViewRepresentable {
                     textView.scrollRangeToVisible(endRange)
                 }
                 coordinator.refreshSearchPreservingPosition(in: textView)
-                coordinator.applyGitDiffHighlights(in: textView)
             }
         }
     }
