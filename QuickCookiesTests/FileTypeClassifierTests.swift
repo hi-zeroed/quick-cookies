@@ -171,15 +171,15 @@ final class FileTypeClassifierTests: XCTestCase {
         XCTAssertTrue(FileTypeClassifier.isSupported(path: fileURL.path))
     }
 
-    func testCsvAndTsvClassifyAsCode() throws {
+    func testCsvAndTsvClassifyAsCSV() throws {
         let csvURL = tempDirURL.appendingPathComponent("data.csv")
         try "name,age\nAlice,30".write(to: csvURL, atomically: true, encoding: .utf8)
-        XCTAssertEqual(FileTypeClassifier.classify(path: csvURL.path), .code)
+        XCTAssertEqual(FileTypeClassifier.classify(path: csvURL.path), .csv)
         XCTAssertTrue(FileTypeClassifier.isSupported(path: csvURL.path))
 
         let tsvURL = tempDirURL.appendingPathComponent("data.tsv")
         try "name\tage\nBob\t25".write(to: tsvURL, atomically: true, encoding: .utf8)
-        XCTAssertEqual(FileTypeClassifier.classify(path: tsvURL.path), .code)
+        XCTAssertEqual(FileTypeClassifier.classify(path: tsvURL.path), .csv)
         XCTAssertTrue(FileTypeClassifier.isSupported(path: tsvURL.path))
     }
 }

@@ -118,6 +118,23 @@ struct HexPreviewProvider: PreviewProvider {
     }
 }
 
+struct CSVPreviewProvider: PreviewProvider {
+    let renderType: FileRenderType = .csv
+    var preferredWindowRatio: CGFloat { 0.78 }
+    var supportsSearch: Bool { true }
+    var allowsPDFExport: Bool { false }
+    var usesTextContentLoader: Bool { true }
+    var showsGenericLoading: Bool { true }
+
+    func backgroundStyle(isSVGSourceMode: Bool) -> PreviewContentAreaChrome.BackgroundStyle {
+        .appBackground
+    }
+
+    func borderStyle(isSVGSourceMode: Bool) -> PreviewContentAreaChrome.BorderStyle {
+        .appBorder
+    }
+}
+
 struct UnsupportedPreviewProvider: PreviewProvider {
     let renderType: FileRenderType = .unsupported
     

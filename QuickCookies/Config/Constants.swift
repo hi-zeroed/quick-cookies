@@ -59,6 +59,11 @@ enum Constants {
         "bin", "dat", "wasm", "hex", "dylib", "so", "o", "a", "class", "pyc", "elf"
     ]
 
+    // CSV / TSV 数据表格扩展名（支持虚拟化数据网格与源码双模切换）
+    static let csvExtensions: Set<String> = [
+        "csv", "tsv"
+    ]
+
     // 二进制文件扩展名黑名单（遇到此类文件直接阻断，不作文本或常规Hex预览）
     static let binaryBlacklistExtensions: Set<String> = [
         "dmg", "pkg", "exe", "dll",

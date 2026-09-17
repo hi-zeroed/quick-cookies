@@ -97,7 +97,7 @@ enum PreviewContentAreaChrome {
         switch renderType {
         case .image, .unsupported:
             return .transparent
-        case .markdown, .code, .plainText, .pdf, .office, .archive, .folder, .audio, .video, .font, .hex, .none:
+        case .markdown, .code, .plainText, .pdf, .office, .archive, .folder, .audio, .video, .font, .hex, .csv, .none:
             return .appBackground
         }
     }
@@ -109,7 +109,7 @@ enum PreviewContentAreaChrome {
         switch renderType {
         case .image, .unsupported:
             return .none
-        case .markdown, .code, .plainText, .pdf, .office, .archive, .folder, .audio, .video, .font, .hex, .none:
+        case .markdown, .code, .plainText, .pdf, .office, .archive, .folder, .audio, .video, .font, .hex, .csv, .none:
             return .appBorder
         }
     }
@@ -242,6 +242,7 @@ struct ContentView: View {
     @StateObject private var telemetryState = TelemetryInspectorState()
     @StateObject private var liveWatchingState = LiveWatchingState()
     @State private var isSVGSourceMode: Bool = false
+    @State private var isCSVSourceMode: Bool = false
     @State private var isShareCardPresented: Bool
     @State private var isDirectShareCardMode: Bool
     
@@ -359,6 +360,7 @@ struct ContentView: View {
                             localToastIcon = icon
                             showLocalToast = true
                         },
+                        isCSVSourceMode: $isCSVSourceMode,
                         isExportingPDF: isExportingPDF,
                         onExportPDF: exportMarkdownToPDF,
                         onShareCard: {
@@ -435,6 +437,7 @@ struct ContentView: View {
             }
             findBarState.dismiss()
             isSVGSourceMode = false
+            isCSVSourceMode = false
             chunkReader?.close()
             chunkReader = nil
             markdownPreviewTimeline = nil
@@ -451,6 +454,7 @@ struct ContentView: View {
         .onChange(of: activePath) { newPath in
             findBarState.dismiss()
             isSVGSourceMode = false
+            isCSVSourceMode = false
             if let path = newPath {
                 prepareForIncomingPath(path)
                 telemetryState.reloadIfPresented(path: path, renderType: activeRenderType ?? .plainText, content: content)
@@ -807,6 +811,32 @@ struct ContentView: View {
                     localToastIcon = icon
                     showLocalToast = true
                 }
+            case .csv:
+                if isCSVSourceMode {
+                    PreviewCodeView(
+                        path: path,
+                        content: content,
+                        language: "csv",
+                        isDark: isDark,
+                        loadState: loadState,
+                        onLoadMore: {
+                            Task { await loadNextChunkAsync(for: path) }
+                        },
+                        findBarState: findBarState,
+                        goToLineState: goToLineState,
+                        liveWatchingState: liveWatchingState,
+                        initialTargetLine: session.state.initialTargetLine,
+                        onInitialTargetLineConsumed: {
+                            session.clearInitialTargetLine()
+                        }
+                    )
+                } else {
+                    CSVGridView(rawText: content) { message, icon in
+                        localToastMessage = message
+                        localToastIcon = icon
+                        showLocalToast = true
+                    }
+                }
             case .unsupported:
                 UnsupportedFileView(filePath: path, errorMessage: activeErrorMessage) { message, icon in
                     localToastMessage = message
@@ -1099,6 +1129,7 @@ struct ContentView: View {
         isLoading = true
         findBarState.dismiss()
         isSVGSourceMode = false
+        isCSVSourceMode = false
     }
 
     private func resetHeavyPreviewState(for renderType: FileRenderType?) {

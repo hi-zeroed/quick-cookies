@@ -14,6 +14,7 @@ enum FileRenderType {
     case video          // 视频文件预览 (MP4, MOV, M4V, WEBM 等)
     case font           // 字体文件预览 (TTF, OTF, WOFF, WOFF2)
     case hex            // 十六进制二进制透视 (BIN, DAT, WASM, DYLIB, SO 等)
+    case csv            // CSV / TSV 虚拟化数据网格与源码双模 (CSV, TSV)
 }
 
 struct FileTypeClassifier {
@@ -80,6 +81,11 @@ struct FileTypeClassifier {
             return .markdown
         }
 
+        // CSV / TSV 数据表格文件（优先于普通代码，进入专属虚拟网格与源码双模）
+        if Constants.csvExtensions.contains(ext) {
+            return .csv
+        }
+
         // 支持的代码/配置文件
         if Constants.supportedExtensions.contains(ext) {
             return .code
@@ -138,6 +144,11 @@ struct FileTypeClassifier {
 
         // 直接放行支持的十六进制透视格式
         if Constants.hexExtensions.contains(ext) {
+            return true
+        }
+
+        // 直接放行支持的 CSV / TSV 数据格式
+        if Constants.csvExtensions.contains(ext) {
             return true
         }
 

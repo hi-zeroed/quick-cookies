@@ -15,7 +15,7 @@ enum TelemetryExtractor {
             var items: [TelemetryItem] = []
             
             switch renderType {
-            case .code, .plainText, .markdown:
+            case .code, .plainText, .markdown, .csv:
                 items = extractTextTelemetry(url: url, renderType: renderType, existingContent: existingContent)
             case .image:
                 items = extractImageTelemetry(url: url)

@@ -18,6 +18,9 @@ struct PreviewHeaderView: View {
     @Binding var isSVGSourceMode: Bool
     let svgContent: String
     let onShowToast: (String, String?) -> Void
+
+    // CSV 双模（表格 ⟷ 源码）
+    @Binding var isCSVSourceMode: Bool
     
     // Markdown 导出 PDF
     let isExportingPDF: Bool
@@ -221,6 +224,58 @@ struct PreviewHeaderView: View {
                                 }
                             }
                         }
+                    }
+
+                    // CSV / TSV 双模切换胶囊（表格 ⟷ 源码）
+                    let isCSV = (activeRenderType == .csv)
+                    if isCSV {
+                        HStack(spacing: 2) {
+                            Button(action: {
+                                withAnimation(.easeInOut(duration: 0.15)) {
+                                    isCSVSourceMode = false
+                                    findBarState.dismiss()
+                                }
+                            }) {
+                                Image(systemName: "tablecells")
+                                    .font(.system(size: 11, weight: .medium))
+                                    .foregroundColor(isCSVSourceMode ? Color.appText.opacity(0.45) : Color.appText)
+                                    .frame(width: 22, height: 22)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 5)
+                                            .fill(isCSVSourceMode ? Color.clear : Color.appText.opacity(0.12))
+                                    )
+                                    .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
+                            .help("Data Grid".localized())
+
+                            Button(action: {
+                                withAnimation(.easeInOut(duration: 0.15)) {
+                                    isCSVSourceMode = true
+                                }
+                            }) {
+                                Image(systemName: "chevron.left.forwardslash.chevron.right")
+                                    .font(.system(size: 10, weight: .semibold))
+                                    .foregroundColor(isCSVSourceMode ? Color.appText : Color.appText.opacity(0.45))
+                                    .frame(width: 22, height: 22)
+                                    .background(
+                                        RoundedRectangle(cornerRadius: 5)
+                                            .fill(isCSVSourceMode ? Color.appText.opacity(0.12) : Color.clear)
+                                    )
+                                    .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.plain)
+                            .help("Source Code".localized())
+                        }
+                        .padding(2)
+                        .background(
+                            RoundedRectangle(cornerRadius: 7)
+                                .fill(Color.appText.opacity(0.06))
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 7)
+                                .stroke(Color.appBorder.opacity(colorScheme == .dark ? 0.2 : 0.1), lineWidth: 0.5)
+                        )
                     }
 
                     // ⌥F 全文搜索按钮

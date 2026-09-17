@@ -671,7 +671,23 @@ struct Localization {
             "Copy Full Row": [.en: "Copy Full Row", .zhHans: "拷贝整行数据"],
             "Load More Bytes": [.en: "Load More Bytes", .zhHans: "加载更多字节"],
             "Inspect in Hex": [.en: "Inspect in Hex", .zhHans: "以十六进制检视"],
-            "Summary": [.en: "Summary", .zhHans: "概览"]
+            "Summary": [.en: "Summary", .zhHans: "概览"],
+
+            // CSV / TSV Data Grid
+            "Data Grid": [.en: "Data Grid", .zhHans: "数据表格"],
+            "Copy Column Header": [.en: "Copy Column Header", .zhHans: "拷贝列名"],
+            "Column name copied": [.en: "Column name copied", .zhHans: "列名已拷贝"],
+            "Copy Cell": [.en: "Copy Cell", .zhHans: "拷贝单元格"],
+            "Cell copied": [.en: "Cell copied", .zhHans: "单元格已拷贝"],
+            "Copy Row": [.en: "Copy Row", .zhHans: "拷贝整行"],
+            "Row copied": [.en: "Row copied", .zhHans: "整行已拷贝"],
+            "Copy Table": [.en: "Copy Table", .zhHans: "拷贝整表"],
+            "Copy Table (TSV)": [.en: "Copy Table (TSV)", .zhHans: "拷贝整表 (TSV)"],
+            "Entire table copied (TSV)": [.en: "Entire table copied (TSV)", .zhHans: "整张表格已拷贝至剪贴板 (TSV)"],
+            "Empty CSV / TSV File": [.en: "Empty CSV / TSV File", .zhHans: "空白 CSV / TSV 表格文件"],
+            "columns": [.en: "columns", .zhHans: "列"],
+            "rows": [.en: "rows", .zhHans: "行"],
+            "Showing first %d rows": [.en: "Showing first %d rows", .zhHans: "仅展示前 %d 行"]
         ]
         return dict[key]?[lang] ?? key
     }

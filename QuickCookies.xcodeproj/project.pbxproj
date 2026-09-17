@@ -40,6 +40,9 @@
 		HEXENGNBLD00000000000001 /* HexInspectorEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = HEXENGNREF00000000000001 /* HexInspectorEngine.swift */; };
 		HEXVIEWBLD00000000000001 /* HexPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = HEXVIEWREF00000000000001 /* HexPreviewView.swift */; };
 		HEXTSTBLD000000000000001 /* HexInspectorEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = HEXTSTREF000000000000001 /* HexInspectorEngineTests.swift */; };
+		CSVPARSERBLD00000000001 /* CSVParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = CSVPARSERREF00000000001 /* CSVParser.swift */; };
+		CSVVIEWBLD0000000000001 /* CSVGridView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CSVVIEWREF0000000000001 /* CSVGridView.swift */; };
+		CSVTSTBLD000000000000001 /* CSVParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CSVTSTREF000000000000001 /* CSVParserTests.swift */; };
 		HISTNAVTSTB0000000000001 /* SessionHistoryNavigatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = HISTNAVTSTR0000000000001 /* SessionHistoryNavigatorTests.swift */; };
 		HISTKEYTSTB0000000000001 /* PreviewOverlayHistoryNavigationKeyPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = HISTKEYTSTR0000000000001 /* PreviewOverlayHistoryNavigationKeyPolicyTests.swift */; };
 		A1B2C3010000000000000004 /* MarkdownImageProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3010000000000000014 /* MarkdownImageProbe.swift */; };
@@ -248,6 +251,9 @@
 		HEXENGNREF00000000000001 /* HexInspectorEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HexInspectorEngine.swift; sourceTree = "<group>"; };
 		HEXVIEWREF00000000000001 /* HexPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HexPreviewView.swift; sourceTree = "<group>"; };
 		HEXTSTREF000000000000001 /* HexInspectorEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HexInspectorEngineTests.swift; sourceTree = "<group>"; };
+		CSVPARSERREF00000000001 /* CSVParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CSVParser.swift; sourceTree = "<group>"; };
+		CSVVIEWREF0000000000001 /* CSVGridView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CSVGridView.swift; sourceTree = "<group>"; };
+		CSVTSTREF000000000000001 /* CSVParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CSVParserTests.swift; sourceTree = "<group>"; };
 		AST141414141414141414142 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B76F46CEB24C42779E84EBBE /* QuickLookOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickLookOverlay.swift; sourceTree = "<group>"; };
 		B87D7CAF1B4B8FAFF363B543 /* SettingsWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsWindow.swift; sourceTree = "<group>"; };
@@ -422,8 +428,17 @@
 				TELEMETRYGROUP00000000001 /* Telemetry */,
 				WATCHERGROUP000000000001 /* Watcher */,
 				HEXGROUP0000000000000001 /* Hex */,
+				CSVGROUP00000000000001 /* CSV */,
 			);
 			path = Core;
+			sourceTree = "<group>";
+		};
+		CSVGROUP00000000000001 /* CSV */ = {
+			isa = PBXGroup;
+			children = (
+				CSVPARSERREF00000000001 /* CSVParser.swift */,
+			);
+			path = CSV;
 			sourceTree = "<group>";
 		};
 		HEXGROUP0000000000000001 /* Hex */ = {
@@ -558,8 +573,17 @@
 				TLMTRBARREF0000000000001 /* TelemetryInspectorBarView.swift */,
 				LIVEWCHGROUP000000000001 /* LiveWatching */,
 				HEXPRVGROUP0000000000001 /* HexPreview */,
+				CSVPRVGROUP000000000001 /* CSVPreview */,
 			);
 			path = UI;
+			sourceTree = "<group>";
+		};
+		CSVPRVGROUP000000000001 /* CSVPreview */ = {
+			isa = PBXGroup;
+			children = (
+				CSVVIEWREF0000000000001 /* CSVGridView.swift */,
+			);
+			path = CSVPreview;
 			sourceTree = "<group>";
 		};
 		HEXPRVGROUP0000000000001 /* HexPreview */ = {
@@ -684,6 +708,7 @@
 				FLWCHWCHTSTR000000000001 /* FileLiveWatcherTests.swift */,
 				FLWCHSTATSTR000000000001 /* LiveWatchingStateTests.swift */,
 				HEXTSTREF000000000000001 /* HexInspectorEngineTests.swift */,
+				CSVTSTREF000000000000001 /* CSVParserTests.swift */,
 			);
 			path = QuickCookiesTests;
 			sourceTree = "<group>";
@@ -909,6 +934,8 @@
 				FLWCHBDGBLD0000000000001 /* LiveTailBadgeView.swift in Sources */,
 				HEXENGNBLD00000000000001 /* HexInspectorEngine.swift in Sources */,
 				HEXVIEWBLD00000000000001 /* HexPreviewView.swift in Sources */,
+				CSVPARSERBLD00000000001 /* CSVParser.swift in Sources */,
+				CSVVIEWBLD0000000000001 /* CSVGridView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -961,6 +988,7 @@
 				FLWCHWCHTSTB000000000001 /* FileLiveWatcherTests.swift in Sources */,
 				FLWCHSTATSTB000000000001 /* LiveWatchingStateTests.swift in Sources */,
 				HEXTSTBLD000000000000001 /* HexInspectorEngineTests.swift in Sources */,
+				CSVTSTBLD000000000000001 /* CSVParserTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
