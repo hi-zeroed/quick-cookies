@@ -6,9 +6,9 @@ final class CodeCardExportTests: XCTestCase {
     
     func testPresetEnumerationAndNames() {
         let allPresets = CardGradientPreset.allCases
-        XCTAssertEqual(allPresets.count, 5)
+        XCTAssertEqual(allPresets.count, 8)
         
-        let expectedNames = ["Aurora", "Sunset", "Charcoal", "Cyberpunk", "Monochrome"]
+        let expectedNames = ["Aurora", "Sunset", "Ocean", "Charcoal", "Cyberpunk", "Cosmic", "Emerald", "Monochrome"]
         for preset in allPresets {
             XCTAssertTrue(expectedNames.contains(preset.rawValue))
             XCTAssertFalse(preset.displayName.isEmpty)
@@ -93,6 +93,7 @@ final class CodeCardExportTests: XCTestCase {
         XCTAssertTrue(config.showTrafficLights)
         XCTAssertEqual(config.fontName, "SF Mono")
         XCTAssertEqual(config.fontSize, 13.0)
+        XCTAssertTrue(config.focusedLineIndices.isEmpty)
     }
     
     @MainActor
@@ -361,5 +362,86 @@ final class CodeCardExportTests: XCTestCase {
         Settings.currentLanguage = .zhHans
         let zhMsg = String(format: "Failed to save image: %@".localized(), "磁盘已满")
         XCTAssertEqual(zhMsg, "保存卡片图片失败：磁盘已满")
+    }
+
+    func testDiffLineClassificationAndSniffing() {
+        // 1. 测试单行分类
+        XCTAssertEqual(CodeCardDiffAnalyzer.classifyLine("+    let added = true"), .added)
+        XCTAssertEqual(CodeCardDiffAnalyzer.classifyLine("-    let removed = false"), .deleted)
+        XCTAssertEqual(CodeCardDiffAnalyzer.classifyLine("@@ -10,5 +10,6 @@"), .header)
+        XCTAssertEqual(CodeCardDiffAnalyzer.classifyLine("diff --git a/App.swift b/App.swift"), .header)
+        XCTAssertEqual(CodeCardDiffAnalyzer.classifyLine("--- a/App.swift"), .header)
+        XCTAssertEqual(CodeCardDiffAnalyzer.classifyLine("+++ b/App.swift"), .header)
+        XCTAssertEqual(CodeCardDiffAnalyzer.classifyLine("    let normal = 42"), .context)
+
+        // 2. 测试全文特征嗅探
+        let diffSample = """
+        diff --git a/App.swift b/App.swift
+        index 1234567..89abcdef 100644
+        --- a/App.swift
+        +++ b/App.swift
+        @@ -1,3 +1,4 @@
+         import SwiftUI
+        -let oldVal = 1
+        +let newVal = 2
+        """
+        XCTAssertTrue(CodeCardDiffAnalyzer.isDiffContent(diffSample))
+        
+        let normalCode = "func hello() { print(\"world\") }"
+        XCTAssertFalse(CodeCardDiffAnalyzer.isDiffContent(normalCode))
+
+        // 3. 测试语言推断与映射
+        let badge = CodeCardLanguageFormatter.format(code: diffSample)
+        XCTAssertEqual(badge, "DIFF")
+        XCTAssertEqual(CodeCardLanguageFormatter.highlightrLanguage(from: "diff"), "diff")
+        XCTAssertEqual(CodeCardLanguageFormatter.highlightrLanguage(from: "patch"), "diff")
+    }
+
+    @MainActor
+    func testLineFocusConfigAndSnapshotRendering() {
+        var config = CodeCardConfig()
+        config.focusedLineIndices = [1, 2] // 聚焦第 2, 3 行
+        XCTAssertEqual(config.focusedLineIndices.count, 2)
+        XCTAssertTrue(config.focusedLineIndices.contains(1))
+        XCTAssertTrue(config.focusedLineIndices.contains(2))
+        XCTAssertFalse(config.focusedLineIndices.contains(0))
+
+        var toggledIndex: Int? = nil
+        let testCode = "line 0\nline 1\nline 2\nline 3"
+        let snapshot = CodeCardSnapshotView(
+            title: "focus_test.swift",
+            code: testCode,
+            language: "swift",
+            config: config,
+            onToggleLineFocus: { idx in
+                toggledIndex = idx
+            }
+        )
+        
+        let img = CodeCardRenderer.renderToImage(view: snapshot, scale: 1.0)
+        XCTAssertNotNil(img)
+        
+        snapshot.onToggleLineFocus?(3)
+        XCTAssertEqual(toggledIndex, 3)
+    }
+
+    func testNewGradientPresets() {
+        let ocean = CardGradientPreset.ocean
+        XCTAssertEqual(ocean.rawValue, "Ocean")
+        XCTAssertFalse(ocean.displayName.isEmpty)
+        _ = ocean.gradient
+        _ = ocean.primaryColor
+
+        let cosmic = CardGradientPreset.cosmic
+        XCTAssertEqual(cosmic.rawValue, "Cosmic")
+        XCTAssertFalse(cosmic.displayName.isEmpty)
+        _ = cosmic.gradient
+        _ = cosmic.primaryColor
+
+        let emerald = CardGradientPreset.emerald
+        XCTAssertEqual(emerald.rawValue, "Emerald")
+        XCTAssertFalse(emerald.displayName.isEmpty)
+        _ = emerald.gradient
+        _ = emerald.primaryColor
     }
 }

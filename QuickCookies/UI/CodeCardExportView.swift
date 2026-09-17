@@ -30,6 +30,7 @@ struct CodeCardSnapshotView: View {
     let language: String?
     let config: CodeCardConfig
     var cardWidth: CGFloat? = nil
+    var onToggleLineFocus: ((Int) -> Void)? = nil
     
     private var effectiveCardWidth: CGFloat {
         cardWidth ?? config.cardWidthPreset.width
@@ -125,7 +126,18 @@ struct CodeCardSnapshotView: View {
                 )
                 .overlay(
                     RoundedRectangle(cornerRadius: 14)
-                        .stroke(cardBorderColor, lineWidth: 0.8)
+                        .stroke(
+                            LinearGradient(
+                                colors: [
+                                    Color.white.opacity(config.colorTheme == .dark ? 0.24 : 0.45),
+                                    cardBorderColor,
+                                    Color.white.opacity(config.colorTheme == .dark ? 0.06 : 0.12)
+                                ],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            ),
+                            lineWidth: 0.8
+                        )
                 )
                 .shadow(
                     color: Color.black.opacity(config.colorTheme == .dark ? 0.35 : 0.12),
@@ -232,29 +244,131 @@ struct CodeCardSnapshotView: View {
         return results
     }
 
-    // MARK: - 代码视图排版 (支持上下文语法高亮与行号自适应)
+    private var isDiffMode: Bool {
+        effectiveHighlighterLanguage == "diff" || displayLanguageBadge == "DIFF" || CodeCardDiffAnalyzer.isDiffContent(code)
+    }
+
+    private var rawCodeLines: [String] {
+        Array(codeLines.prefix(120))
+    }
+
+    // MARK: - 代码视图排版 (支持上下文语法高亮、Git Diff 与行号聚焦)
     private var codeContentView: some View {
         let lines = highlightedCodeLines
-        return VStack(alignment: .leading, spacing: 4) {
+        let rawLines = rawCodeLines
+        let isDiff = isDiffMode
+        let hasAnyFocus = !config.focusedLineIndices.isEmpty
+        
+        return VStack(alignment: .leading, spacing: 2) {
             ForEach(Array(lines.enumerated()), id: \.offset) { index, attrLine in
-                HStack(alignment: .top, spacing: 14) {
+                let rawLine = index < rawLines.count ? rawLines[index] : ""
+                let diffKind = isDiff ? CodeCardDiffAnalyzer.classifyLine(rawLine) : .context
+                let isFocused = config.focusedLineIndices.contains(index)
+                let lineOpacity: Double = hasAnyFocus ? (isFocused ? 1.0 : 0.32) : 1.0
+                
+                HStack(alignment: .top, spacing: 10) {
+                    // 1. 聚焦指示条 (聚焦时高亮突出)
+                    Rectangle()
+                        .fill(isFocused ? config.preset.primaryColor : Color.clear)
+                        .frame(width: 2.5)
+                        .cornerRadius(1.2)
+                    
+                    // 2. 行号与 Diff 符号
                     if config.showLineNumbers {
-                        Text("\(index + 1)")
-                            .font(lineNumFont)
-                            .foregroundColor(secondaryTextColor.opacity(0.65))
-                            .frame(minWidth: 26, alignment: .trailing)
+                        HStack(spacing: 3) {
+                            if isDiff {
+                                Group {
+                                    switch diffKind {
+                                    case .added:
+                                        Text("+")
+                                            .font(lineNumFont.bold())
+                                            .foregroundColor(Color.green)
+                                    case .deleted:
+                                        Text("-")
+                                            .font(lineNumFont.bold())
+                                            .foregroundColor(Color.red)
+                                    case .header:
+                                        Text("@")
+                                            .font(lineNumFont)
+                                            .foregroundColor(Color.cyan.opacity(0.8))
+                                    case .context:
+                                        Text(" ")
+                                            .font(lineNumFont)
+                                    }
+                                }
+                                .frame(width: 10, alignment: .center)
+                            }
+                            
+                            Text("\(index + 1)")
+                                .font(lineNumFont)
+                                .foregroundColor(diffNumberColor(for: diffKind))
+                                .frame(minWidth: 22, alignment: .trailing)
+                        }
                     }
                     
+                    // 3. 代码正文
                     Text(attrLine)
                         .font(codeFont)
+                        .foregroundColor(diffTextColor(for: diffKind))
                         .lineLimit(nil)
                         .fixedSize(horizontal: false, vertical: true)
+                    
+                    Spacer(minLength: 0)
+                }
+                .padding(.vertical, 2)
+                .padding(.trailing, 12)
+                .background(diffLineBackground(diffKind: diffKind, isFocused: isFocused))
+                .cornerRadius(4)
+                .opacity(lineOpacity)
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    onToggleLineFocus?(index)
                 }
                 .id("\(effectiveHighlighterLanguage ?? "none")-\(config.colorTheme.rawValue)-\(Settings.shared.editorFont)-\(index)")
             }
         }
-        .padding(16)
+        .padding(.vertical, 12)
+        .padding(.horizontal, 8)
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+    
+    private func diffNumberColor(for kind: CodeCardDiffLineKind) -> Color {
+        switch kind {
+        case .added:
+            return Color.green.opacity(0.85)
+        case .deleted:
+            return Color.red.opacity(0.85)
+        case .header:
+            return Color.cyan.opacity(0.8)
+        case .context:
+            return secondaryTextColor.opacity(0.65)
+        }
+    }
+    
+    private func diffTextColor(for kind: CodeCardDiffLineKind) -> Color? {
+        switch kind {
+        case .added:
+            return config.colorTheme == .dark ? Color(red: 0.50, green: 0.95, blue: 0.65) : Color(red: 0.10, green: 0.60, blue: 0.25)
+        case .deleted:
+            return config.colorTheme == .dark ? Color(red: 0.98, green: 0.50, blue: 0.50) : Color(red: 0.75, green: 0.15, blue: 0.15)
+        case .header:
+            return config.colorTheme == .dark ? Color.cyan.opacity(0.9) : Color.blue.opacity(0.9)
+        case .context:
+            return nil
+        }
+    }
+    
+    private func diffLineBackground(diffKind: CodeCardDiffLineKind, isFocused: Bool) -> Color {
+        switch diffKind {
+        case .added:
+            return Color.green.opacity(config.colorTheme == .dark ? 0.16 : 0.12)
+        case .deleted:
+            return Color.red.opacity(config.colorTheme == .dark ? 0.16 : 0.12)
+        case .header:
+            return Color.cyan.opacity(config.colorTheme == .dark ? 0.10 : 0.06)
+        case .context:
+            return isFocused ? config.preset.primaryColor.opacity(config.colorTheme == .dark ? 0.14 : 0.08) : Color.clear
+        }
     }
     
     // MARK: - 文本与引言视图排版 (人文书香美学：大双引号 + 纯净留白 + 舒展排版)
@@ -426,7 +540,16 @@ struct CodeCardExportModalView: View {
                             code: code,
                             language: language,
                             config: config,
-                            cardWidth: currentCardWidth
+                            cardWidth: currentCardWidth,
+                            onToggleLineFocus: { lineIndex in
+                                withAnimation(.easeInOut(duration: 0.18)) {
+                                    if config.focusedLineIndices.contains(lineIndex) {
+                                        config.focusedLineIndices.remove(lineIndex)
+                                    } else {
+                                        config.focusedLineIndices.insert(lineIndex)
+                                    }
+                                }
+                            }
                         )
                         .background(
                             GeometryReader { proxy in
@@ -465,14 +588,14 @@ struct CodeCardExportModalView: View {
                                 .font(.system(size: 12, weight: .medium))
                                 .foregroundColor(.secondary)
                             
-                            HStack(spacing: 8) {
+                            HStack(spacing: 6) {
                                 ForEach(CardGradientPreset.allCases) { preset in
                                     Button(action: {
                                         config.preset = preset
                                     }) {
                                         Circle()
                                             .fill(preset.gradient)
-                                            .frame(width: 22, height: 22)
+                                            .frame(width: 20, height: 20)
                                             .overlay(
                                                 Circle()
                                                     .stroke(Color.white, lineWidth: config.preset == preset ? 2.5 : 0)
@@ -580,6 +703,26 @@ struct CodeCardExportModalView: View {
                                     .font(.system(size: 12))
                             }
                             .toggleStyle(.checkbox)
+                            
+                            // 行号聚焦状态与清空
+                            if !config.focusedLineIndices.isEmpty {
+                                HStack(spacing: 5) {
+                                    Text(config.focusedLineIndices.count == 1 ? "Focused 1 line".localized() : String(format: "Focused %d lines".localized(), config.focusedLineIndices.count))
+                                        .font(.system(size: 11.5, weight: .medium))
+                                        .foregroundColor(.secondary)
+                                    
+                                    Button(action: {
+                                        withAnimation(.easeInOut(duration: 0.18)) {
+                                            config.focusedLineIndices.removeAll()
+                                        }
+                                    }) {
+                                        Text("Clear Focus".localized())
+                                            .font(.system(size: 11.5, weight: .semibold))
+                                            .foregroundColor(.accentColor)
+                                    }
+                                    .buttonStyle(.plain)
+                                }
+                            }
                         }
                         
                         // 水印开关

@@ -6,8 +6,11 @@ import AppKit
 enum CardGradientPreset: String, CaseIterable, Identifiable {
     case aurora = "Aurora"
     case sunset = "Sunset"
+    case ocean = "Ocean"
     case charcoal = "Charcoal"
     case cyberpunk = "Cyberpunk"
+    case cosmic = "Cosmic"
+    case emerald = "Emerald"
     case monochrome = "Monochrome"
     
     var id: String { rawValue }
@@ -16,8 +19,11 @@ enum CardGradientPreset: String, CaseIterable, Identifiable {
         switch self {
         case .aurora: return "Aurora".localized()
         case .sunset: return "Sunset".localized()
+        case .ocean: return "Ocean".localized()
         case .charcoal: return "Charcoal".localized()
         case .cyberpunk: return "Cyberpunk".localized()
+        case .cosmic: return "Cosmic".localized()
+        case .emerald: return "Emerald".localized()
         case .monochrome: return "Monochrome".localized()
         }
     }
@@ -43,6 +49,16 @@ enum CardGradientPreset: String, CaseIterable, Identifiable {
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
             )
+        case .ocean:
+            return LinearGradient(
+                colors: [
+                    Color(red: 0.00, green: 0.32, blue: 0.83), // #0052d4
+                    Color(red: 0.26, green: 0.39, blue: 0.97), // #4364f7
+                    Color(red: 0.44, green: 0.69, blue: 0.99)  // #6fb1fc
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
         case .charcoal:
             return LinearGradient(
                 colors: [
@@ -57,6 +73,24 @@ enum CardGradientPreset: String, CaseIterable, Identifiable {
                 colors: [
                     Color(red: 0.13, green: 0.53, blue: 0.98), // #2185fa
                     Color(red: 0.68, green: 0.20, blue: 0.95)  // #ae33f3
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        case .cosmic:
+            return LinearGradient(
+                colors: [
+                    Color(red: 0.56, green: 0.18, blue: 0.89), // #8e2de2
+                    Color(red: 0.29, green: 0.00, blue: 0.88)  // #4a00e0
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        case .emerald:
+            return LinearGradient(
+                colors: [
+                    Color(red: 0.04, green: 0.64, blue: 0.38), // #0ba360
+                    Color(red: 0.24, green: 0.73, blue: 0.57)  // #3cba92
                 ],
                 startPoint: .topLeading,
                 endPoint: .bottomTrailing
@@ -77,8 +111,11 @@ enum CardGradientPreset: String, CaseIterable, Identifiable {
         switch self {
         case .aurora: return Color(red: 0.06, green: 0.73, blue: 0.51)
         case .sunset: return Color(red: 0.96, green: 0.25, blue: 0.37)
+        case .ocean: return Color(red: 0.26, green: 0.39, blue: 0.97)
         case .charcoal: return Color(red: 0.40, green: 0.42, blue: 0.48)
         case .cyberpunk: return Color(red: 0.68, green: 0.20, blue: 0.95)
+        case .cosmic: return Color(red: 0.56, green: 0.18, blue: 0.89)
+        case .emerald: return Color(red: 0.04, green: 0.64, blue: 0.38)
         case .monochrome: return Color(white: 0.60)
         }
     }
@@ -187,6 +224,54 @@ enum CardWidthPreset: String, CaseIterable, Identifiable {
     }
 }
 
+/// Git Diff / Patch 行类型
+enum CodeCardDiffLineKind: Equatable {
+    case added      // + 开头的新增行
+    case deleted    // - 开头的删除行
+    case header     // @@ ... @@ 或 diff/---/+++ 元数据头信息
+    case context    // 普通上下文行
+}
+
+/// Git Diff 文本特征分析器
+enum CodeCardDiffAnalyzer {
+    /// 判定单行属于哪种 Diff 类型
+    static func classifyLine(_ line: String) -> CodeCardDiffLineKind {
+        let trimmed = line.trimmingCharacters(in: .whitespaces)
+        if trimmed.hasPrefix("@@") {
+            return .header
+        } else if line.hasPrefix("+") && !line.hasPrefix("+++") {
+            return .added
+        } else if line.hasPrefix("-") && !line.hasPrefix("---") {
+            return .deleted
+        } else if line.hasPrefix("diff ") || line.hasPrefix("index ") || line.hasPrefix("--- ") || line.hasPrefix("+++ ") {
+            return .header
+        }
+        return .context
+    }
+    
+    /// 判断全文是否呈现明显的 Git Diff 特征
+    static func isDiffContent(_ content: String) -> Bool {
+        let lines = content.components(separatedBy: "\n").prefix(35)
+        var hasAdd = false
+        var hasDel = false
+        var hasDiffHeader = false
+        
+        for line in lines {
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+            if trimmed.hasPrefix("diff --git") || trimmed.hasPrefix("@@ ") || trimmed.hasPrefix("--- a/") || trimmed.hasPrefix("+++ b/") {
+                hasDiffHeader = true
+            }
+            if line.hasPrefix("+") && !line.hasPrefix("+++") {
+                hasAdd = true
+            }
+            if line.hasPrefix("-") && !line.hasPrefix("---") {
+                hasDel = true
+            }
+        }
+        return hasDiffHeader || (hasAdd && hasDel)
+    }
+}
+
 /// 代码卡片自定义选项配置模型
 struct CodeCardConfig: Equatable {
     var mode: CardContentMode = .code
@@ -203,13 +288,14 @@ struct CodeCardConfig: Equatable {
     var fontName: String = "SF Mono"
     var fontSize: CGFloat = 13.0
     var customLanguage: String? = nil
+    var focusedLineIndices: Set<Int> = []
 }
 
 /// 代码卡片语言识别与徽标大写格式化器
 enum CodeCardLanguageFormatter {
     /// 常见快速可选语言列表
     static let popularLanguages: [String] = [
-        "Auto", "TSX", "TS", "JS", "JAVA", "SWIFT", "PYTHON", "RUST", "GO", "C++", "JSON", "SQL", "HTML", "CSS", "BASH"
+        "Auto", "DIFF", "TSX", "TS", "JS", "JAVA", "SWIFT", "PYTHON", "RUST", "GO", "C++", "JSON", "SQL", "HTML", "CSS", "BASH"
     ]
     
     /// 将语言、标题文件名或代码内容推断并格式化为标准大写简称 (如 TSX, JS, JAVA, SWIFT)
@@ -271,6 +357,8 @@ enum CodeCardLanguageFormatter {
             return mapped
         }
         switch name {
+        case "diff", "patch":
+            return "diff"
         case "tsx", "ts", "typescript", "typescript-react", "typescriptreact":
             return "typescript"
         case "jsx", "js", "javascript", "javascript-react", "javascriptreact", "node":
@@ -308,6 +396,8 @@ enum CodeCardLanguageFormatter {
     
     private static func matchStandardBadge(from raw: String) -> String? {
         switch raw {
+        case "diff", "patch":
+            return "DIFF"
         case "tsx", "typescript-react", "typescriptreact":
             return "TSX"
         case "jsx", "javascript-react", "javascriptreact":
@@ -370,6 +460,9 @@ enum CodeCardLanguageFormatter {
     }
     
     private static func sniffLanguageFromContent(_ content: String) -> String? {
+        if CodeCardDiffAnalyzer.isDiffContent(content) {
+            return "DIFF"
+        }
         let sample = String(content.prefix(1500))
         
         if sample.contains("import React") || sample.contains("from 'react'") || sample.contains("from \"react\"") {
