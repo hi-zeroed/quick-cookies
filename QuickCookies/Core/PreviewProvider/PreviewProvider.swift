@@ -103,6 +103,21 @@ struct FontPreviewProvider: PreviewProvider {
     let renderType: FileRenderType = .font
 }
 
+struct HexPreviewProvider: PreviewProvider {
+    let renderType: FileRenderType = .hex
+    var allowsPDFExport: Bool { false }
+    var usesTextContentLoader: Bool { false }
+    var showsGenericLoading: Bool { true }
+    
+    func backgroundStyle(isSVGSourceMode: Bool) -> PreviewContentAreaChrome.BackgroundStyle {
+        .appBackground
+    }
+    
+    func borderStyle(isSVGSourceMode: Bool) -> PreviewContentAreaChrome.BorderStyle {
+        .appBorder
+    }
+}
+
 struct UnsupportedPreviewProvider: PreviewProvider {
     let renderType: FileRenderType = .unsupported
     

@@ -663,9 +663,15 @@ struct Localization {
             "Live Tail: Auto-scrolling (Click to pause)": [.en: "Live Tail: Auto-scrolling (Click to pause)", .zhHans: "实时追尾：自动跟随滚屏 (点击暂停)"],
             "Live Tail: Paused (Click to follow)": [.en: "Live Tail: Paused (Click to follow)", .zhHans: "实时追尾：已暂停 (点击恢复跟随)"],
             
-            // Git Diff
-            "Git Uncommitted Changes (Click to jump to next hunk)": [.en: "Git Uncommitted Changes (Click to jump to next hunk)", .zhHans: "Git 未提交改动 (点击跳转下一个改动块)"],
-            "Git Untracked File": [.en: "Git Untracked File", .zhHans: "Git 未跟踪文件 (全新)"]
+            // Hex Inspector & Binary Inspection
+            "OFFSET": [.en: "OFFSET", .zhHans: "偏移量"],
+            "DECODED TEXT": [.en: "DECODED TEXT", .zhHans: "解码文本"],
+            "Copy Hex String": [.en: "Copy Hex String", .zhHans: "拷贝十六进制字符串"],
+            "Copy Decoded Text": [.en: "Copy Decoded Text", .zhHans: "拷贝解码文本"],
+            "Copy Full Row": [.en: "Copy Full Row", .zhHans: "拷贝整行数据"],
+            "Load More Bytes": [.en: "Load More Bytes", .zhHans: "加载更多字节"],
+            "Inspect in Hex": [.en: "Inspect in Hex", .zhHans: "以十六进制检视"],
+            "Summary": [.en: "Summary", .zhHans: "概览"]
         ]
         return dict[key]?[lang] ?? key
     }

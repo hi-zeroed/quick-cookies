@@ -37,6 +37,9 @@
 		FLWCHTAIBLD0000000000001 /* FileLiveTailEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = FLWCHTAIREF0000000000001 /* FileLiveTailEngine.swift */; };
 		FLWCHSTABLD0000000000001 /* LiveWatchingState.swift in Sources */ = {isa = PBXBuildFile; fileRef = FLWCHSTAREF0000000000001 /* LiveWatchingState.swift */; };
 		FLWCHBDGBLD0000000000001 /* LiveTailBadgeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FLWCHBDGREF0000000000001 /* LiveTailBadgeView.swift */; };
+		HEXENGNBLD00000000000001 /* HexInspectorEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = HEXENGNREF00000000000001 /* HexInspectorEngine.swift */; };
+		HEXVIEWBLD00000000000001 /* HexPreviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = HEXVIEWREF00000000000001 /* HexPreviewView.swift */; };
+		HEXTSTBLD000000000000001 /* HexInspectorEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = HEXTSTREF000000000000001 /* HexInspectorEngineTests.swift */; };
 		HISTNAVTSTB0000000000001 /* SessionHistoryNavigatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = HISTNAVTSTR0000000000001 /* SessionHistoryNavigatorTests.swift */; };
 		HISTKEYTSTB0000000000001 /* PreviewOverlayHistoryNavigationKeyPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = HISTKEYTSTR0000000000001 /* PreviewOverlayHistoryNavigationKeyPolicyTests.swift */; };
 		A1B2C3010000000000000004 /* MarkdownImageProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3010000000000000014 /* MarkdownImageProbe.swift */; };
@@ -242,6 +245,9 @@
 		8CB74C8B4C3A792598259E87 /* FileUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileUtils.swift; sourceTree = "<group>"; };
 		94269EDF755E0DD605801286 /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		A7AA2E8A55B09BC0FF2E83A0 /* FileTypeClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileTypeClassifier.swift; sourceTree = "<group>"; };
+		HEXENGNREF00000000000001 /* HexInspectorEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HexInspectorEngine.swift; sourceTree = "<group>"; };
+		HEXVIEWREF00000000000001 /* HexPreviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HexPreviewView.swift; sourceTree = "<group>"; };
+		HEXTSTREF000000000000001 /* HexInspectorEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HexInspectorEngineTests.swift; sourceTree = "<group>"; };
 		AST141414141414141414142 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		B76F46CEB24C42779E84EBBE /* QuickLookOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickLookOverlay.swift; sourceTree = "<group>"; };
 		B87D7CAF1B4B8FAFF363B543 /* SettingsWindow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsWindow.swift; sourceTree = "<group>"; };
@@ -415,8 +421,17 @@
 				CLIPBOARDGROUP00000000001 /* Clipboard */,
 				TELEMETRYGROUP00000000001 /* Telemetry */,
 				WATCHERGROUP000000000001 /* Watcher */,
+				HEXGROUP0000000000000001 /* Hex */,
 			);
 			path = Core;
+			sourceTree = "<group>";
+		};
+		HEXGROUP0000000000000001 /* Hex */ = {
+			isa = PBXGroup;
+			children = (
+				HEXENGNREF00000000000001 /* HexInspectorEngine.swift */,
+			);
+			path = Hex;
 			sourceTree = "<group>";
 		};
 		WATCHERGROUP000000000001 /* Watcher */ = {
@@ -542,8 +557,17 @@
 				TLMTRSTAREF0000000000001 /* TelemetryInspectorState.swift */,
 				TLMTRBARREF0000000000001 /* TelemetryInspectorBarView.swift */,
 				LIVEWCHGROUP000000000001 /* LiveWatching */,
+				HEXPRVGROUP0000000000001 /* HexPreview */,
 			);
 			path = UI;
+			sourceTree = "<group>";
+		};
+		HEXPRVGROUP0000000000001 /* HexPreview */ = {
+			isa = PBXGroup;
+			children = (
+				HEXVIEWREF00000000000001 /* HexPreviewView.swift */,
+			);
+			path = HexPreview;
 			sourceTree = "<group>";
 		};
 		LIVEWCHGROUP000000000001 /* LiveWatching */ = {
@@ -659,6 +683,7 @@
 				FLWCHTAITSTR000000000001 /* FileLiveTailEngineTests.swift */,
 				FLWCHWCHTSTR000000000001 /* FileLiveWatcherTests.swift */,
 				FLWCHSTATSTR000000000001 /* LiveWatchingStateTests.swift */,
+				HEXTSTREF000000000000001 /* HexInspectorEngineTests.swift */,
 			);
 			path = QuickCookiesTests;
 			sourceTree = "<group>";
@@ -882,6 +907,8 @@
 				FLWCHTAIBLD0000000000001 /* FileLiveTailEngine.swift in Sources */,
 				FLWCHSTABLD0000000000001 /* LiveWatchingState.swift in Sources */,
 				FLWCHBDGBLD0000000000001 /* LiveTailBadgeView.swift in Sources */,
+				HEXENGNBLD00000000000001 /* HexInspectorEngine.swift in Sources */,
+				HEXVIEWBLD00000000000001 /* HexPreviewView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -933,6 +960,7 @@
 				FLWCHTAITSTB000000000001 /* FileLiveTailEngineTests.swift in Sources */,
 				FLWCHWCHTSTB000000000001 /* FileLiveWatcherTests.swift in Sources */,
 				FLWCHSTATSTB000000000001 /* LiveWatchingStateTests.swift in Sources */,
+				HEXTSTBLD000000000000001 /* HexInspectorEngineTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

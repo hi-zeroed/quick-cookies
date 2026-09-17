@@ -25,7 +25,7 @@ enum TelemetryExtractor {
                 items = extractVideoTelemetry(url: url)
             case .font:
                 items = extractFontTelemetry(url: url)
-            case .archive, .folder, .pdf, .office, .unsupported:
+            case .archive, .folder, .pdf, .office, .hex, .unsupported:
                 items = extractGenericTelemetry(url: url)
             }
             

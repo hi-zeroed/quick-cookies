@@ -21,6 +21,7 @@ final class PreviewProviderRegistry {
             AudioPreviewProvider(),
             VideoPreviewProvider(),
             FontPreviewProvider(),
+            HexPreviewProvider(),
             UnsupportedPreviewProvider()
         ]
         var map: [FileRenderType: any PreviewProvider] = [:]

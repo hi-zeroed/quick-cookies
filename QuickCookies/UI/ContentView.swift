@@ -97,7 +97,7 @@ enum PreviewContentAreaChrome {
         switch renderType {
         case .image, .unsupported:
             return .transparent
-        case .markdown, .code, .plainText, .pdf, .office, .archive, .folder, .audio, .video, .font, .none:
+        case .markdown, .code, .plainText, .pdf, .office, .archive, .folder, .audio, .video, .font, .hex, .none:
             return .appBackground
         }
     }
@@ -109,7 +109,7 @@ enum PreviewContentAreaChrome {
         switch renderType {
         case .image, .unsupported:
             return .none
-        case .markdown, .code, .plainText, .pdf, .office, .archive, .folder, .audio, .video, .font, .none:
+        case .markdown, .code, .plainText, .pdf, .office, .archive, .folder, .audio, .video, .font, .hex, .none:
             return .appBorder
         }
     }
@@ -801,8 +801,18 @@ struct ContentView: View {
                 VideoPreviewView(filePath: path)
             case .font:
                 FontPreviewView(filePath: path)
+            case .hex:
+                HexPreviewView(path: path, isDark: isDark) { message, icon in
+                    localToastMessage = message
+                    localToastIcon = icon
+                    showLocalToast = true
+                }
             case .unsupported:
-                UnsupportedFileView(filePath: path, errorMessage: activeErrorMessage)
+                UnsupportedFileView(filePath: path, errorMessage: activeErrorMessage) { message, icon in
+                    localToastMessage = message
+                    localToastIcon = icon
+                    showLocalToast = true
+                }
             }
         }
     }

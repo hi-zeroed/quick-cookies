@@ -13,6 +13,7 @@ enum FileRenderType {
     case audio          // 音频文件预览 (MP3, WAV, M4A, FLAC 等)
     case video          // 视频文件预览 (MP4, MOV, M4V, WEBM 等)
     case font           // 字体文件预览 (TTF, OTF, WOFF, WOFF2)
+    case hex            // 十六进制二进制透视 (BIN, DAT, WASM, DYLIB, SO 等)
 }
 
 struct FileTypeClassifier {
@@ -63,10 +64,15 @@ struct FileTypeClassifier {
             return .archive
         }
 
+        // 优先匹配明确的十六进制二进制透视格式
+        if Constants.hexExtensions.contains(ext) {
+            return .hex
+        }
+
         // 快速进行物理二进制检测 (只读取最前 1KB 字节检查 null 字节)
-        // 必须在排除已知支持的图片、PDF 和压缩包等二进制格式之后检测，防误杀
+        // 必须在排除已知支持的图片、PDF、Office 和压缩包等格式之后检测，防误杀
         if isBinaryFileFastCheck(path: resolvedPath) {
-            return .unsupported
+            return .hex
         }
 
         // Markdown 文件
@@ -127,6 +133,11 @@ struct FileTypeClassifier {
 
         // 直接放行支持的音视频与字体文件
         if Constants.audioExtensions.contains(ext) || Constants.videoExtensions.contains(ext) || Constants.fontExtensions.contains(ext) {
+            return true
+        }
+
+        // 直接放行支持的十六进制透视格式
+        if Constants.hexExtensions.contains(ext) {
             return true
         }
 

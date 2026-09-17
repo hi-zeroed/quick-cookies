@@ -54,12 +54,17 @@ enum Constants {
         "ttf", "otf", "woff", "woff2"
     ]
 
-    // 二进制文件扩展名黑名单（遇到此类文件直接阻断，不作文本预览）
+    // 十六进制二进制透视扩展名（支持纯原生 Hex 字节检视）
+    static let hexExtensions: Set<String> = [
+        "bin", "dat", "wasm", "hex", "dylib", "so", "o", "a", "class", "pyc", "elf"
+    ]
+
+    // 二进制文件扩展名黑名单（遇到此类文件直接阻断，不作文本或常规Hex预览）
     static let binaryBlacklistExtensions: Set<String> = [
-        "dmg", "pkg", "exe", "dll", "so", "dylib",
+        "dmg", "pkg", "exe", "dll",
         "mp3", "mp4", "avi", "mov", "wav", "flac", "m4a", "ogg", "webm", "mkv", "flv", "swf",
         "doc", "docx", "xls", "xlsx", "ppt", "pptx", "epub", "crx", "db", "sqlite", "localstorage",
-        "class", "pyc", "o", "a", "bin", "dat", "iso", "img", "ttf", "otf", "woff", "woff2", "eot",
+        "iso", "img", "ttf", "otf", "woff", "woff2", "eot",
         "png", "jpg", "jpeg", "gif", "bmp", "tiff", "webp", "pdf" // 媒体、PDF和压缩包由专门的渲染器处理，故从文本黑名单拦截
     ]
 

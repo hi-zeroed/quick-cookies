@@ -91,11 +91,21 @@ final class FileTypeClassifierTests: XCTestCase {
         XCTAssertEqual(FileTypeClassifier.classify(path: fileURL.path), .unsupported)
     }
 
-    func testBinaryFileClassifiesAsUnsupported() throws {
+    func testBinaryFileClassifiesAsHex() throws {
         let fileURL = tempDirURL.appendingPathComponent("exec.bin")
         try Data([0x41, 0x42, 0x00, 0x43]).write(to: fileURL)
 
-        XCTAssertEqual(FileTypeClassifier.classify(path: fileURL.path), .unsupported)
+        XCTAssertEqual(FileTypeClassifier.classify(path: fileURL.path), .hex)
+    }
+
+    func testKnownHexExtensionsClassifyAsHex() throws {
+        let wasmURL = tempDirURL.appendingPathComponent("module.wasm")
+        try Data([0x00, 0x61, 0x73, 0x6D]).write(to: wasmURL)
+        XCTAssertEqual(FileTypeClassifier.classify(path: wasmURL.path), .hex)
+
+        let dylibURL = tempDirURL.appendingPathComponent("libcore.dylib")
+        try Data([0xCF, 0xFA, 0xED, 0xFE]).write(to: dylibURL)
+        XCTAssertEqual(FileTypeClassifier.classify(path: dylibURL.path), .hex)
     }
 
     func testMakefileClassifiesAsCode() throws {

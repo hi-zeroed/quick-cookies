@@ -119,7 +119,7 @@ private extension PreviewRuntimeKind {
         switch renderType {
         case .markdown:
             return .web
-        case .code, .plainText, .unsupported:
+        case .code, .plainText, .hex, .unsupported:
             return .text
         case .office, .font:
             return .document
