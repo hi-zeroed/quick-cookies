@@ -106,6 +106,8 @@ final class PreviewOverlaySearchShortcutPolicyTests: XCTestCase {
             "Copy full physical path to clipboard",
             "Navigate Files in Finder",
             "Switch to previous or next file seamlessly",
+            "Navigate History",
+            "Switch to previously previewed files",
             "Dismiss Window",
             "Close overlay and return focus to Finder",
             "General",

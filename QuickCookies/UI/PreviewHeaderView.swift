@@ -25,8 +25,16 @@ struct PreviewHeaderView: View {
 
     // 分享代码卡片
     var onShareCard: (() -> Void)? = nil
+
+    // 历史往复导航 (⌘[ / ⌘])
+    var canGoBack: Bool = false
+    var canGoForward: Bool = false
+    var onGoBack: (() -> Void)? = nil
+    var onGoForward: (() -> Void)? = nil
     
     @State private var isHeaderHovered: Bool = false
+    @State private var isBackHovered: Bool = false
+    @State private var isForwardHovered: Bool = false
     @State private var isSearchHovered: Bool = false
     @State private var isCopySVGHovered: Bool = false
     @State private var isPDFHovered: Bool = false
@@ -34,23 +42,59 @@ struct PreviewHeaderView: View {
 
     var body: some View {
         HStack {
-            // 左侧自定义关闭与展开按钮，控制在 72px 宽度中靠左对齐，替代系统红绿灯
-            HStack(spacing: 8) {
-                // 关闭按钮
-                CircleControlButton(iconName: "xmark", isHovered: isHeaderHovered) {
-                    onClose()
+            // 左侧控制区域：关闭/全屏窗控 + 历史往复导航 (◀ ▶)
+            HStack(spacing: 10) {
+                // 关闭与展开按钮
+                HStack(spacing: 8) {
+                    // 关闭按钮
+                    CircleControlButton(iconName: "xmark", isHovered: isHeaderHovered) {
+                        onClose()
+                    }
+                    
+                    // 全屏/还原按钮
+                    CircleControlButton(
+                        iconName: isExpanded ? "arrow.down.right.and.arrow.up.left" : "arrow.up.left.and.arrow.down.right",
+                        isHovered: isHeaderHovered
+                    ) {
+                        onToggleExpanded()
+                    }
+                    .help(isExpanded ? "Exit Full Screen".localized() : "Full Screen".localized())
                 }
-                
-                // 全屏/还原按钮
-                CircleControlButton(
-                    iconName: isExpanded ? "arrow.down.right.and.arrow.up.left" : "arrow.up.left.and.arrow.down.right",
-                    isHovered: isHeaderHovered
-                ) {
-                    onToggleExpanded()
+
+                // 历史往复回溯导航微按钮组 (◀ ▶)
+                HStack(spacing: 2) {
+                    Button(action: { onGoBack?() }) {
+                        Image(systemName: "chevron.backward")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundColor(canGoBack ? Color.appText.opacity(isBackHovered ? 1.0 : 0.65) : Color.appText.opacity(0.18))
+                            .frame(width: 18, height: 18)
+                            .background(
+                                RoundedRectangle(cornerRadius: 4)
+                                    .fill(canGoBack && isBackHovered ? Color.white.opacity(colorScheme == .dark ? 0.12 : 0.18) : Color.clear)
+                            )
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    .disabled(!canGoBack)
+                    .onHover { isBackHovered = $0 }
+                    .help("Back (⌘[)".localized())
+
+                    Button(action: { onGoForward?() }) {
+                        Image(systemName: "chevron.forward")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundColor(canGoForward ? Color.appText.opacity(isForwardHovered ? 1.0 : 0.65) : Color.appText.opacity(0.18))
+                            .frame(width: 18, height: 18)
+                            .background(
+                                RoundedRectangle(cornerRadius: 4)
+                                    .fill(canGoForward && isForwardHovered ? Color.white.opacity(colorScheme == .dark ? 0.12 : 0.18) : Color.clear)
+                            )
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    .disabled(!canGoForward)
+                    .onHover { isForwardHovered = $0 }
+                    .help("Forward (⌘])".localized())
                 }
-                .help(isExpanded ? "Exit Full Screen".localized() : "Full Screen".localized())
             }
-            .frame(width: 72, alignment: .leading)
+            .frame(width: 108, alignment: .leading)
             
             Spacer()
 
@@ -73,9 +117,9 @@ struct PreviewHeaderView: View {
                             .foregroundColor(Color.appText)
                     }
                 } else if activeErrorMessage != nil {
-                    Text("Failed to Get".localized())
+                    Text(activePath == nil ? "QuickCookies" : "Failed to Get".localized())
                         .font(.system(size: 13, weight: .semibold, design: .monospaced))
-                        .foregroundColor(.red.opacity(0.8))
+                        .foregroundColor(activePath == nil ? Color.appText.opacity(0.85) : .red.opacity(0.8))
                 } else {
                     Text("Locating...".localized())
                         .font(.system(size: 13, weight: .semibold, design: .monospaced))
@@ -84,7 +128,7 @@ struct PreviewHeaderView: View {
                 
                 // 状态修饰点
                 Circle()
-                    .fill(activePath == nil ? Color.gray.opacity(0.5) : Color.blue.opacity(0.8))
+                    .fill(activePath == nil ? Color.accentColor.opacity(0.8) : Color.blue.opacity(0.8))
                     .frame(width: 6, height: 6)
             }
 

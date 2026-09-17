@@ -1063,8 +1063,30 @@ struct SettingsView: View {
                         }
                         
                         InsetRowDivider()
+
+                        // 7. 历史往复导航
+                        InsetGroupRow(
+                            title: "Navigate History".localized(),
+                            subtitle: "Switch to previously previewed files".localized()
+                        ) {
+                            HStack(spacing: 5) {
+                                HStack(spacing: 2) {
+                                    KbdKeyView(key: "⌘")
+                                    KbdKeyView(key: "[")
+                                }
+                                Text("/")
+                                    .font(.system(size: 11))
+                                    .foregroundColor(.secondary.opacity(0.8))
+                                HStack(spacing: 2) {
+                                    KbdKeyView(key: "⌘")
+                                    KbdKeyView(key: "]")
+                                }
+                            }
+                        }
                         
-                        // 7. 关闭预览窗口
+                        InsetRowDivider()
+                        
+                        // 8. 关闭预览窗口
                         InsetGroupRow(
                             title: "Close Preview (Esc)".localized(),
                             subtitle: "Close overlay and return focus to Finder".localized()

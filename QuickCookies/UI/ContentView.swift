@@ -8,6 +8,7 @@ struct PreviewWindowActions {
     let currentWindow: () -> NSWindow?
     var onSearchStateChanged: ((Bool) -> Void)? = nil
     var triggerSearchSubject: PassthroughSubject<Void, Never>? = nil
+    var openPath: ((String, PreviewLaunchSource) -> Void)? = nil
 }
 
 struct PreviewDisplayState: Equatable {
@@ -258,6 +259,7 @@ struct ContentView: View {
     @Environment(\.colorScheme) var colorScheme
     @ObservedObject var loadState: PreviewLoadState
     @ObservedObject private var session: PreviewSession
+    @ObservedObject private var historyNavigator = SessionHistoryNavigator.shared
     private let windowActions: PreviewWindowActions
     private let cardOuterPadding: CGFloat
 
@@ -397,6 +399,22 @@ struct ContentView: View {
                         onShareCard: {
                             isDirectShareCardMode = false
                             isShareCardPresented = true
+                        },
+                        canGoBack: historyNavigator.canGoBack,
+                        canGoForward: historyNavigator.canGoForward,
+                        onGoBack: {
+                            if let path = historyNavigator.goBack() {
+                                historyNavigator.performInternalNavigation {
+                                    windowActions.openPath?(path, .internalNavigation)
+                                }
+                            }
+                        },
+                        onGoForward: {
+                            if let path = historyNavigator.goForward() {
+                                historyNavigator.performInternalNavigation {
+                                    windowActions.openPath?(path, .internalNavigation)
+                                }
+                            }
                         }
                     )
                     .zIndex(1) // 锁定层级，确保工具栏处于最前，防止 MarkdownView 的 ScrollView 穿透遮挡
@@ -568,7 +586,15 @@ struct ContentView: View {
 
     @ViewBuilder
     private var mainContent: some View {
-        if activeRenderType == .unsupported {
+        if activePath == nil {
+            PreviewReadyStateView(
+                errorMessage: activeErrorMessage,
+                onInspectClipboard: {
+                    AppDelegate.shared?.inspectClipboard()
+                }
+            )
+            .transition(.opacity)
+        } else if activeRenderType == .unsupported {
             UnsupportedFileView(filePath: activePath, errorMessage: activeErrorMessage)
                 .transition(.opacity)
         } else if isLocatingSelection {

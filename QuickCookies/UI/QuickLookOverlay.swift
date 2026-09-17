@@ -544,7 +544,10 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         onSearchStateChanged: { [weak self] isSearching in
             self?.handleSearchStateChanged(isSearching)
         },
-        triggerSearchSubject: searchTriggerSubject
+        triggerSearchSubject: searchTriggerSubject,
+        openPath: { [weak self] path, source in
+            self?.dispatchPreviewLaunchRequest(.openPath(path, source: source))
+        }
     )
     private lazy var finderSelectionPollingController = FinderSelectionPollingController(
         timerFactory: { interval, tick in
@@ -722,6 +725,36 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
 
         dispatchPreviewLaunchRequest(request)
         return true
+    }
+
+    @MainActor
+    private func handleHistoryNavigationIfNeeded(for event: NSEvent) -> Bool {
+        guard let direction = PreviewOverlayHistoryNavigationKeyPolicy.direction(
+            isVisible: isVisible,
+            keyCode: event.keyCode,
+            modifierFlags: event.modifierFlags
+        ) else {
+            return false
+        }
+
+        navigateHistory(direction: direction)
+        return true
+    }
+
+    @MainActor
+    func navigateHistory(direction: PreviewOverlayHistoryNavigationDirection) {
+        let targetPath: String?
+        switch direction {
+        case .back:
+            targetPath = SessionHistoryNavigator.shared.goBack()
+        case .forward:
+            targetPath = SessionHistoryNavigator.shared.goForward()
+        }
+
+        guard let path = targetPath else { return }
+        SessionHistoryNavigator.shared.performInternalNavigation {
+            dispatchPreviewLaunchRequest(.openPath(path, source: .internalNavigation))
+        }
     }
 
     private func refreshAfterFinderSelectionEventIfNeeded(
@@ -1097,6 +1130,10 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
                 DispatchQueue.main.async {
                     self.activateSearchFromShortcut()
                 }
+                return nil
+            }
+
+            if self.handleHistoryNavigationIfNeeded(for: event) {
                 return nil
             }
 

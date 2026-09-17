@@ -32,6 +32,10 @@ final class PreviewCoordinator {
                 source: request.source,
                 initialShareCardMode: request.presentation == .shareCard
             )
+
+            if request.source != .internalNavigation {
+                SessionHistoryNavigator.shared.record(path: target.resolvedPath)
+            }
         } catch let error as PreviewTargetError {
             session.replaceWithFailure(error)
             throw error
