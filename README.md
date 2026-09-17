@@ -156,6 +156,47 @@ Quick Cookies runs silently in the background. Use the following global keystrok
 | **Copy File Path**           | <kbd>⌥ Option</kbd> + <kbd>⌘ Command</kbd> + <kbd>C</kbd> | Copy the full POSIX physical path of the previewed file to the clipboard.                                                                                 |
 | **Dismiss Window**           | <kbd>Esc</kbd>                          | Close the window safely with fluid spring scaling and return focus to Finder.                                                                             |
 
+### 🚀 Launcher & CLI Integrations
+
+For keyboard-driven workflows, QuickCookies provides native extensions for your favorite tools:
+
+#### 1. CLI Tool (`qc`)
+Built-in zero-config CLI tool `qc` supports instant path preview, jumping to line numbers, and Card Studio integration:
+```bash
+# Preview file or directory
+qc README.md
+qc .
+
+# Preview and jump directly to specific line
+qc src/App.swift:142
+qc -l 142 src/App.swift
+
+# Inspect clipboard content (code/JSON/image)
+qc -c
+
+# Open Card Studio directly
+qc -s src/App.swift
+```
+> You can install or reinstall `qc` with one click in Settings -> General.
+
+#### 2. Raycast Official Extension (`extensions/raycast`)
+Provides 4 fast commands right from Raycast:
+- **Preview Selected File**: Preview the currently selected file in Finder.
+- **Preview Clipboard**: Inspect clipboard text, code, or images.
+- **Create Code Card**: Open Card Studio to export beautiful snippet cards.
+- **Search and Preview Files**: Interactively browse files and preview with `Enter`.
+> See [Raycast Extension README](extensions/raycast/README.md) for details.
+
+#### 3. Alfred 5 Workflow (`extensions/alfred`)
+Full support for File Actions, Universal Actions, and Keywords:
+- **File Action**: Press `Tab` on any file in Alfred to trigger `Preview in QuickCookies` or `Create Code Card`.
+- **Universal Action**: Preview selected text paths or files anywhere in macOS.
+- **Keywords**:
+  - `qc [path]`: Preview file or current Finder selection.
+  - `qcc`: Inspect clipboard.
+  - `qcard [path]`: Open Card Studio.
+> Double-click `extensions/alfred/QuickCookies.alfredworkflow` to install. See [Alfred Workflow README](extensions/alfred/README.md).
+
 ---
 
 ## 🛠 Development & Build

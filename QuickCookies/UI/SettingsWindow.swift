@@ -776,7 +776,24 @@ struct SettingsView: View {
                 }
             }
 
-            // 4. Reset Section
+            // 4. Launcher Integrations (Raycast & Alfred) Section
+            VStack(alignment: .leading, spacing: 6) {
+                InsetSectionHeader(title: "Launcher Integrations".localized())
+                InsetGroupCard {
+                    InsetGroupRow(
+                        title: "Raycast & Alfred 5".localized(),
+                        subtitle: "Enhance your keyboard workflow with Raycast extension and Alfred 5 workflow.".localized()
+                    ) {
+                        Button("View Extensions".localized()) {
+                            openExtensionsFolder()
+                        }
+                        .buttonStyle(.bordered)
+                        .controlSize(.small)
+                    }
+                }
+            }
+
+            // 5. Reset Section
             VStack(alignment: .leading, spacing: 6) {
                 InsetSectionHeader(title: "Reset".localized())
                 InsetGroupCard {
@@ -789,6 +806,23 @@ struct SettingsView: View {
                     }
                 }
             }
+        }
+    }
+
+    private func openExtensionsFolder() {
+        let fileManager = FileManager.default
+        let candidatePaths = [
+            Bundle.main.bundlePath + "/Contents/Resources/extensions",
+            NSHomeDirectory() + "/Git/QuickCookies/extensions"
+        ]
+        for path in candidatePaths {
+            if fileManager.fileExists(atPath: path) {
+                NSWorkspace.shared.open(URL(fileURLWithPath: path))
+                return
+            }
+        }
+        if let url = URL(string: "https://github.com/hi-zeroed/quick-cookies/tree/main/extensions") {
+            NSWorkspace.shared.open(url)
         }
     }
 

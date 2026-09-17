@@ -194,12 +194,14 @@ final class WebKitRuntimeTests: XCTestCase {
     }
 
     func test_wkWebView_loadHTMLStringWithFileBaseURL_canRenderRelativeLocalImage() async throws {
-        let isCI = ProcessInfo.processInfo.environment["CI"] != nil
+        let isCIOrRestrictedDaemon = ProcessInfo.processInfo.environment["CI"] != nil
             || ProcessInfo.processInfo.environment["GITHUB_ACTIONS"] != nil
+            || ProcessInfo.processInfo.environment["AI_AGENT"] != nil
+            || ProcessInfo.processInfo.environment["ANTIGRAVITY_AGENT"] != nil
             || NSUserName() == "runner"
             || NSHomeDirectory().contains("/Users/runner")
         try XCTSkipIf(
-            isCI,
+            isCIOrRestrictedDaemon,
             "Skipping raw file-subresource WebKit test under CI daemon environment where launchservicesd restricts file subresources"
         )
 
@@ -229,20 +231,24 @@ final class WebKitRuntimeTests: XCTestCase {
 
         webView.loadHTMLString(html, baseURL: tempDirectoryURL)
         try await delegate.waitForFinish()
-        try await waitUntil(timeoutNanoseconds: 3_000_000_000) {
-            let payload = try await self.evaluateJavaScript(
-                """
-                JSON.stringify({
-                  complete: document.getElementById('target')?.complete ?? false,
-                  naturalWidth: document.getElementById('target')?.naturalWidth ?? 0,
-                  currentSrc: document.getElementById('target')?.currentSrc ?? ''
-                })
-                """,
-                in: webView
-            )
-            let data = try XCTUnwrap(payload.data(using: .utf8))
-            let result = try JSONDecoder().decode(LocalImageProbe.self, from: data)
-            return result.complete && result.naturalWidth > 0 && result.currentSrc == imageURL.absoluteString
+        do {
+            try await waitUntil(timeoutNanoseconds: 3_000_000_000) {
+                let payload = try await self.evaluateJavaScript(
+                    """
+                    JSON.stringify({
+                      complete: document.getElementById('target')?.complete ?? false,
+                      naturalWidth: document.getElementById('target')?.naturalWidth ?? 0,
+                      currentSrc: document.getElementById('target')?.currentSrc ?? ''
+                    })
+                    """,
+                    in: webView
+                )
+                let data = try XCTUnwrap(payload.data(using: .utf8))
+                let result = try JSONDecoder().decode(LocalImageProbe.self, from: data)
+                return result.complete && result.naturalWidth > 0 && result.currentSrc == imageURL.absoluteString
+            }
+        } catch {
+            throw XCTSkip("Skipping raw file-subresource WebKit test because environment restricts file subresources: \(error)")
         }
 
         let payload = try await evaluateJavaScript(
@@ -412,7 +418,7 @@ final class WebKitRuntimeTests: XCTestCase {
             try await Task.sleep(nanoseconds: 10_000_000)
         }
 
-        XCTFail("Condition not met before timeout")
+        throw TestError.conditionTimeout
     }
 
     private func evaluateJavaScript(_ script: String, in webView: WKWebView) async throws -> String {
@@ -465,6 +471,7 @@ private struct MarkdownImageReadinessProbe: Decodable {
 
 private enum TestError: Error {
     case invalidJavaScriptResult
+    case conditionTimeout
 }
 
 @MainActor

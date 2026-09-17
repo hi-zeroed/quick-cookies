@@ -4,7 +4,7 @@
 # 用法: qc [选项] <文件或目录路径>
 #
 
-VERSION="1.6.0"
+VERSION="1.7.0"
 
 is_chinese() {
     case "${LC_ALL:-${LANG:-}}" in
@@ -21,6 +21,10 @@ QuickCookies CLI (qc) v${VERSION}
 
 用法:
     qc <文件或目录路径>     在 QuickCookies 浮层中打开预览
+    qc <文件路径:行号>      在浮层中打开并精准定位到指定行（如 qc App.swift:142）
+    qc -l, --line <行号>   指定预览跳转的目标行号（如 qc -l 142 App.swift）
+    qc -s, --card          制作代码分享卡片（如 qc -s App.swift 或单独 qc -s）
+    qc -f, --finder        透视当前访达中选中的文件
     qc .                   预览当前目录
     qc -c, --clipboard     透视剪贴板中的文本、代码、JSON 或图片
     qc -h, --help          查看帮助信息
@@ -28,7 +32,10 @@ QuickCookies CLI (qc) v${VERSION}
 
 示例:
     qc README.md
-    qc src/main.swift
+    qc src/main.swift:142
+    qc -l 142 src/main.swift
+    qc -s src/main.swift
+    qc -s
     qc archive.zip
     qc -c
     qc .
@@ -41,6 +48,10 @@ Instantly preview code, Markdown, configs, archives and files from Finder and Te
 
 Usage:
     qc <file or directory path>    Open preview in QuickCookies overlay
+    qc <file:line>                 Open preview and jump to target line (e.g. qc App.swift:142)
+    qc -l, --line <number>         Specify target line number (e.g. qc -l 142 App.swift)
+    qc -s, --card                  Open Card Studio for code sharing (e.g. qc -s App.swift or qc -s)
+    qc -f, --finder                Preview currently selected file in Finder
     qc .                           Preview current directory
     qc -c, --clipboard             Inspect text, code, JSON, or image from clipboard
     qc -h, --help                  Show help information
@@ -48,7 +59,10 @@ Usage:
 
 Examples:
     qc README.md
-    qc src/main.swift
+    qc src/main.swift:142
+    qc -l 142 src/main.swift
+    qc -s src/main.swift
+    qc -s
     qc archive.zip
     qc -c
     qc .
@@ -106,39 +120,125 @@ if [ $# -eq 0 ]; then
     exit 0
 fi
 
-case "$1" in
-    -h|--help)
-        show_help
-        exit 0
-        ;;
-    -v|--version)
-        echo "QuickCookies CLI (qc) v${VERSION}"
-        exit 0
-        ;;
-    -c|--clipboard)
-        TARGET_APP="$(find_quickcookies_app 2>/dev/null)"
-        if [ -n "$TARGET_APP" ] && [ -d "$TARGET_APP" ]; then
-            open -a "$TARGET_APP" -g "quickcookies://preview?source=clipboard"
-        else
-            if pgrep -x "QuickCookies" >/dev/null 2>&1; then
-                open -b com.quickcookies.app -g "quickcookies://preview?source=clipboard"
+TARGET_LINE=""
+RAW_TARGET=""
+SHARE_CARD=0
+FINDER_SELECTION=0
+
+while [ $# -gt 0 ]; do
+    case "$1" in
+        -h|--help)
+            show_help
+            exit 0
+            ;;
+        -v|--version)
+            echo "QuickCookies CLI (qc) v${VERSION}"
+            exit 0
+            ;;
+        -s|--card|--share-card)
+            SHARE_CARD=1
+            shift
+            ;;
+        -f|--finder)
+            FINDER_SELECTION=1
+            shift
+            ;;
+        -c|--clipboard)
+            TARGET_APP="$(find_quickcookies_app 2>/dev/null)"
+            if [ -n "$TARGET_APP" ] && [ -d "$TARGET_APP" ]; then
+                open -a "$TARGET_APP" -g "quickcookies://preview?source=clipboard"
             else
-                if is_chinese; then
-                    echo "qc: 未找到可用的 QuickCookies.app。" >&2
-                    echo "请先启动 QuickCookies，或将其安装至 /Applications 目录。" >&2
+                if pgrep -x "QuickCookies" >/dev/null 2>&1; then
+                    open -b com.quickcookies.app -g "quickcookies://preview?source=clipboard"
                 else
-                    echo "qc: QuickCookies.app not found." >&2
-                    echo "Please launch QuickCookies first or install it to /Applications." >&2
+                    if is_chinese; then
+                        echo "qc: 未找到可用的 QuickCookies.app。" >&2
+                        echo "请先启动 QuickCookies，或将其安装至 /Applications 目录。" >&2
+                    else
+                        echo "qc: QuickCookies.app not found." >&2
+                        echo "Please launch QuickCookies first or install it to /Applications." >&2
+                    fi
+                    exit 1
                 fi
-                exit 1
             fi
+            exit 0
+            ;;
+        -l|--line)
+            if [ -n "$2" ]; then
+                TARGET_LINE="$2"
+                shift 2
+            else
+                shift
+            fi
+            ;;
+        *)
+            if [ -z "$RAW_TARGET" ]; then
+                RAW_TARGET="$1"
+            fi
+            shift
+            ;;
+    esac
+done
+
+# 若开启了 -s/--card 且无指定文件，直接直达卡片工坊
+if [ "$SHARE_CARD" -eq 1 ] && [ -z "$RAW_TARGET" ]; then
+    TARGET_APP="$(find_quickcookies_app 2>/dev/null)"
+    if [ -n "$TARGET_APP" ] && [ -d "$TARGET_APP" ]; then
+        open -a "$TARGET_APP" -g "quickcookies://preview?action=shareCard"
+    else
+        if pgrep -x "QuickCookies" >/dev/null 2>&1; then
+            open -b com.quickcookies.app -g "quickcookies://preview?action=shareCard"
+        else
+            open -g "quickcookies://preview?action=shareCard"
         fi
-        exit 0
-        ;;
-    *)
-        TARGET="$1"
-        ;;
-esac
+    fi
+    exit 0
+fi
+
+# 若开启了 -f/--finder 且无指定文件，透视当前访达选中的文件
+if [ "$FINDER_SELECTION" -eq 1 ] && [ -z "$RAW_TARGET" ]; then
+    TARGET_APP="$(find_quickcookies_app 2>/dev/null)"
+    if [ -n "$TARGET_APP" ] && [ -d "$TARGET_APP" ]; then
+        open -a "$TARGET_APP" -g "quickcookies://preview?action=finderSelection"
+    else
+        if pgrep -x "QuickCookies" >/dev/null 2>&1; then
+            open -b com.quickcookies.app -g "quickcookies://preview?action=finderSelection"
+        else
+            open -g "quickcookies://preview?action=finderSelection"
+        fi
+    fi
+    exit 0
+fi
+
+if [ -z "$RAW_TARGET" ]; then
+    show_help
+    exit 0
+fi
+
+TARGET="$RAW_TARGET"
+
+# 若目标文件未直接存在，尝试剥离 file:line 或 file:line:col 模式
+if [ ! -e "$TARGET" ]; then
+    case "$TARGET" in
+        *:*:[0-9]*)
+            CANDIDATE="${TARGET%:*:*}"
+            POSSIBLE_LINE="${TARGET%:[0-9]*}"
+            POSSIBLE_LINE="${POSSIBLE_LINE##*:}"
+            if [ -e "$CANDIDATE" ] && [ -n "$POSSIBLE_LINE" ]; then
+                TARGET="$CANDIDATE"
+                [ -z "$TARGET_LINE" ] && TARGET_LINE="$POSSIBLE_LINE"
+            fi
+            ;;
+        *:[0-9]*)
+            CANDIDATE="${TARGET%:*}"
+            POSSIBLE_LINE="${TARGET##*:}"
+            if [ -e "$CANDIDATE" ] && [ -n "$POSSIBLE_LINE" ]; then
+                TARGET="$CANDIDATE"
+                [ -z "$TARGET_LINE" ] && TARGET_LINE="$POSSIBLE_LINE"
+            fi
+            ;;
+    esac
+fi
 
 # 检查目标文件或目录是否存在
 if [ ! -e "$TARGET" ]; then
@@ -177,19 +277,27 @@ python_urlencode() {
 ENCODED_PATH="$(python_urlencode "$ABS_PATH")"
 
 if [ -z "$ENCODED_PATH" ]; then
-    # 若无 python3 兜底直接传递
     ENCODED_PATH="$ABS_PATH"
 fi
 
 TARGET_APP="$(find_quickcookies_app 2>/dev/null)"
 
+if [ "$SHARE_CARD" -eq 1 ]; then
+    FINAL_URL="quickcookies://preview?action=shareCard&path=${ENCODED_PATH}"
+else
+    FINAL_URL="quickcookies://preview?path=${ENCODED_PATH}"
+    if [ -n "$TARGET_LINE" ]; then
+        FINAL_URL="${FINAL_URL}&line=${TARGET_LINE}"
+    fi
+fi
+
 if [ -n "$TARGET_APP" ] && [ -d "$TARGET_APP" ]; then
     # 精确定向唤起指定应用，避免被系统中其它陈旧或脏版本（如 QuickView/历史构建）拦截
-    open -a "$TARGET_APP" -g "quickcookies://preview?path=${ENCODED_PATH}"
+    open -a "$TARGET_APP" -g "$FINAL_URL"
 else
     # 兜底：若系统已有实例在运行，尝试以 bundle id 发送
     if pgrep -x "QuickCookies" >/dev/null 2>&1; then
-        open -b com.quickcookies.app -g "quickcookies://preview?path=${ENCODED_PATH}"
+        open -b com.quickcookies.app -g "$FINAL_URL"
     else
         if is_chinese; then
             echo "qc: 未找到可用的 QuickCookies.app。" >&2

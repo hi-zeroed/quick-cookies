@@ -154,6 +154,47 @@ brew install --cask quick-cookies
 | **复制文件路径**          | <kbd>⌥ Option</kbd> + <kbd>⌘ Command</kbd> + <kbd>C</kbd> | 快速复制当前文件的完整 POSIX 物理路径到剪贴板。                                                                           |
 | **安全退出窗口**          | <kbd>Esc</kbd>                          | 在预览窗口中按下，以流体微缩动画平滑关闭窗口并自动归还焦点给 Finder。                                                       |
 
+### 🚀 极客生态与启动器集成
+
+为满足全键盘流开发者的高效习惯，QuickCookies 原生提供多维度启动器生态扩展：
+
+#### 1. 终端命令行工具 (`qc`)
+QuickCookies 内置零配置 CLI 工具 `qc`，已支持自动寻找 App、文件路径解析、跳转指定行号与制作代码卡片：
+```bash
+# 快速预览文件或目录
+qc README.md
+qc .
+
+# 预览并精准跳转到指定代码行
+qc src/App.swift:142
+qc -l 142 src/App.swift
+
+# 一键透视剪贴板内容（代码/JSON/图片）
+qc -c
+
+# 一键直达代码分享卡片工坊 (Card Studio)
+qc -s src/App.swift
+```
+> 您可在应用设置【通用】中一键安装或更新 `qc` 命令。
+
+#### 2. Raycast 官方扩展套件 (`extensions/raycast`)
+提供 4 项极速指令，支持从 Raycast 直接呼出：
+- **Preview Selected File**：极速透视当前访达选中的文件；
+- **Preview Clipboard**：透视剪贴板中的任意文本、代码或图片；
+- **Create Code Card**：直达代码卡片工坊，制作带阴影与圆角的高清代码图；
+- **Search and Preview Files**：在 Raycast 内交互式搜索并秒开预览。
+> 详情请查阅 [Raycast Extension 说明文档](extensions/raycast/README.md)。
+
+#### 3. Alfred 5 原生工作流 (`extensions/alfred`)
+提供完整的 File Action、Universal Action 与关键词触发：
+- **File Action**：在 Alfred 选中文档时呼出 `Preview in QuickCookies` 或 `Create Code Card with QuickCookies`；
+- **Universal Action**：在系统任意位置透视选中文本路径或文件；
+- **Keywords**：
+  - `qc [path]`：快速预览文件或当前选中文档
+  - `qcc`：透视剪贴板
+  - `qcard [path]`：直达代码分享卡片工坊
+> 双击 `extensions/alfred/QuickCookies.alfredworkflow` 即可一键导入 Alfred 5。详情请查阅 [Alfred 5 工作流文档](extensions/alfred/README.md)。
+
 ---
 
 ## 🛠 开发与构建

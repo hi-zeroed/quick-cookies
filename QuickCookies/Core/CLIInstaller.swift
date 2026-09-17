@@ -99,6 +99,8 @@ enum CLIInstallerPolicy {
             qc <文件或目录路径>     在 QuickCookies 浮层中打开预览
             qc <文件路径:行号>      在浮层中打开并精准定位到指定行（如 qc App.swift:142）
             qc -l, --line <行号>   指定预览跳转的目标行号（如 qc -l 142 App.swift）
+            qc -s, --card          制作代码分享卡片（如 qc -s App.swift 或单独 qc -s）
+            qc -f, --finder        透视当前访达中选中的文件
             qc .                   预览当前目录
             qc -c, --clipboard     透视剪贴板中的文本、代码、JSON 或图片
             qc -h, --help          查看帮助信息
@@ -108,6 +110,8 @@ enum CLIInstallerPolicy {
             qc README.md
             qc src/main.swift:142
             qc -l 142 src/main.swift
+            qc -s src/main.swift
+            qc -s
             qc archive.zip
             qc -c
             qc .
@@ -122,6 +126,8 @@ enum CLIInstallerPolicy {
             qc <file or directory path>    Open preview in QuickCookies overlay
             qc <file:line>                 Open preview and jump to target line (e.g. qc App.swift:142)
             qc -l, --line <number>         Specify target line number (e.g. qc -l 142 App.swift)
+            qc -s, --card                  Open Card Studio for code sharing (e.g. qc -s App.swift or qc -s)
+            qc -f, --finder                Preview currently selected file in Finder
             qc .                           Preview current directory
             qc -c, --clipboard             Inspect text, code, JSON, or image from clipboard
             qc -h, --help                  Show help information
@@ -131,6 +137,8 @@ enum CLIInstallerPolicy {
             qc README.md
             qc src/main.swift:142
             qc -l 142 src/main.swift
+            qc -s src/main.swift
+            qc -s
             qc archive.zip
             qc -c
             qc .
@@ -190,6 +198,8 @@ enum CLIInstallerPolicy {
 
         TARGET_LINE=""
         RAW_TARGET=""
+        SHARE_CARD=0
+        FINDER_SELECTION=0
 
         while [ $# -gt 0 ]; do
             case "$1" in
@@ -200,6 +210,14 @@ enum CLIInstallerPolicy {
                 -v|--version)
                     echo "QuickCookies CLI (qc) v${VERSION}"
                     exit 0
+                    ;;
+                -s|--card|--share-card)
+                    SHARE_CARD=1
+                    shift
+                    ;;
+                -f|--finder)
+                    FINDER_SELECTION=1
+                    shift
                     ;;
                 -c|--clipboard)
                     TARGET_APP="$(find_quickcookies_app 2>/dev/null)"
@@ -237,6 +255,36 @@ enum CLIInstallerPolicy {
                     ;;
             esac
         done
+
+        # 若开启了 -s/--card 且无指定文件，直接直达卡片工坊
+        if [ "$SHARE_CARD" -eq 1 ] && [ -z "$RAW_TARGET" ]; then
+            TARGET_APP="$(find_quickcookies_app 2>/dev/null)"
+            if [ -n "$TARGET_APP" ] && [ -d "$TARGET_APP" ]; then
+                open -a "$TARGET_APP" -g "quickcookies://preview?action=shareCard"
+            else
+                if pgrep -x "QuickCookies" >/dev/null 2>&1; then
+                    open -b com.quickcookies.app -g "quickcookies://preview?action=shareCard"
+                else
+                    open -g "quickcookies://preview?action=shareCard"
+                fi
+            fi
+            exit 0
+        fi
+
+        # 若开启了 -f/--finder 且无指定文件，透视当前访达选中的文件
+        if [ "$FINDER_SELECTION" -eq 1 ] && [ -z "$RAW_TARGET" ]; then
+            TARGET_APP="$(find_quickcookies_app 2>/dev/null)"
+            if [ -n "$TARGET_APP" ] && [ -d "$TARGET_APP" ]; then
+                open -a "$TARGET_APP" -g "quickcookies://preview?action=finderSelection"
+            else
+                if pgrep -x "QuickCookies" >/dev/null 2>&1; then
+                    open -b com.quickcookies.app -g "quickcookies://preview?action=finderSelection"
+                else
+                    open -g "quickcookies://preview?action=finderSelection"
+                fi
+            fi
+            exit 0
+        fi
 
         if [ -z "$RAW_TARGET" ]; then
             show_help
@@ -310,9 +358,13 @@ enum CLIInstallerPolicy {
 
         TARGET_APP="$(find_quickcookies_app 2>/dev/null)"
 
-        FINAL_URL="quickcookies://preview?path=${ENCODED_PATH}"
-        if [ -n "$TARGET_LINE" ]; then
-            FINAL_URL="${FINAL_URL}&line=${TARGET_LINE}"
+        if [ "$SHARE_CARD" -eq 1 ]; then
+            FINAL_URL="quickcookies://preview?action=shareCard&path=${ENCODED_PATH}"
+        else
+            FINAL_URL="quickcookies://preview?path=${ENCODED_PATH}"
+            if [ -n "$TARGET_LINE" ]; then
+                FINAL_URL="${FINAL_URL}&line=${TARGET_LINE}"
+            fi
         fi
 
         if [ -n "$TARGET_APP" ] && [ -d "$TARGET_APP" ]; then

@@ -385,6 +385,13 @@ struct Localization {
             "Install CLI Tool": [.en: "Install CLI Tool", .zhHans: "安装命令行工具"],
             "Reinstall CLI": [.en: "Reinstall CLI", .zhHans: "重新安装 CLI"],
 
+            // Launcher Integrations (Raycast & Alfred)
+            "Launcher Integrations": [.en: "Launcher Integrations", .zhHans: "启动器极客集成"],
+            "Raycast & Alfred 5": [.en: "Raycast & Alfred 5", .zhHans: "Raycast 与 Alfred 5"],
+            "Enhance your keyboard workflow with Raycast extension and Alfred 5 workflow.": [.en: "Enhance your keyboard workflow with Raycast extension and Alfred 5 workflow.", .zhHans: "通过 Raycast 扩展与 Alfred 5 原生工作流无缝融入全键盘流。"],
+            "View Extensions": [.en: "View Extensions", .zhHans: "查看扩展套件"],
+            "Install Alfred Workflow": [.en: "Install Alfred Workflow", .zhHans: "安装 Alfred 工作流"],
+
             // Code Card Export & Clipboard Inspector
             "Share Code Card": [.en: "Share Code Card", .zhHans: "分享代码卡片"],
             "Share Card": [.en: "Share Card", .zhHans: "分享卡片"],

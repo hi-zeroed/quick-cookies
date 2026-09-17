@@ -262,22 +262,21 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     /// - URL Scheme 始终视为 direct-path open
     /// - 不允许静默回退到 Finder-selection 语义
     func application(_ application: NSApplication, open urls: [URL]) {
-        guard let url = urls.first, url.scheme == "quickcookies", url.host == "preview" else { return }
+        guard let url = urls.first, let action = URLSchemeRouter.parse(url: url) else { return }
 
-        let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
-        
-        // 剪贴板透视: quickcookies://preview?source=clipboard
-        if let sourceItem = components?.queryItems?.first(where: { $0.name == "source" }),
-           sourceItem.value == "clipboard" {
+        switch action {
+        case .openShareCard(let path):
+            if let path = path {
+                previewRequestController.openShareCard(path, source: .urlScheme)
+            } else {
+                openShareCardDirectly()
+            }
+        case .inspectClipboard:
             inspectClipboard()
-            return
-        }
-
-        if let pathItem = components?.queryItems?.first(where: { $0.name == "path" }),
-           let path = pathItem.value {
-            let lineItem = components?.queryItems?.first(where: { $0.name == "line" })?.value
-            let targetLine = lineItem.flatMap(Int.init)
-            previewRequestController.openPath(path, source: .urlScheme, targetLine: targetLine)
+        case .openFile(let path, let line):
+            previewRequestController.openPath(path, source: .urlScheme, targetLine: line)
+        case .triggerFinderSelection:
+            openSelectedFileFromMenuBar()
         }
     }
 

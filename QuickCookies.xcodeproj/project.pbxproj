@@ -90,6 +90,8 @@
 		PRVPROVBLD00000000000001 /* PreviewProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = PRVPROVREF00000000000001 /* PreviewProvider.swift */; };
 		PRVPROVREGBLD00000000001 /* PreviewProviderRegistry.swift in Sources */ = {isa = PBXBuildFile; fileRef = PRVPROVREGREF00000000001 /* PreviewProviderRegistry.swift */; };
 		CLIINSTLBLD0000000000001 /* CLIInstaller.swift in Sources */ = {isa = PBXBuildFile; fileRef = CLIINSTLREF0000000000001 /* CLIInstaller.swift */; };
+		URLROUTERBLD0000000000001 /* URLSchemeRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = URLROUTERREF0000000000001 /* URLSchemeRouter.swift */; };
+		URLRTRTSTBLD0000000000001 /* URLSchemeRouterTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = URLRTRTSTREF0000000000001 /* URLSchemeRouterTests.swift */; };
 		PRVHDRVWBLD00000000000001 /* PreviewHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = PRVHDRVWREF00000000000001 /* PreviewHeaderView.swift */; };
 		PRVCNTCTRBLD0000000000001 /* PreviewContentContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = PRVCNTCTRREF0000000000001 /* PreviewContentContainer.swift */; };
 		PRVFTRHUDBLD0000000000001 /* PreviewFooterHUD.swift in Sources */ = {isa = PBXBuildFile; fileRef = PRVFTRHUDREF0000000000001 /* PreviewFooterHUD.swift */; };
@@ -323,6 +325,8 @@
 		PRVPROVREF00000000000001 /* PreviewProvider.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewProvider.swift; sourceTree = "<group>"; };
 		PRVPROVREGREF00000000001 /* PreviewProviderRegistry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewProviderRegistry.swift; sourceTree = "<group>"; };
 		CLIINSTLREF0000000000001 /* CLIInstaller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLIInstaller.swift; sourceTree = "<group>"; };
+		URLROUTERREF0000000000001 /* URLSchemeRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLSchemeRouter.swift; sourceTree = "<group>"; };
+		URLRTRTSTREF0000000000001 /* URLSchemeRouterTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = URLSchemeRouterTests.swift; sourceTree = "<group>"; };
 		PRVHDRVWREF00000000000001 /* PreviewHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewHeaderView.swift; sourceTree = "<group>"; };
 		PRVCNTCTRREF0000000000001 /* PreviewContentContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewContentContainer.swift; sourceTree = "<group>"; };
 		PRVFTRHUDREF0000000000001 /* PreviewFooterHUD.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewFooterHUD.swift; sourceTree = "<group>"; };
@@ -422,6 +426,7 @@
 				835FBA052FCA950400D23A05 /* MarkdownPDFExporter.swift */,
 				PRVPROVGROUP00000000000001 /* PreviewProvider */,
 				CLIINSTLREF0000000000001 /* CLIInstaller.swift */,
+				URLROUTERREF0000000000001 /* URLSchemeRouter.swift */,
 				CLILINEPRSREF00000000001 /* CLILineParser.swift */,
 				CODECARDGROUP00000000001 /* CodeCard */,
 				CLIPBOARDGROUP00000000001 /* Clipboard */,
@@ -709,6 +714,7 @@
 				FLWCHSTATSTR000000000001 /* LiveWatchingStateTests.swift */,
 				HEXTSTREF000000000000001 /* HexInspectorEngineTests.swift */,
 				CSVTSTREF000000000000001 /* CSVParserTests.swift */,
+				URLRTRTSTREF0000000000001 /* URLSchemeRouterTests.swift */,
 			);
 			path = QuickCookiesTests;
 			sourceTree = "<group>";
@@ -912,6 +918,7 @@
 				PRVPROVBLD00000000000001 /* PreviewProvider.swift in Sources */,
 				PRVPROVREGBLD00000000001 /* PreviewProviderRegistry.swift in Sources */,
 				CLIINSTLBLD0000000000001 /* CLIInstaller.swift in Sources */,
+				URLROUTERBLD0000000000001 /* URLSchemeRouter.swift in Sources */,
 				PRVHDRVWBLD00000000000001 /* PreviewHeaderView.swift in Sources */,
 				PRVCNTCTRBLD0000000000001 /* PreviewContentContainer.swift in Sources */,
 				PRVFTRHUDBLD0000000000001 /* PreviewFooterHUD.swift in Sources */,
@@ -989,6 +996,7 @@
 				FLWCHSTATSTB000000000001 /* LiveWatchingStateTests.swift in Sources */,
 				HEXTSTBLD000000000000001 /* HexInspectorEngineTests.swift in Sources */,
 				CSVTSTBLD000000000000001 /* CSVParserTests.swift in Sources */,
+				URLRTRTSTBLD0000000000001 /* URLSchemeRouterTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

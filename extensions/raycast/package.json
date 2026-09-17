@@ -1,0 +1,57 @@
+{
+  "$schema": "https://raycast.com/schemas/extension.json",
+  "name": "quickcookies",
+  "title": "QuickCookies",
+  "description": "Blazing-fast file preview, clipboard inspector, and code card studio for macOS.",
+  "icon": "icon.png",
+  "author": "quickcookies",
+  "categories": [
+    "Productivity",
+    "Developer Tools"
+  ],
+  "license": "MIT",
+  "commands": [
+    {
+      "name": "preview-selected-file",
+      "title": "Preview Selected File",
+      "subtitle": "QuickCookies",
+      "description": "Instantly preview the file currently selected in Finder or on Desktop.",
+      "mode": "no-view"
+    },
+    {
+      "name": "preview-clipboard",
+      "title": "Preview Clipboard",
+      "subtitle": "QuickCookies",
+      "description": "Inspect text, code, JSON, or images from clipboard in QuickCookies.",
+      "mode": "no-view"
+    },
+    {
+      "name": "create-code-card",
+      "title": "Create Code Card",
+      "subtitle": "QuickCookies",
+      "description": "Open Card Studio to generate and export beautiful code snippet cards.",
+      "mode": "no-view"
+    },
+    {
+      "name": "preview-file",
+      "title": "Search and Preview Files",
+      "subtitle": "QuickCookies",
+      "description": "Search or browse local files and preview them instantly in QuickCookies.",
+      "mode": "view"
+    }
+  ],
+  "dependencies": {
+    "@raycast/api": "^1.70.0",
+    "@raycast/utils": "^1.14.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/react": "^18.2.0",
+    "typescript": "^5.4.0"
+  },
+  "scripts": {
+    "build": "ray build -e dist",
+    "dev": "ray develop",
+    "lint": "ray lint"
+  }
+}
