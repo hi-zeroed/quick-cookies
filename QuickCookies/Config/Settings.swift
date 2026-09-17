@@ -53,7 +53,6 @@ class Settings: ObservableObject {
 
     // 外观配置
     @Published var fontSize: CGFloat
-    @Published var showLineNumbers: Bool
     @Published var themeMode: ThemeMode {
         didSet {
             defaults.set(themeMode.rawValue, forKey: Keys.themeMode)
@@ -103,7 +102,6 @@ class Settings: ObservableObject {
         shareCardHotkeyModifiers = Constants.defaultShareCardHotkeyModifiers
         shareCardHotkeyKeyCode = Constants.defaultShareCardHotkeyKeyCode
         fontSize = 13
-        showLineNumbers = true
         themeMode = .system
         language = Language.system
         Settings.currentLanguage = Settings.getSystemLanguage()
@@ -150,10 +148,6 @@ class Settings: ObservableObject {
         let savedFontSize = CGFloat(defaults.float(forKey: Keys.fontSize))
         if savedFontSize != 0 {
             fontSize = savedFontSize
-        }
-
-        if defaults.hasKey(Keys.showLineNumbers) {
-            showLineNumbers = defaults.bool(forKey: Keys.showLineNumbers)
         }
 
         if let savedTheme = defaults.string(forKey: Keys.themeMode),
@@ -238,7 +232,6 @@ class Settings: ObservableObject {
         static let shareCardHotkeyModifiers = "shareCardHotkeyModifiers"
         static let shareCardHotkeyKeyCode = "shareCardHotkeyKeyCode"
         static let fontSize = "fontSize"
-        static let showLineNumbers = "showLineNumbers"
         static let themeMode = "themeMode"
         static let language = "language"
         static let editorFont = "editorFont"
@@ -327,7 +320,6 @@ struct Localization {
             "Next": [.en: "Next", .zhHans: "下一步"],
             "Back": [.en: "Back", .zhHans: "上一步"],
             "Start Using QuickCookies": [.en: "Start Using QuickCookies", .zhHans: "开始使用 QuickCookies"],
-            "Start Using Quick Cookies": [.en: "Start Using QuickCookies", .zhHans: "开始使用 QuickCookies"],
             "Skip": [.en: "Skip", .zhHans: "跳过"],
             "Skip Guide": [.en: "Skip Guide", .zhHans: "跳过向导"],
             "Continue": [.en: "Continue", .zhHans: "继续"],
@@ -349,7 +341,6 @@ struct Localization {
             "Double Command": [.en: "Double Command", .zhHans: "双击 Command"],
             "Double Option": [.en: "Double Option", .zhHans: "双击 Option"],
             "Instant Search": [.en: "Instant Search", .zhHans: "即时查找"],
-            "Double Command (Recommended)": [.en: "Double Command (Recommended)", .zhHans: "双击 Command (推荐)"],
             "Double-press Command (Recommended)": [.en: "Double Command (Recommended)", .zhHans: "双击 Command (推荐)"],
             "Double-press Option": [.en: "Double Option", .zhHans: "双击 Option"],
             "Recommended": [.en: "Recommended", .zhHans: "推荐"],
@@ -362,7 +353,6 @@ struct Localization {
             "Triggered! Perfect muscle memory!": [.en: "Shortcut detected! Works perfectly.", .zhHans: "连按成功！快捷键已生效"],
             "Waiting for double-press...": [.en: "Waiting for shortcut...", .zhHans: "等待连按快捷键..."],
             "Interactive Hotkey Playground": [.en: "Shortcut Practice", .zhHans: "快捷键测试"],
-            "Preset Shortcuts": [.en: "Preset Shortcuts", .zhHans: "预设快捷键"],
 
             // Feature Showcase
             "What QuickCookies previews": [.en: "Supported File Previews", .zhHans: "支持丰富格式预览"],
@@ -392,10 +382,8 @@ struct Localization {
             "Command Line Tool (CLI)": [.en: "Command Line Tool (CLI)", .zhHans: "命令行工具 (CLI)"],
             "Preview files instantly from Terminal using 'qc <path>'.": [.en: "Preview files instantly from Terminal using 'qc <path>'.", .zhHans: "在终端中随时使用 'qc <path>' 秒开文件预览。"],
             "Installed": [.en: "Installed", .zhHans: "已安装"],
-            "Not Installed": [.en: "Not Installed", .zhHans: "未安装"],
             "Install CLI Tool": [.en: "Install CLI Tool", .zhHans: "安装命令行工具"],
             "Reinstall CLI": [.en: "Reinstall CLI", .zhHans: "重新安装 CLI"],
-            "CLI installed to /usr/local/bin/qc": [.en: "CLI installed to /usr/local/bin/qc", .zhHans: "已成功安装命令行工具至 /usr/local/bin/qc"],
 
             // Code Card Export & Clipboard Inspector
             "Share Code Card": [.en: "Share Code Card", .zhHans: "分享代码卡片"],
@@ -414,7 +402,6 @@ struct Localization {
             "Focused %d lines": [.en: "Focused %d lines", .zhHans: "已聚焦 %d 行"],
             "Focused 1 line": [.en: "Focused 1 line", .zhHans: "已聚焦 1 行"],
             "Clear Focus": [.en: "Clear Focus", .zhHans: "清空聚焦"],
-            "Click lines to focus": [.en: "Click lines to highlight focus", .zhHans: "点击代码行突出重点"],
             "Theme": [.en: "Theme", .zhHans: "背景主题"],
             "Line Numbers": [.en: "Line Numbers", .zhHans: "显示行号"],
             "Watermark": [.en: "Watermark", .zhHans: "品牌水印"],
@@ -435,10 +422,8 @@ struct Localization {
             "Transparent": [.en: "Transparent", .zhHans: "透明底"],
             "Ambient Glow": [.en: "Ambient Glow", .zhHans: "微光辉光"],
             "Inspect Clipboard": [.en: "Inspect Clipboard", .zhHans: "透视剪贴板"],
-            "Inspect Clipboard (⌃⌥V)": [.en: "Inspect Clipboard (⌃⌥V)", .zhHans: "透视剪贴板 (⌃⌥V)"],
             "Inspect clipboard content instantly": [.en: "Inspect clipboard content instantly", .zhHans: "一键预览剪贴板中的文本、代码或图片"],
             "Share as Card": [.en: "Share as Card", .zhHans: "分享为卡片"],
-            "Share as Card (⌃⌥C)": [.en: "Share as Card (⌃⌥C)", .zhHans: "分享为卡片 (⌃⌥C)"],
             "Directly preview and export as card": [.en: "Directly preview and export as card", .zhHans: "直接预览并导出精美代码卡片"],
             "Clipboard (%@)": [.en: "Clipboard (%@)", .zhHans: "剪贴板 (%@)"],
             "Clipboard (JSON)": [.en: "Clipboard (JSON)", .zhHans: "剪贴板 (JSON)"],
@@ -474,27 +459,18 @@ struct Localization {
             "Zero-Permission Mode Ready": [.en: "Ready to Use Without Extra Permissions", .zhHans: "免敏感权限模式已就绪"],
             "QuickCookies core features run without any accessibility permissions.": [.en: "QuickCookies runs securely without requiring Accessibility privileges.", .zhHans: "QuickCookies 核心功能无需任何辅助功能权限，保护隐私，安全轻量。"],
             "Personalized Settings": [.en: "Personalized Settings", .zhHans: "个性化设置"],
-            "Before getting started, you can customize some core preferences:": [.en: "Before getting started, you can customize core preferences:", .zhHans: "正式使用前，您可以进行一些核心偏好设定："],
-            "Optional Enhancements": [.en: "Optional Enhancements", .zhHans: "可选功能扩展"],
             "Starting...": [.en: "Starting...", .zhHans: "正在启动..."],
 
             // System Permissions
-            "System Permissions": [.en: "System Permissions", .zhHans: "系统权限"],
             "Full Disk Access": [.en: "Full Disk Access", .zhHans: "完全磁盘访问权限"],
-            "Full Disk Access Permission": [.en: "Full Disk Access", .zhHans: "完全磁盘访问权限"],
-            "Grant Full Disk Access to avoid folder permission prompts.": [.en: "Grant Full Disk Access to avoid folder permission prompts.", .zhHans: "授权完全磁盘访问，避免受保护文件夹的频繁授权弹窗。"],
             "Grant Full Disk Access to eliminate sandbox popups": [.en: "Grant Full Disk Access to eliminate sandbox popups", .zhHans: "授权完全磁盘访问，避免系统沙盒授权弹窗"],
             "Grant Access": [.en: "Grant Access", .zhHans: "前往授权"],
             "Authorized": [.en: "Authorized", .zhHans: "已授权"],
-            "Unauthorized": [.en: "Unauthorized", .zhHans: "未授权"],
-            "Checking...": [.en: "Checking...", .zhHans: "正在检测..."],
             "Enable": [.en: "Enable", .zhHans: "前往启用"],
             "Attempted": [.en: "Attempted", .zhHans: "已尝试启用"],
             "Finder Extension": [.en: "Finder Extension", .zhHans: "访达扩展"],
-            "Integrate right-click menu and seamless preview. Zero privacy risk.": [.en: "Integrate right-click menu and seamless preview. Zero privacy risk.", .zhHans: "集成访达右键菜单与流畅预览，零隐私风险。"],
 
             // Appearance & HIG
-            "APPEARANCE": [.en: "APPEARANCE", .zhHans: "外观"],
             "Appearance": [.en: "Appearance", .zhHans: "外观"],
             "Theme Mode": [.en: "Theme Mode", .zhHans: "外观主题"],
             "Choose your preferred display mode": [.en: "Choose your preferred appearance", .zhHans: "选择偏好的外观显示模式"],
@@ -504,17 +480,12 @@ struct Localization {
             "Colors": [.en: "Colors", .zhHans: "主题配色"],
 
             // Typography
-            "TYPOGRAPHY": [.en: "TYPOGRAPHY", .zhHans: "排版"],
-            "Editor Font": [.en: "Editor Font", .zhHans: "等宽代码字体"],
             "Monospace font for previewing and editing": [.en: "Monospace font for previewing and editing", .zhHans: "用于预览与编辑的等宽字体"],
-            "Monospace font for previewing code and documents": [.en: "Monospace font for previewing code and documents", .zhHans: "用于预览代码与文档的等宽字体"],
             "Font Size": [.en: "Font Size", .zhHans: "字体大小"],
             "System Default (Inter)": [.en: "System Default (Inter)", .zhHans: "系统默认 (Inter)"],
             "Typography Preview": [.en: "Typography Preview", .zhHans: "排版效果实时预览"],
             "Text": [.en: "Text", .zhHans: "文本与排版"],
             "Font": [.en: "Font", .zhHans: "字体"],
-            "Weight": [.en: "Weight", .zhHans: "字重"],
-            "Type something to test this font...": [.en: "Type something to test this font...", .zhHans: "输入文字以在此字体下测试..."],
             "%@ glyphs": [.en: "%@ glyphs", .zhHans: "%@ 个字形"],
 
             // Shortcuts & Keybindings
@@ -536,15 +507,11 @@ struct Localization {
             "Previous / Next Match": [.en: "Previous / Next Match", .zhHans: "上一个 / 下一个匹配项"],
             "Jump between search results": [.en: "Jump between search results", .zhHans: "在搜索结果之间跳转"],
             "Find in file (⌥F)": [.en: "Find in file (⌥F)", .zhHans: "在文件中查找 (⌥F)"],
-            "Find in file (⌘F)": [.en: "Find in file (⌘F)", .zhHans: "在文件中查找 (⌘F)"],
             "Find in file...": [.en: "Find in file...", .zhHans: "在文件中查找..."],
             "Previous Match (Shift+Enter)": [.en: "Previous Match (Shift+Enter)", .zhHans: "上一个匹配项 (Shift+Enter)"],
             "Next Match (Enter)": [.en: "Next Match (Enter)", .zhHans: "下一个匹配项 (Enter)"],
             "Open with Default App": [.en: "Open with Default App", .zhHans: "用默认应用打开"],
             "Open current file in external editor": [.en: "Open current file in external editor", .zhHans: "在关联应用或外部专业编辑器中打开"],
-            "Open with External App": [.en: "Open with External App", .zhHans: "用外部应用打开"],
-            "Open with %@": [.en: "Open with %@", .zhHans: "用 %@ 打开"],
-            "Open with...": [.en: "Open with...", .zhHans: "用其他应用打开..."],
             "Default": [.en: "Default", .zhHans: "默认"],
             "Reveal in Finder": [.en: "Reveal in Finder", .zhHans: "在访达中显示"],
             "Locate and highlight current file in Finder": [.en: "Locate and highlight current file in Finder", .zhHans: "在访达中定位并高亮当前文件"],
@@ -588,7 +555,6 @@ struct Localization {
             "Instant Card Preview for macOS": [.en: "Instant Card Preview for macOS", .zhHans: "macOS 极速卡片文件预览工具"],
             "Zero-Accessibility Architecture": [.en: "Zero-Accessibility Architecture", .zhHans: "无需辅助功能权限的轻量架构"],
             "Architecture & Capabilities": [.en: "Architecture & Capabilities", .zhHans: "架构与特性"],
-            "Architecture & Engine": [.en: "Architecture & Capabilities", .zhHans: "架构与特性"],
             "Fast Syntax Highlighting": [.en: "Fast Syntax Highlighting", .zhHans: "高效流式语法高亮"],
             "0ms Instant Streaming Highlight": [.en: "Fast Syntax Highlighting", .zhHans: "高效流式语法高亮"],
             "Seamless Editor Handoff": [.en: "Seamless Editor Handoff", .zhHans: "外部编辑器无缝接力"],
@@ -599,14 +565,11 @@ struct Localization {
             "Released under the GNU GPL v3 License": [.en: "Released under the GNU GPL v3 License", .zhHans: "基于 GNU GPL v3 协议开源发布"],
             
             // System & Menu
-            "SYSTEM": [.en: "SYSTEM", .zhHans: "系统"],
-            "Launch at Login": [.en: "Open at Login", .zhHans: "登录时启动"],
             "Automatically start QuickCookies in the background when you log in": [.en: "Automatically start QuickCookies in the background when you log in", .zhHans: "登录 macOS 系统时自动在后台启动 QuickCookies"],
             "Language": [.en: "Language", .zhHans: "语言"],
             "LANGUAGE": [.en: "LANGUAGE", .zhHans: "语言"],
             "Choose display language": [.en: "Choose display language", .zhHans: "选择界面的显示语言"],
             "Interface Language": [.en: "Interface Language", .zhHans: "界面语言"],
-            "Follow System": [.en: "Follow System", .zhHans: "跟随系统"],
             "Open Selected File": [.en: "Open Selected File", .zhHans: "打开选中文件"],
             "Settings": [.en: "Settings", .zhHans: "设置"],
             "Quit": [.en: "Quit", .zhHans: "退出"],
@@ -617,44 +580,28 @@ struct Localization {
             "OK": [.en: "OK", .zhHans: "好"],
             "Failed to Get": [.en: "Failed to Get", .zhHans: "获取失败"],
             "Locating...": [.en: "Locating...", .zhHans: "定位中..."],
-            "⚠️ Loaded first 1000 lines only": [.en: "⚠️ Loaded first 1000 lines only", .zhHans: "⚠️ 仅加载了前 1000 行"],
-            "Enter Edit (Cmd+E)": [.en: "Enter Edit (Cmd+E)", .zhHans: "进入编辑 (Cmd+E)"],
-            "Back to Preview": [.en: "Back to Preview", .zhHans: "返回预览"],
-            "Save (Cmd+S)": [.en: "Save (Cmd+S)", .zhHans: "存储 (Cmd+S)"],
-            "Failed to read file": [.en: "Failed to read file", .zhHans: "读取文件失败"],
             "Size": [.en: "Size", .zhHans: "大小"],
             "Pos": [.en: "Pos", .zhHans: "位置"],
             "Unsupported file type": [.en: "Unsupported file type", .zhHans: "不支持的文件类型"],
             "Focused": [.en: "Focused", .zhHans: "已聚焦"],
             "Source": [.en: "Source", .zhHans: "来源"],
-            "No selected item found": [.en: "No selected item found", .zhHans: "未找到选中的项目"],
-            "Unknown error": [.en: "Unknown error", .zhHans: "未知错误"],
             "Unsupported file type (detail)": [.en: "Unsupported file type", .zhHans: "不支持此文件类型"],
             "Unsupported file format": [.en: "Unsupported file format", .zhHans: "不支持的文件格式"],
             "Vector Graphics (SVG)": [.en: "Vector Graphics (SVG)", .zhHans: "矢量图形 (SVG)"],
-            "File Updated Externally": [.en: "File Updated Externally", .zhHans: "文件已被外部修改"],
-            "This file has been modified by another editor. Reload the latest changes?": [.en: "This file has been modified by another editor. Reload the latest changes?", .zhHans: "该文件已被其他编辑器修改，是否重新载入最新内容？"],
             "Reload": [.en: "Reload", .zhHans: "重新载入"],
             "Ignore": [.en: "Ignore", .zhHans: "忽略"],
             "Loading remaining content...": [.en: "Loading remaining content...", .zhHans: "正在载入后续内容..."],
             "Loading content...": [.en: "Loading content...", .zhHans: "正在载入内容..."],
             "PDF exported successfully": [.en: "PDF exported successfully", .zhHans: "PDF 导出成功"],
             "Export PDF": [.en: "Export PDF", .zhHans: "导出 PDF"],
-            "Save Failed": [.en: "Save Failed", .zhHans: "存储失败"],
             "Export": [.en: "Export", .zhHans: "导出"],
-            "Failed to load remaining text": [.en: "Failed to load remaining text", .zhHans: "载入后续文本失败"],
-            "Failed to read remaining file": [.en: "Failed to read remaining file", .zhHans: "读取剩余文件失败"],
             "macOS version too low, PDF generation is not supported": [.en: "macOS version too low, PDF generation is not supported", .zhHans: "当前 macOS 版本过低，不支持生成 PDF"],
             
             // Archive Inspection
             "Analyzing archive contents...": [.en: "Analyzing archive contents...", .zhHans: "正在解析压缩包内容..."],
             "Empty Archive": [.en: "Empty Archive", .zhHans: "空压缩包"],
-            "No matching files": [.en: "No matching files", .zhHans: "无匹配文件"],
             "files": [.en: "files", .zhHans: "个文件"],
             "folders": [.en: "folders", .zhHans: "个文件夹"],
-            "Archive Tree": [.en: "Archive Tree", .zhHans: "返回压缩包"],
-            "Extracting into memory...": [.en: "Extracting into memory...", .zhHans: "正在载入内存..."],
-            "Binary Content (Preview Unavailable)": [.en: "Binary Content (Preview Unavailable)", .zhHans: "二进制内容（暂不支持直接预览）"],
             "Archive file not found": [.en: "Archive file not found", .zhHans: "未找到压缩包文件"],
             "Unsupported archive format": [.en: "Unsupported archive format", .zhHans: "不支持的压缩包格式"],
             "Encrypted or corrupted archive": [.en: "Encrypted or corrupted archive", .zhHans: "压缩包受密码保护或文件已损坏"],
@@ -666,13 +613,10 @@ struct Localization {
             "Config": [.en: "Config", .zhHans: "配置"],
             "Other": [.en: "Other", .zhHans: "其他"],
             "Compression Ratio": [.en: "Compression Ratio", .zhHans: "压缩率"],
-            "%@ %d%% (%@ → %@)": [.en: "%@ %d%% (%@ → %@)", .zhHans: "%@ %d%% (%@ → %@)"],
-            "Search files or directories...": [.en: "Search files or directories...", .zhHans: "搜索文件或目录..."],
             "Name": [.en: "Name", .zhHans: "名称"],
             "Structure": [.en: "Structure", .zhHans: "结构"],
             "Tree": [.en: "Tree", .zhHans: "树形"],
             "Copy Value": [.en: "Copy Value", .zhHans: "拷贝值"],
-            "Copy Key": [.en: "Copy Key", .zhHans: "拷贝键"],
             "Folder": [.en: "Folder", .zhHans: "文件夹"],
             "Scanning folder contents...": [.en: "Scanning folder contents...", .zhHans: "正在扫描文件夹内容..."],
             "Open in Terminal": [.en: "Open in Terminal", .zhHans: "在终端中打开"],

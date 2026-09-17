@@ -1306,7 +1306,6 @@ struct SettingsView: View {
             keyCode: Constants.defaultHotkeyKeyCode
         )
         settings.saveFontSize(13)
-        settings.showLineNumbers = true
         settings.themeMode = .system
         settings.language = Language.system
         settings.editorFont = "JetBrains Mono"

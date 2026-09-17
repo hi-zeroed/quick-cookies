@@ -39,9 +39,9 @@ public struct FontPreviewView: View {
                         }
 
                         if glyphCount > 0 {
-                            Label("\(glyphCount) glyphs".localized(), systemImage: "character.book.closed")
-                                .font(.system(size: 11, design: .monospaced))
-                                .foregroundColor(Color.appText.opacity(0.6))
+                            Label(String(format: "%@ glyphs".localized(), "\(glyphCount)"), systemImage: "character.book.closed")
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundColor(.secondary)
                         }
 
                         let ext = URL(fileURLWithPath: filePath).pathExtension.uppercased()

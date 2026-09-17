@@ -611,7 +611,7 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         guard let window = previewWindow, window.isVisible else { return }
         let effectiveRenderType = activeSessionState?.displayRenderType
         let isSVG = currentFilePath?.lowercased().hasSuffix(".svg") == true
-        guard ContentRenderCapabilityRegistry.supportsSearch(for: effectiveRenderType, path: currentFilePath, isSVGSourceMode: isSVG) else {
+        guard PreviewProviderRegistry.supportsSearch(for: effectiveRenderType, path: currentFilePath, isSVGSourceMode: isSVG) else {
             return
         }
 

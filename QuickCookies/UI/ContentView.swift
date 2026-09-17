@@ -64,48 +64,8 @@ enum PreviewCardChromePolicy {
     }
 }
 
-struct ContentRenderCapability {
-    let allowsPDFExport: Bool
-    let usesTextContentLoader: Bool
-    let showsGenericLoading: Bool
-    let supportsSearch: Bool
-}
-
-enum ContentRenderCapabilityRegistry {
-    static func capability(for renderType: FileRenderType?, path: String? = nil, isSVGSourceMode: Bool = false) -> ContentRenderCapability {
-        guard let renderType else {
-            return ContentRenderCapability(
-                allowsPDFExport: false,
-                usesTextContentLoader: false,
-                showsGenericLoading: false,
-                supportsSearch: false
-            )
-        }
-        let p = PreviewProviderRegistry.shared.provider(for: renderType)
-        return ContentRenderCapability(
-            allowsPDFExport: p.allowsPDFExport,
-            usesTextContentLoader: PreviewProviderRegistry.usesTextContentLoader(for: renderType, path: path),
-            showsGenericLoading: p.showsGenericLoading,
-            supportsSearch: p.supportsSearch(path: path, isSVGSourceMode: isSVGSourceMode)
-        )
-    }
-
-    static func allowsPDFExport(for renderType: FileRenderType?) -> Bool {
-        PreviewProviderRegistry.allowsPDFExport(for: renderType)
-    }
-
-    static func usesTextContentLoader(for renderType: FileRenderType?, path: String? = nil) -> Bool {
-        PreviewProviderRegistry.usesTextContentLoader(for: renderType, path: path)
-    }
-
-    static func showsGenericLoading(for renderType: FileRenderType?) -> Bool {
-        PreviewProviderRegistry.showsGenericLoading(for: renderType)
-    }
-
-    static func supportsSearch(for renderType: FileRenderType?, path: String? = nil, isSVGSourceMode: Bool = false) -> Bool {
-        PreviewProviderRegistry.supportsSearch(for: renderType, path: path, isSVGSourceMode: isSVGSourceMode)
-    }
-}
+/// 兼容性别名，直接映射至统一插件注册中心 PreviewProviderRegistry
+typealias ContentRenderCapabilityRegistry = PreviewProviderRegistry
 
 enum ContentLoadingPresentationPolicy {
     static func shouldShowGenericLoading(
@@ -113,7 +73,7 @@ enum ContentLoadingPresentationPolicy {
         renderType: FileRenderType?
     ) -> Bool {
         guard isLoading else { return false }
-        return ContentRenderCapabilityRegistry.showsGenericLoading(for: renderType)
+        return PreviewProviderRegistry.showsGenericLoading(for: renderType)
     }
 }
 
@@ -163,7 +123,7 @@ enum PreviewContentVisibilityPolicy {
             return false
         }
 
-        guard ContentRenderCapabilityRegistry.usesTextContentLoader(for: renderType, path: activePath) else {
+        guard PreviewProviderRegistry.usesTextContentLoader(for: renderType, path: activePath) else {
             return true
         }
 
@@ -825,7 +785,7 @@ struct ContentView: View {
             }
         }
 
-        if !ContentRenderCapabilityRegistry.usesTextContentLoader(for: activeRenderType, path: path) {
+        if !PreviewProviderRegistry.usesTextContentLoader(for: activeRenderType, path: path) {
             return await MainActor.run {
                 guard loadCoordinator.shouldApplyResult(for: request, currentPath: activePath) else {
                     return false
@@ -1092,7 +1052,7 @@ struct ContentView: View {
 
     private func exportMarkdownToPDF() {
         guard let path = activePath,
-              ContentRenderCapabilityRegistry.allowsPDFExport(for: activeRenderType) else { return }
+              PreviewProviderRegistry.allowsPDFExport(for: activeRenderType) else { return }
         
         let savePanel = NSSavePanel()
         savePanel.allowedContentTypes = [.pdf]

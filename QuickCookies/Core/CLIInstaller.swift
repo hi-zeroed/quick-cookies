@@ -27,7 +27,9 @@ struct CLIInstallStatus: Equatable {
 }
 
 enum CLIInstallerPolicy {
-    static let currentVersion = "1.6.0"
+    static var currentVersion: String {
+        Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "1.7.0"
+    }
     
     /// 检查指定路径中的 qc 脚本状态
     static func checkStatus(

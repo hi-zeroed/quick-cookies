@@ -21,23 +21,6 @@ enum MarkdownHTMLShell {
         )
     }
 
-    static func renderPrerenderHTML(
-        baseDirectoryURL: URL?,
-        isDarkAppearance: Bool,
-        bodyFontName: String,
-        bodyFontSize: CGFloat
-    ) -> String {
-        renderDocument(
-            baseDirectoryURL: baseDirectoryURL,
-            isDarkAppearance: isDarkAppearance,
-            bodyFontName: bodyFontName,
-            bodyFontSize: bodyFontSize,
-            initialContentHTML: "",
-            runtimeScript: MarkdownRendererRuntime.prerenderRuntimeScript(),
-            trailingScript: nil
-        )
-    }
-
     private static func renderDocument(
         baseDirectoryURL: URL?,
         isDarkAppearance: Bool,
