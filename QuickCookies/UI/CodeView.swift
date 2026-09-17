@@ -80,6 +80,7 @@ struct CodeView: NSViewRepresentable {
     let onLoadMore: () -> Void
     var findBarState: FindBarState? = nil
     var goToLineState: GoToLineState? = nil
+    var liveWatchingState: LiveWatchingState? = nil
     var initialTargetLine: Int? = nil
     var onInitialTargetLineConsumed: (() -> Void)? = nil
 
@@ -135,19 +136,29 @@ struct CodeView: NSViewRepresentable {
             )
         }
         
-        @objc func handleScroll(_ notification: Notification) {
+        @objc @MainActor func handleScroll(_ notification: Notification) {
             guard let clipView = notification.object as? NSClipView,
                   let scrollView = clipView.superview as? NSScrollView,
                   let documentView = scrollView.documentView else { return }
             
+            let visibleRect = clipView.documentVisibleRect
+            let documentHeight = documentView.frame.height
+
+            // 监听日志追尾模式下的用户手动滚离/滚回底端状态
+            if let liveState = self.liveWatchingState, liveState.isLiveTailMode {
+                let distanceToBottom = documentHeight - visibleRect.maxY
+                if distanceToBottom > 40 {
+                    liveState.userScrolledAwayFromBottom()
+                } else if distanceToBottom <= 15 {
+                    liveState.userScrolledToBottom()
+                }
+            }
+
             // PERF: 同步进行前置拦截过滤，如果不需要加载更多，直接返回，避免高频向主线程队列提交垃圾 block
             guard let loadState = self.loadState,
                   loadState.hasMoreChunks,
                   !loadState.isIncrementalLoading else { return }
                   
-            let visibleRect = clipView.documentVisibleRect
-            let documentHeight = documentView.frame.height
-            
             if visibleRect.maxY >= documentHeight - 150 {
                 DispatchQueue.main.async { [weak self] in
                     guard let self = self,
@@ -161,9 +172,11 @@ struct CodeView: NSViewRepresentable {
 
         var findBarCancellables = Set<AnyCancellable>()
         var goToLineCancellables = Set<AnyCancellable>()
+        var liveWatchingCancellables = Set<AnyCancellable>()
         weak var textView: NSTextView?
         var findBarState: FindBarState?
         var goToLineState: GoToLineState?
+        var liveWatchingState: LiveWatchingState?
         var currentMatches: [NSRange] = []
         private var activePulseRange: NSRange?
         private var pulseWorkItem: DispatchWorkItem?
@@ -236,6 +249,24 @@ struct CodeView: NSViewRepresentable {
                     self.jumpToLine(line, in: textView, pulse: true)
                 }
                 .store(in: &goToLineCancellables)
+        }
+
+        func setupLiveWatchingSubscription(liveWatchingState: LiveWatchingState?, textView: NSTextView) {
+            liveWatchingCancellables.removeAll()
+            self.liveWatchingState = liveWatchingState
+            self.textView = textView
+
+            guard let liveWatchingState = liveWatchingState else { return }
+
+            liveWatchingState.scrollToBottomSubject
+                .receive(on: DispatchQueue.main)
+                .sink { [weak textView] in
+                    guard let textView = textView else { return }
+                    let textLength = (textView.string as NSString).length
+                    let bottomRange = NSRange(location: textLength, length: 0)
+                    textView.scrollRangeToVisible(bottomRange)
+                }
+                .store(in: &liveWatchingCancellables)
         }
 
         /// 精准跳转至指定行号（1-indexed），并将目标行平滑居中展示，触发脉冲微光
@@ -561,6 +592,9 @@ struct CodeView: NSViewRepresentable {
         // 挂载行号跳转监听
         context.coordinator.setupGoToLineSubscription(goToLineState: goToLineState, textView: textView)
 
+        // 挂载实时监听与追尾状态监听
+        context.coordinator.setupLiveWatchingSubscription(liveWatchingState: liveWatchingState, textView: textView)
+
         return scrollView
     }
 
@@ -577,6 +611,9 @@ struct CodeView: NSViewRepresentable {
         }
         if context.coordinator.goToLineState !== goToLineState {
             context.coordinator.setupGoToLineSubscription(goToLineState: goToLineState, textView: textView)
+        }
+        if context.coordinator.liveWatchingState !== liveWatchingState {
+            context.coordinator.setupLiveWatchingSubscription(liveWatchingState: liveWatchingState, textView: textView)
         }
 
         let totalLineCount = (content as NSString).components(separatedBy: "\n").count
@@ -654,9 +691,18 @@ struct CodeView: NSViewRepresentable {
             context.coordinator.lastRenderedContent = content
             context.coordinator.lastContentLength = content.count
         } else if !isSameFile || contentChanged || isDarkChanged || fontChanged {
-            // 首次加载、修改主题或字体
+            // 首次加载、修改主题或字体；同一文件外部热重载时无感保持当前视口滚动位置
+            let isHotReload = isSameFile && contentChanged && !isDarkChanged && !fontChanged
+            let savedScrollOrigin = isHotReload ? scrollView.contentView.bounds.origin : nil
+
             textView.string = content
-            textView.scrollRangeToVisible(NSRange(location: 0, length: 0))
+            if let savedOrigin = savedScrollOrigin {
+                scrollView.contentView.scroll(to: savedOrigin)
+                scrollView.reflectScrolledClipView(scrollView.contentView)
+            } else {
+                textView.scrollRangeToVisible(NSRange(location: 0, length: 0))
+            }
+
             loadSyntaxHighlightFirstTime(
                 for: textView,
                 isDark: isDark,
@@ -833,6 +879,7 @@ struct CodeView: NSViewRepresentable {
     }
 
     /// 增量追加新片段（新文本在主线程追加呈现，后台头部起算高亮以保证完美着色，完成后刷入属性）
+    @MainActor
     private func appendChunk(
         newText: String,
         for textView: NSTextView,
@@ -854,6 +901,11 @@ struct CodeView: NSViewRepresentable {
         
         textStorage.append(appendedAttrString)
         coordinator.refreshSearchPreservingPosition(in: textView)
+
+        if let liveState = coordinator.liveWatchingState, liveState.isLiveTailMode && liveState.isFollowingTail {
+            let endRange = NSRange(location: (textView.string as NSString).length, length: 0)
+            textView.scrollRangeToVisible(endRange)
+        }
         
         // 如果没有 language，说明是 plainText 模式，无需高亮
         guard let language = language else { return }
@@ -880,7 +932,7 @@ struct CodeView: NSViewRepresentable {
             }
             
             // 4. 主线程中直接一次性将高亮完整的富文本整体写入（仅需一次 Bridge 桥接，速度比 enumerateAttributes 快 20 倍以上）
-            DispatchQueue.main.async {
+            DispatchQueue.main.async { @MainActor in
                 guard CodeViewAsyncRenderPolicy.shouldApply(
                     capturedIdentity: capturedIdentity,
                     currentIdentity: coordinator.currentRenderIdentity,
@@ -888,6 +940,10 @@ struct CodeView: NSViewRepresentable {
                     currentText: textView.string
                 ) else { return }
                 textStorage.setAttributedString(customFull)
+                if let liveState = coordinator.liveWatchingState, liveState.isLiveTailMode && liveState.isFollowingTail {
+                    let endRange = NSRange(location: (textView.string as NSString).length, length: 0)
+                    textView.scrollRangeToVisible(endRange)
+                }
                 coordinator.refreshSearchPreservingPosition(in: textView)
             }
         }

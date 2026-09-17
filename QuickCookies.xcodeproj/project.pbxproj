@@ -33,6 +33,10 @@
 		TLMTREXTRBLD000000000001 /* TelemetryExtractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = TLMTREXTRREF000000000001 /* TelemetryExtractor.swift */; };
 		TLMTRSTABLD0000000000001 /* TelemetryInspectorState.swift in Sources */ = {isa = PBXBuildFile; fileRef = TLMTRSTAREF0000000000001 /* TelemetryInspectorState.swift */; };
 		TLMTRBARBLD0000000000001 /* TelemetryInspectorBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = TLMTRBARREF0000000000001 /* TelemetryInspectorBarView.swift */; };
+		FLWCHWCHBLD0000000000001 /* FileLiveWatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = FLWCHWCHREF0000000000001 /* FileLiveWatcher.swift */; };
+		FLWCHTAIBLD0000000000001 /* FileLiveTailEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = FLWCHTAIREF0000000000001 /* FileLiveTailEngine.swift */; };
+		FLWCHSTABLD0000000000001 /* LiveWatchingState.swift in Sources */ = {isa = PBXBuildFile; fileRef = FLWCHSTAREF0000000000001 /* LiveWatchingState.swift */; };
+		FLWCHBDGBLD0000000000001 /* LiveTailBadgeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FLWCHBDGREF0000000000001 /* LiveTailBadgeView.swift */; };
 		HISTNAVTSTB0000000000001 /* SessionHistoryNavigatorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = HISTNAVTSTR0000000000001 /* SessionHistoryNavigatorTests.swift */; };
 		HISTKEYTSTB0000000000001 /* PreviewOverlayHistoryNavigationKeyPolicyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = HISTKEYTSTR0000000000001 /* PreviewOverlayHistoryNavigationKeyPolicyTests.swift */; };
 		A1B2C3010000000000000004 /* MarkdownImageProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1B2C3010000000000000014 /* MarkdownImageProbe.swift */; };
@@ -89,6 +93,9 @@
 		GOTOLNTSTBLD000000000001 /* GoToLineStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = GOTOLNTSTREF000000000001 /* GoToLineStateTests.swift */; };
 		TLMTREXTSTBLD00000000001 /* TelemetryExtractorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TLMTREXTSTREF00000000001 /* TelemetryExtractorTests.swift */; };
 		TLMTRSTTSTBLD00000000001 /* TelemetryInspectorStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TLMTRSTTSTREF00000000001 /* TelemetryInspectorStateTests.swift */; };
+		FLWCHTAITSTB000000000001 /* FileLiveTailEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FLWCHTAITSTR000000000001 /* FileLiveTailEngineTests.swift */; };
+		FLWCHWCHTSTB000000000001 /* FileLiveWatcherTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FLWCHWCHTSTR000000000001 /* FileLiveWatcherTests.swift */; };
+		FLWCHSTATSTB000000000001 /* LiveWatchingStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = FLWCHSTATSTR000000000001 /* LiveWatchingStateTests.swift */; };
 		CODECRDBLD00000000000001 /* CodeCardConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = CODECRDREF00000000000001 /* CodeCardConfig.swift */; };
 		CARDEXPVWBLD000000000001 /* CodeCardExportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CARDEXPVWREF000000000001 /* CodeCardExportView.swift */; };
 		CLPSNIFFBLD0000000000001 /* ClipboardContentSniffer.swift in Sources */ = {isa = PBXBuildFile; fileRef = CLPSNIFFREF0000000000001 /* ClipboardContentSniffer.swift */; };
@@ -203,6 +210,10 @@
 		TLMTREXTRREF000000000001 /* TelemetryExtractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelemetryExtractor.swift; sourceTree = "<group>"; };
 		TLMTRSTAREF0000000000001 /* TelemetryInspectorState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelemetryInspectorState.swift; sourceTree = "<group>"; };
 		TLMTRBARREF0000000000001 /* TelemetryInspectorBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelemetryInspectorBarView.swift; sourceTree = "<group>"; };
+		FLWCHWCHREF0000000000001 /* FileLiveWatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileLiveWatcher.swift; sourceTree = "<group>"; };
+		FLWCHTAIREF0000000000001 /* FileLiveTailEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileLiveTailEngine.swift; sourceTree = "<group>"; };
+		FLWCHSTAREF0000000000001 /* LiveWatchingState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveWatchingState.swift; sourceTree = "<group>"; };
+		FLWCHBDGREF0000000000001 /* LiveTailBadgeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveTailBadgeView.swift; sourceTree = "<group>"; };
 		HISTNAVTSTR0000000000001 /* SessionHistoryNavigatorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionHistoryNavigatorTests.swift; sourceTree = "<group>"; };
 		HISTKEYTSTR0000000000001 /* PreviewOverlayHistoryNavigationKeyPolicyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewOverlayHistoryNavigationKeyPolicyTests.swift; sourceTree = "<group>"; };
 		A1B2C3010000000000000014 /* MarkdownImageProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MarkdownImageProbe.swift; sourceTree = "<group>"; };
@@ -309,6 +320,9 @@
 		GOTOLNTSTREF000000000001 /* GoToLineStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoToLineStateTests.swift; sourceTree = "<group>"; };
 		TLMTREXTSTREF00000000001 /* TelemetryExtractorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelemetryExtractorTests.swift; sourceTree = "<group>"; };
 		TLMTRSTTSTREF00000000001 /* TelemetryInspectorStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelemetryInspectorStateTests.swift; sourceTree = "<group>"; };
+		FLWCHTAITSTR000000000001 /* FileLiveTailEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileLiveTailEngineTests.swift; sourceTree = "<group>"; };
+		FLWCHWCHTSTR000000000001 /* FileLiveWatcherTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileLiveWatcherTests.swift; sourceTree = "<group>"; };
+		FLWCHSTATSTR000000000001 /* LiveWatchingStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveWatchingStateTests.swift; sourceTree = "<group>"; };
 		CODECRDREF00000000000001 /* CodeCardConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeCardConfig.swift; sourceTree = "<group>"; };
 		CARDEXPVWREF000000000001 /* CodeCardExportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodeCardExportView.swift; sourceTree = "<group>"; };
 		CLPSNIFFREF0000000000001 /* ClipboardContentSniffer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardContentSniffer.swift; sourceTree = "<group>"; };
@@ -400,8 +414,18 @@
 				CODECARDGROUP00000000001 /* CodeCard */,
 				CLIPBOARDGROUP00000000001 /* Clipboard */,
 				TELEMETRYGROUP00000000001 /* Telemetry */,
+				WATCHERGROUP000000000001 /* Watcher */,
 			);
 			path = Core;
+			sourceTree = "<group>";
+		};
+		WATCHERGROUP000000000001 /* Watcher */ = {
+			isa = PBXGroup;
+			children = (
+				FLWCHWCHREF0000000000001 /* FileLiveWatcher.swift */,
+				FLWCHTAIREF0000000000001 /* FileLiveTailEngine.swift */,
+			);
+			path = Watcher;
 			sourceTree = "<group>";
 		};
 		TELEMETRYGROUP00000000001 /* Telemetry */ = {
@@ -517,8 +541,18 @@
 				GOTOLNBARREF000000000001 /* GoToLineBarView.swift */,
 				TLMTRSTAREF0000000000001 /* TelemetryInspectorState.swift */,
 				TLMTRBARREF0000000000001 /* TelemetryInspectorBarView.swift */,
+				LIVEWCHGROUP000000000001 /* LiveWatching */,
 			);
 			path = UI;
+			sourceTree = "<group>";
+		};
+		LIVEWCHGROUP000000000001 /* LiveWatching */ = {
+			isa = PBXGroup;
+			children = (
+				FLWCHSTAREF0000000000001 /* LiveWatchingState.swift */,
+				FLWCHBDGREF0000000000001 /* LiveTailBadgeView.swift */,
+			);
+			path = LiveWatching;
 			sourceTree = "<group>";
 		};
 		KKK111111111111111111111 /* Renderer */ = {
@@ -622,6 +656,9 @@
 				HISTKEYTSTR0000000000001 /* PreviewOverlayHistoryNavigationKeyPolicyTests.swift */,
 				TLMTREXTSTREF00000000001 /* TelemetryExtractorTests.swift */,
 				TLMTRSTTSTREF00000000001 /* TelemetryInspectorStateTests.swift */,
+				FLWCHTAITSTR000000000001 /* FileLiveTailEngineTests.swift */,
+				FLWCHWCHTSTR000000000001 /* FileLiveWatcherTests.swift */,
+				FLWCHSTATSTR000000000001 /* LiveWatchingStateTests.swift */,
 			);
 			path = QuickCookiesTests;
 			sourceTree = "<group>";
@@ -841,6 +878,10 @@
 				TLMTREXTRBLD000000000001 /* TelemetryExtractor.swift in Sources */,
 				TLMTRSTABLD0000000000001 /* TelemetryInspectorState.swift in Sources */,
 				TLMTRBARBLD0000000000001 /* TelemetryInspectorBarView.swift in Sources */,
+				FLWCHWCHBLD0000000000001 /* FileLiveWatcher.swift in Sources */,
+				FLWCHTAIBLD0000000000001 /* FileLiveTailEngine.swift in Sources */,
+				FLWCHSTABLD0000000000001 /* LiveWatchingState.swift in Sources */,
+				FLWCHBDGBLD0000000000001 /* LiveTailBadgeView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -889,6 +930,9 @@
 				HISTKEYTSTB0000000000001 /* PreviewOverlayHistoryNavigationKeyPolicyTests.swift in Sources */,
 				TLMTREXTSTBLD00000000001 /* TelemetryExtractorTests.swift in Sources */,
 				TLMTRSTTSTBLD00000000001 /* TelemetryInspectorStateTests.swift in Sources */,
+				FLWCHTAITSTB000000000001 /* FileLiveTailEngineTests.swift in Sources */,
+				FLWCHWCHTSTB000000000001 /* FileLiveWatcherTests.swift in Sources */,
+				FLWCHSTATSTB000000000001 /* LiveWatchingStateTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

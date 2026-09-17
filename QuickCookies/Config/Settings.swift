@@ -657,7 +657,11 @@ struct Localization {
             "Source Code": [.en: "Source Code", .zhHans: "源码模式"],
             "Preview": [.en: "Preview", .zhHans: "预览"],
             "Copy SVG Code": [.en: "Copy SVG Code", .zhHans: "拷贝 SVG 源码"],
-            "SVG code copied to clipboard": [.en: "SVG code copied to clipboard", .zhHans: "SVG 源码已拷贝到剪贴板"]
+            "SVG code copied to clipboard": [.en: "SVG code copied to clipboard", .zhHans: "SVG 源码已拷贝到剪贴板"],
+            
+            // Live Tail & Watching
+            "Live Tail: Auto-scrolling (Click to pause)": [.en: "Live Tail: Auto-scrolling (Click to pause)", .zhHans: "实时追尾：自动跟随滚屏 (点击暂停)"],
+            "Live Tail: Paused (Click to follow)": [.en: "Live Tail: Paused (Click to follow)", .zhHans: "实时追尾：已暂停 (点击恢复跟随)"]
         ]
         return dict[key]?[lang] ?? key
     }

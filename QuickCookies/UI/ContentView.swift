@@ -236,10 +236,11 @@ struct ContentView: View {
     @State private var localToastMessage: String = ""
     @State private var localToastIcon: String? = nil
     
-    // 全文搜索、行号跳转、工程元数据洞察与 SVG 双模预览状态
+    // 全文搜索、行号跳转、工程元数据洞察、实时追尾监听与 SVG 双模预览状态
     @StateObject private var findBarState = FindBarState()
     @StateObject private var goToLineState = GoToLineState()
     @StateObject private var telemetryState = TelemetryInspectorState()
+    @StateObject private var liveWatchingState = LiveWatchingState()
     @State private var isSVGSourceMode: Bool = false
     @State private var isShareCardPresented: Bool
     @State private var isDirectShareCardMode: Bool
@@ -364,6 +365,7 @@ struct ContentView: View {
                             isDirectShareCardMode = false
                             isShareCardPresented = true
                         },
+                        liveWatchingState: liveWatchingState,
                         canGoBack: historyNavigator.canGoBack,
                         canGoForward: historyNavigator.canGoForward,
                         onGoBack: {
@@ -456,6 +458,7 @@ struct ContentView: View {
                     await triggerPathLoadIfNeeded(path: path)
                 }
             } else {
+                liveWatchingState.stop()
                 telemetryState.dismiss()
                 loadCoordinator.reset()
                 inflightLoadPath = nil
@@ -526,6 +529,23 @@ struct ContentView: View {
             withAnimation(.easeInOut(duration: 0.18)) {
                 isDirectShareCardMode = true
                 isShareCardPresented = true
+            }
+        }
+        .onReceive(liveWatchingState.fileModifiedSubject) {
+            guard let path = activePath else { return }
+            Task {
+                _ = await loadFileAsync(path: path)
+            }
+        }
+        .onReceive(liveWatchingState.logAppendedSubject) { appendedText in
+            guard !appendedText.isEmpty else { return }
+            self.content += appendedText
+        }
+        .onReceive(liveWatchingState.logTruncatedSubject) {
+            guard let path = activePath else { return }
+            self.content = ""
+            Task {
+                _ = await loadFileAsync(path: path)
             }
         }
     }
@@ -677,6 +697,7 @@ struct ContentView: View {
                         },
                         findBarState: findBarState,
                         goToLineState: goToLineState,
+                        liveWatchingState: liveWatchingState,
                         initialTargetLine: session.state.initialTargetLine,
                         onInitialTargetLineConsumed: {
                             session.clearInitialTargetLine()
@@ -695,6 +716,7 @@ struct ContentView: View {
                     },
                     findBarState: findBarState,
                     goToLineState: goToLineState,
+                    liveWatchingState: liveWatchingState,
                     initialTargetLine: session.state.initialTargetLine,
                     onInitialTargetLineConsumed: {
                         session.clearInitialTargetLine()
@@ -714,6 +736,7 @@ struct ContentView: View {
                         },
                         findBarState: findBarState,
                         goToLineState: goToLineState,
+                        liveWatchingState: liveWatchingState,
                         initialTargetLine: session.state.initialTargetLine,
                         onInitialTargetLineConsumed: {
                             session.clearInitialTargetLine()
@@ -880,6 +903,12 @@ struct ContentView: View {
                     self.loadedContentPath = path
                     self.loadState.hasMoreChunks = payload.2
                     self.session.markReady()
+                    let fileSize = (try? FileManager.default.attributesOfItem(atPath: path)[.size] as? UInt64) ?? UInt64(payload.1.utf8.count)
+                    if self.liveWatchingState.activePath != path {
+                        self.liveWatchingState.start(for: path, initialFileSize: fileSize)
+                    } else {
+                        self.liveWatchingState.syncOffset(fileSize)
+                    }
                     if self.activeRenderType == .markdown {
                         self.markdownHasLoadedInitialContent = true
                         self.markdownPreviewTimeline?.mark(.firstChunkReady)
@@ -956,6 +985,7 @@ struct ContentView: View {
                 self.content += payload.0
                 self.loadState.hasMoreChunks = payload.1
                 self.loadState.isIncrementalLoading = false
+                self.liveWatchingState.syncOffset(reader.currentOffset)
             case .failure(let error):
                 let runtimeErrorMessage = (error.errorDescription ?? "载入后续文本失败").localized()
                 self.loadState.isIncrementalLoading = false
@@ -1023,6 +1053,7 @@ struct ContentView: View {
             self.content += remainingContent
             self.loadState.hasMoreChunks = false
             self.loadState.isIncrementalLoading = false
+            self.liveWatchingState.syncOffset(reader.currentOffset)
         case .failure:
             self.loadState.isIncrementalLoading = false
         }
@@ -1180,6 +1211,7 @@ struct PreviewCodeView: View {
     let onLoadMore: () -> Void
     var findBarState: FindBarState? = nil
     var goToLineState: GoToLineState? = nil
+    var liveWatchingState: LiveWatchingState? = nil
     var initialTargetLine: Int? = nil
     var onInitialTargetLineConsumed: (() -> Void)? = nil
 
@@ -1195,6 +1227,7 @@ struct PreviewCodeView: View {
         onLoadMore: @escaping () -> Void,
         findBarState: FindBarState? = nil,
         goToLineState: GoToLineState? = nil,
+        liveWatchingState: LiveWatchingState? = nil,
         initialTargetLine: Int? = nil,
         onInitialTargetLineConsumed: (() -> Void)? = nil
     ) {
@@ -1206,6 +1239,7 @@ struct PreviewCodeView: View {
         self.onLoadMore = onLoadMore
         self.findBarState = findBarState
         self.goToLineState = goToLineState
+        self.liveWatchingState = liveWatchingState
         self.initialTargetLine = initialTargetLine
         self.onInitialTargetLineConsumed = onInitialTargetLineConsumed
     }
@@ -1222,6 +1256,7 @@ struct PreviewCodeView: View {
             onLoadMore: onLoadMore,
             findBarState: findBarState,
             goToLineState: goToLineState,
+            liveWatchingState: liveWatchingState,
             initialTargetLine: initialTargetLine,
             onInitialTargetLineConsumed: onInitialTargetLineConsumed
         )

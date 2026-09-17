@@ -26,6 +26,9 @@ struct PreviewHeaderView: View {
     // 分享代码卡片
     var onShareCard: (() -> Void)? = nil
 
+    // 实时监听与追尾状态
+    var liveWatchingState: LiveWatchingState? = nil
+
     // 历史往复导航 (⌘[ / ⌘])
     var canGoBack: Bool = false
     var canGoForward: Bool = false
@@ -126,10 +129,16 @@ struct PreviewHeaderView: View {
                         .foregroundColor(Color.appText.opacity(0.6))
                 }
                 
-                // 状态修饰点
-                Circle()
-                    .fill(activePath == nil ? Color.accentColor.opacity(0.8) : Color.blue.opacity(0.8))
-                    .frame(width: 6, height: 6)
+                // 状态修饰点与日志追尾微徽标
+                if let liveState = liveWatchingState, liveState.isLiveTailMode {
+                    LiveTailBadgeView(liveState: liveState)
+                } else {
+                    Circle()
+                        .fill(activePath == nil ? Color.accentColor.opacity(0.8) : (liveWatchingState?.isHotReloading == true ? Color.green.opacity(0.9) : Color.blue.opacity(0.8)))
+                        .frame(width: 6, height: 6)
+                        .scaleEffect(liveWatchingState?.isHotReloading == true ? 1.3 : 1.0)
+                        .animation(.easeInOut(duration: 0.2), value: liveWatchingState?.isHotReloading)
+                }
             }
 
             Spacer()
