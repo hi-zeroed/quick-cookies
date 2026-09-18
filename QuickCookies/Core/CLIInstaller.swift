@@ -93,16 +93,16 @@ enum CLIInstallerPolicy {
             if is_chinese; then
                 cat << EOF
         QuickCookies CLI (qc) v${VERSION}
-        在访达与终端中极速预览代码、Markdown、配置、归档与各类文件。
+        在终端与访达中快速预览代码、Markdown、配置、归档与各类文件。
 
         用法:
             qc <文件或目录路径>     在 QuickCookies 浮层中打开预览
             qc <文件路径:行号>      在浮层中打开并精准定位到指定行（如 qc App.swift:142）
             qc -l, --line <行号>   指定预览跳转的目标行号（如 qc -l 142 App.swift）
             qc -s, --card          制作代码分享卡片（如 qc -s App.swift 或单独 qc -s）
-            qc -f, --finder        透视当前访达中选中的文件
+            qc -f, --finder        预览当前访达中选中的文件
             qc .                   预览当前目录
-            qc -c, --clipboard     透视剪贴板中的文本、代码、JSON 或图片
+            qc -c, --clipboard     预览剪贴板中的文本、代码、JSON 或图片
             qc -h, --help          查看帮助信息
             qc -v, --version       查看版本号
 
@@ -120,16 +120,16 @@ enum CLIInstallerPolicy {
             else
                 cat << EOF
         QuickCookies CLI (qc) v${VERSION}
-        Instantly preview code, Markdown, configs, archives and files from Finder and Terminal.
+        Preview code, Markdown, configs, archives and files from Finder and Terminal.
 
         Usage:
             qc <file or directory path>    Open preview in QuickCookies overlay
             qc <file:line>                 Open preview and jump to target line (e.g. qc App.swift:142)
             qc -l, --line <number>         Specify target line number (e.g. qc -l 142 App.swift)
-            qc -s, --card                  Open Card Studio for code sharing (e.g. qc -s App.swift or qc -s)
+            qc -s, --card                  Export code card for sharing (e.g. qc -s App.swift or qc -s)
             qc -f, --finder                Preview currently selected file in Finder
             qc .                           Preview current directory
-            qc -c, --clipboard             Inspect text, code, JSON, or image from clipboard
+            qc -c, --clipboard             Preview text, code, JSON, or image from clipboard
             qc -h, --help                  Show help information
             qc -v, --version               Show version number
 

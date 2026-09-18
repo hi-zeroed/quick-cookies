@@ -821,7 +821,7 @@ struct CodeCardExportModalView: View {
                     
                     if !config.focusedLineIndices.isEmpty {
                         HStack {
-                            Text(config.focusedLineIndices.count == 1 ? "1 focused".localized() : "\(config.focusedLineIndices.count) focused".localized())
+                            Text(config.focusedLineIndices.count == 1 ? "Focused 1 line".localized() : String(format: "Focused %d lines".localized(), config.focusedLineIndices.count))
                                 .font(.system(size: 10.5, weight: .semibold))
                                 .foregroundColor(.accentColor)
                             Spacer()

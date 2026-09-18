@@ -134,7 +134,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         // 注册 Services 菜单项
         NSApp.servicesProvider = QuickCookiesServiceProvider(
-            requestController: previewRequestController
+            requestController: previewRequestController,
+            showToastHandler: { [weak self] message, icon in
+                self?.previewPresenter.showToast(message: message, icon: icon)
+            }
         )
 
         // 在正常工作流稳定后以低优先级预热共享 WebKit 运行时，
@@ -290,6 +293,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             return
         }
         do {
+            if case .fileURL(let path, let targetLine) = sniffResult {
+                previewRequestController.openPath(path, source: .urlScheme, targetLine: targetLine)
+                return
+            }
             if let (filePath, _) = try ClipboardContentSniffer.materialize(result: sniffResult) {
                 previewRequestController.openPath(filePath, source: .urlScheme)
             }
@@ -443,16 +450,24 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 /// Services 菜单项提供者（右键菜单集成）
 class QuickCookiesServiceProvider: NSObject {
     private let requestController: PreviewRequestController
+    private let showToastHandler: (@MainActor (String, String?) -> Void)?
 
-    init(requestController: PreviewRequestController) {
+    init(requestController: PreviewRequestController, showToastHandler: (@MainActor (String, String?) -> Void)? = nil) {
         self.requestController = requestController
+        self.showToastHandler = showToastHandler
     }
 
-    /// Services 菜单项：打开 QuickCookies
-    @objc func quickCookiesService(_ pasteboard: NSPasteboard, userData: String?, error: AutoreleasingUnsafeMutablePointer<NSString>) {
+    /// Services 菜单项：系统调用入口
+    @objc func quickCookiesService(_ pasteboard: NSPasteboard, userData: String?, error: AutoreleasingUnsafeMutablePointer<NSString?>) {
+        handleServicePasteboard(pasteboard)
+    }
+
+    /// 核心服务解析逻辑
+    func handleServicePasteboard(_ pasteboard: NSPasteboard) {
         // 1. 尝试作为 URL 读取
         if let urls = pasteboard.readObjects(forClasses: [NSURL.self], options: nil) as? [URL],
-           let firstURL = urls.first {
+           let firstURL = urls.first,
+           firstURL.isFileURL {
             Task { @MainActor in
                 requestController.openPath(firstURL.path, source: .service)
             }
@@ -467,6 +482,23 @@ class QuickCookiesServiceProvider: NSObject {
                 requestController.openPath(firstPath, source: .service)
             }
             return
+        }
+
+        // 3. 核心：读取划选的纯文本（NSStringPboardType / .string）
+        let stringType = NSPasteboard.PasteboardType("NSStringPboardType")
+        if let text = pasteboard.string(forType: .string) ?? pasteboard.string(forType: stringType),
+           !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            if let target = UniversalPathResolver.resolve(text) {
+                Task { @MainActor in
+                    requestController.openPath(target.fileURL.path, source: .service, targetLine: target.targetLine)
+                }
+                return
+            }
+        }
+
+        // 4. 未能找到有效本地路径时，温和弹出 Toast 提示
+        Task { @MainActor in
+            showToastHandler?("No valid file path found".localized(), "questionmark.folder")
         }
     }
 }

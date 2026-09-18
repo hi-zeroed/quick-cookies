@@ -27,6 +27,7 @@
 		HISTKEYBLD00000000000001 /* PreviewOverlayHistoryNavigationKeyPolicy.swift in Sources */ = {isa = PBXBuildFile; fileRef = HISTKEYREF00000000000001 /* PreviewOverlayHistoryNavigationKeyPolicy.swift */; };
 		READYVWBLD00000000000001 /* PreviewReadyStateView.swift in Sources */ = {isa = PBXBuildFile; fileRef = READYVWREF00000000000001 /* PreviewReadyStateView.swift */; };
 		CLILINEPRSBLD00000000001 /* CLILineParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = CLILINEPRSREF00000000001 /* CLILineParser.swift */; };
+		UNVPATHBLD00000000000001 /* UniversalPathResolver.swift in Sources */ = {isa = PBXBuildFile; fileRef = UNVPATHREF00000000000001 /* UniversalPathResolver.swift */; };
 		GOTOLNSTBLD0000000000001 /* GoToLineState.swift in Sources */ = {isa = PBXBuildFile; fileRef = GOTOLNSTREF0000000000001 /* GoToLineState.swift */; };
 		GOTOLNBARBLD000000000001 /* GoToLineBarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = GOTOLNBARREF000000000001 /* GoToLineBarView.swift */; };
 		TLMTRMDLBLD0000000000001 /* TelemetryInspectorModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = TLMTRMDLREF0000000000001 /* TelemetryInspectorModels.swift */; };
@@ -100,6 +101,8 @@
 		LQGLSTSTBLD0000000000001 /* LiquidGlassChromeModifierTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = LQGLSTSTREF0000000000001 /* LiquidGlassChromeModifierTests.swift */; };
 		CLIINSTLTSTBLD0000000001 /* CLIInstallerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CLIINSTLTSTREF0000000001 /* CLIInstallerTests.swift */; };
 		CLILNTSTBLD0000000000001 /* CLILineParserTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CLILNTSTREF0000000000001 /* CLILineParserTests.swift */; };
+		UNVPTSTBLD00000000000001 /* UniversalPathResolverTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = UNVPTSTREF00000000000001 /* UniversalPathResolverTests.swift */; };
+		SRVPRVTSTBLD000000000001 /* QuickCookiesServiceProviderTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = SRVPRVTSTREF000000000001 /* QuickCookiesServiceProviderTests.swift */; };
 		GOTOLNTSTBLD000000000001 /* GoToLineStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = GOTOLNTSTREF000000000001 /* GoToLineStateTests.swift */; };
 		TLMTREXTSTBLD00000000001 /* TelemetryExtractorTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TLMTREXTSTREF00000000001 /* TelemetryExtractorTests.swift */; };
 		TLMTRSTTSTBLD00000000001 /* TelemetryInspectorStateTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = TLMTRSTTSTREF00000000001 /* TelemetryInspectorStateTests.swift */; };
@@ -212,6 +215,7 @@
 		HISTKEYREF00000000000001 /* PreviewOverlayHistoryNavigationKeyPolicy.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewOverlayHistoryNavigationKeyPolicy.swift; sourceTree = "<group>"; };
 		READYVWREF00000000000001 /* PreviewReadyStateView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewReadyStateView.swift; sourceTree = "<group>"; };
 		CLILINEPRSREF00000000001 /* CLILineParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLILineParser.swift; sourceTree = "<group>"; };
+		UNVPATHREF00000000000001 /* UniversalPathResolver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UniversalPathResolver.swift; sourceTree = "<group>"; };
 		GOTOLNSTREF0000000000001 /* GoToLineState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoToLineState.swift; sourceTree = "<group>"; };
 		GOTOLNBARREF000000000001 /* GoToLineBarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoToLineBarView.swift; sourceTree = "<group>"; };
 		TLMTRMDLREF0000000000001 /* TelemetryInspectorModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelemetryInspectorModels.swift; sourceTree = "<group>"; };
@@ -335,6 +339,8 @@
 		LQGLSTSTREF0000000000001 /* LiquidGlassChromeModifierTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiquidGlassChromeModifierTests.swift; sourceTree = "<group>"; };
 		CLIINSTLTSTREF0000000001 /* CLIInstallerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLIInstallerTests.swift; sourceTree = "<group>"; };
 		CLILNTSTREF0000000000001 /* CLILineParserTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLILineParserTests.swift; sourceTree = "<group>"; };
+		UNVPTSTREF00000000000001 /* UniversalPathResolverTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UniversalPathResolverTests.swift; sourceTree = "<group>"; };
+		SRVPRVTSTREF000000000001 /* QuickCookiesServiceProviderTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickCookiesServiceProviderTests.swift; sourceTree = "<group>"; };
 		GOTOLNTSTREF000000000001 /* GoToLineStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoToLineStateTests.swift; sourceTree = "<group>"; };
 		TLMTREXTSTREF00000000001 /* TelemetryExtractorTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelemetryExtractorTests.swift; sourceTree = "<group>"; };
 		TLMTRSTTSTREF00000000001 /* TelemetryInspectorStateTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TelemetryInspectorStateTests.swift; sourceTree = "<group>"; };
@@ -430,6 +436,7 @@
 				CLIINSTLREF0000000000001 /* CLIInstaller.swift */,
 				URLROUTERREF0000000000001 /* URLSchemeRouter.swift */,
 				CLILINEPRSREF00000000001 /* CLILineParser.swift */,
+				UNVPATHREF00000000000001 /* UniversalPathResolver.swift */,
 				CODECARDGROUP00000000001 /* CodeCard */,
 				CLIPBOARDGROUP00000000001 /* Clipboard */,
 				TELEMETRYGROUP00000000001 /* Telemetry */,
@@ -704,6 +711,8 @@
 				LQGLSTSTREF0000000000001 /* LiquidGlassChromeModifierTests.swift */,
 				CLIINSTLTSTREF0000000001 /* CLIInstallerTests.swift */,
 				CLILNTSTREF0000000000001 /* CLILineParserTests.swift */,
+				UNVPTSTREF00000000000001 /* UniversalPathResolverTests.swift */,
+				SRVPRVTSTREF000000000001 /* QuickCookiesServiceProviderTests.swift */,
 				GOTOLNTSTREF000000000001 /* GoToLineStateTests.swift */,
 				CARDEXPTSTREF00000000001 /* CodeCardExportTests.swift */,
 				CLPSNFTSTREF000000000001 /* ClipboardContentSnifferTests.swift */,
@@ -937,6 +946,7 @@
 				HISTKEYBLD00000000000001 /* PreviewOverlayHistoryNavigationKeyPolicy.swift in Sources */,
 				READYVWBLD00000000000001 /* PreviewReadyStateView.swift in Sources */,
 				CLILINEPRSBLD00000000001 /* CLILineParser.swift in Sources */,
+				UNVPATHBLD00000000000001 /* UniversalPathResolver.swift in Sources */,
 				GOTOLNSTBLD0000000000001 /* GoToLineState.swift in Sources */,
 				GOTOLNBARBLD000000000001 /* GoToLineBarView.swift in Sources */,
 				TLMTRMDLBLD0000000000001 /* TelemetryInspectorModels.swift in Sources */,
@@ -991,6 +1001,8 @@
 				LQGLSTSTBLD0000000000001 /* LiquidGlassChromeModifierTests.swift in Sources */,
 				CLIINSTLTSTBLD0000000001 /* CLIInstallerTests.swift in Sources */,
 				CLILNTSTBLD0000000000001 /* CLILineParserTests.swift in Sources */,
+				UNVPTSTBLD00000000000001 /* UniversalPathResolverTests.swift in Sources */,
+				SRVPRVTSTBLD000000000001 /* QuickCookiesServiceProviderTests.swift in Sources */,
 				GOTOLNTSTBLD000000000001 /* GoToLineStateTests.swift in Sources */,
 				CARDEXPTSTBLD00000000001 /* CodeCardExportTests.swift in Sources */,
 				CLPSNFTSTBLD000000000001 /* ClipboardContentSnifferTests.swift in Sources */,

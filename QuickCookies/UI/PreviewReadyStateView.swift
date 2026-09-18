@@ -144,7 +144,7 @@ struct PreviewReadyStateView: View {
             return "Clipboard: Image (Click to inspect)".localized()
         case .plainText:
             return "Clipboard: Text (Click to inspect)".localized()
-        case .fileURL(let path):
+        case .fileURL(let path, _):
             let name = URL(fileURLWithPath: path).lastPathComponent
             return String(format: "Clipboard: %@ (Click to inspect)".localized(), name)
         case .empty:

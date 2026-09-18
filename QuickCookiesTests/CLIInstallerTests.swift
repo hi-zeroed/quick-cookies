@@ -30,8 +30,8 @@ final class CLIInstallerTests: XCTestCase {
     func test_defaultScriptContent_containsBilingualHelp() {
         let content = CLIInstallerPolicy.defaultScriptContent()
         XCTAssertTrue(content.contains("is_chinese()"))
-        XCTAssertTrue(content.contains("在访达与终端中极速预览代码"))
-        XCTAssertTrue(content.contains("Instantly preview code"))
+        XCTAssertTrue(content.contains("快速预览代码"))
+        XCTAssertTrue(content.contains("Preview code"))
     }
     
     func test_extractVersion_fromValidScript() throws {

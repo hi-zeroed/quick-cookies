@@ -44,7 +44,7 @@
 			<key>NSMenuItem</key>
 			<dict>
 				<key>default</key>
-				<string>Quick Cookies</string>
+				<string>使用 QuickCookies 预览</string>
 			</dict>
 			<key>NSMessage</key>
 			<string>quickCookiesService</string>
@@ -53,7 +53,9 @@
 			<key>NSSendTypes</key>
 			<array>
 				<string>NSStringPboardType</string>
+				<string>public.plain-text</string>
 				<string>NSFilenamesPboardType</string>
+				<string>public.file-url</string>
 			</array>
 		</dict>
 	</array>

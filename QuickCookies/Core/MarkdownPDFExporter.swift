@@ -115,7 +115,7 @@ class MarkdownPDFExporter: NSObject, WKNavigationDelegate {
                 hljs.highlightAll();
             }
         } catch (e) {
-            document.getElementById('content').innerText = "渲染错误: " + e.message;
+            document.getElementById('content').innerText = "Render error: " + e.message;
         }
         </script>
         </body>

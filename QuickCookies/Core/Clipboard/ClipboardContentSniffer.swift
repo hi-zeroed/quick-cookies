@@ -3,7 +3,7 @@ import AppKit
 
 /// 剪贴板内容类型嗅探结果
 enum ClipboardSniffResult: Equatable {
-    case fileURL(path: String)
+    case fileURL(path: String, targetLine: Int? = nil)
     case image(data: Data)
     case json(formattedContent: String)
     case code(content: String, language: String, fileExtension: String)
@@ -46,11 +46,9 @@ enum ClipboardContentSniffer {
         if let text = pasteboard.string(forType: .string), !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
             
-            // 3.1 检查文本是否本身是一个有效的本地文件绝对路径
-            if (trimmed.hasPrefix("/") || trimmed.hasPrefix("file://")),
-               let url = trimmed.hasPrefix("file://") ? URL(string: trimmed) : URL(fileURLWithPath: trimmed),
-               FileManager.default.fileExists(atPath: url.path) {
-                return .fileURL(path: url.path)
+            // 3.1 优先通过 UniversalPathResolver 检查文本是否命中本地物理文件（支持~展开、引号包裹、:line 行号等）
+            if let target = UniversalPathResolver.resolve(trimmed) {
+                return .fileURL(path: target.fileURL.path, targetLine: target.targetLine)
             }
             
             // 3.2 检查是否为合法的 JSON 数据
@@ -86,7 +84,7 @@ enum ClipboardContentSniffer {
         case .empty:
             return nil
             
-        case .fileURL(let path):
+        case .fileURL(let path, _):
             return (path, URL(fileURLWithPath: path).lastPathComponent)
             
         case .image(let data):

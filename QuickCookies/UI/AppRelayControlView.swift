@@ -41,7 +41,7 @@ struct AppRelayControlView: View {
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.plain)
-                .help("Open with \(app.name)".localized())
+                .help(String(format: "Open with %@".localized(), app.name))
                 .onHover { isActionHovered = $0 }
 
                 // 2. 右半区：微型下拉角标按钮（Hover 全覆盖右侧圆角，精准在下方弹出菜单）

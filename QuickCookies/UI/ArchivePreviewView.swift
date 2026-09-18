@@ -155,7 +155,7 @@ struct ArchivePreviewView: View {
         }
         parts.append(summary.formattedUncompressedSize)
         if let ratio = summary.compressionRatioPercentage, ratio > 0 {
-            let ratioText = String(format: "%@ %d%%".localized(), "Compression Ratio".localized(), ratio)
+            let ratioText = String(format: "%@: %d%%", "Compression Ratio".localized(), ratio)
             parts.append(ratioText)
         }
         return parts.joined(separator: " · ")

@@ -211,4 +211,24 @@ final class ClipboardContentSnifferTests: XCTestCase {
         let readData = try Data(contentsOf: URL(fileURLWithPath: filePath))
         XCTAssertEqual(readData, pngData)
     }
+
+    func testSniff_physicalFilePathString_promotesToFileURLWithTargetLine() throws {
+        let tempFile = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("ClipboardSniffTest_\(UUID().uuidString).swift")
+        try "func test() {}".write(to: tempFile, atomically: true, encoding: .utf8)
+        tempFilesToClean.append(tempFile.path)
+
+        // 剪贴板放入包含行号的真实物理路径
+        let pathWithLine = "\"\(tempFile.path):128\""
+        testPasteboard.clearContents()
+        testPasteboard.setString(pathWithLine, forType: .string)
+
+        let result = ClipboardContentSniffer.sniff(pasteboard: testPasteboard)
+        switch result {
+        case .fileURL(let path, let targetLine):
+            XCTAssertEqual(path, tempFile.path)
+            XCTAssertEqual(targetLine, 128)
+        default:
+            XCTFail("预期识别为 .fileURL 并带行号 128，实际得到: \(result)")
+        }
+    }
 }
