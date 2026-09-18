@@ -238,8 +238,8 @@ struct ContentView: View {
     
     // 全文搜索、行号跳转、工程元数据洞察、实时追尾监听与 SVG 双模预览状态
     @StateObject private var findBarState = FindBarState()
-    @StateObject private var goToLineState = GoToLineState()
-    @StateObject private var telemetryState = TelemetryInspectorState()
+    @State private var goToLineState = GoToLineState()
+    @State private var telemetryState = TelemetryInspectorState()
     @StateObject private var liveWatchingState = LiveWatchingState()
     @State private var isSVGSourceMode: Bool = false
     @State private var isCSVSourceMode: Bool = false
@@ -383,6 +383,12 @@ struct ContentView: View {
                                     windowActions.openPath?(path, .internalNavigation)
                                 }
                             }
+                        },
+                        isTelemetryActive: telemetryState.isPresented,
+                        onToggleTelemetry: {
+                            if let path = activePath, let renderType = activeRenderType {
+                                telemetryState.toggle(path: path, renderType: renderType, content: content)
+                            }
                         }
                     )
                     .zIndex(1) // 锁定层级，确保工具栏处于最前，防止 MarkdownView 的 ScrollView 穿透遮挡
@@ -404,10 +410,7 @@ struct ContentView: View {
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .ignoresSafeArea(edges: .top)
-                .background(
-                    VisualEffectView(material: .hudWindow, blendingMode: .behindWindow)
-                )
-                .clipShape(RoundedRectangle(cornerRadius: PreviewCardChromePolicy.cornerRadius, style: .continuous))
+                .liquidGlassCard(cornerRadius: PreviewCardChromePolicy.cornerRadius)
                 .overlay {
                     cardChromeBorder
                 }
@@ -418,7 +421,7 @@ struct ContentView: View {
         .padding(isShareCardPresented ? 0 : cardOuterPadding)
         .background(Color.clear) // 根容器背景必须是透明 clear，保持留白边缘穿透
         .toast(isShowing: $showLocalToast, message: localToastMessage, icon: localToastIcon)
-        .onChange(of: isShareCardPresented) { isPresented in
+        .onChange(of: isShareCardPresented) { _, isPresented in
             if let window = windowActions.currentWindow() {
                 window.hasShadow = !isPresented && PreviewOverlayWindowChromePolicy.usesSystemWindowShadow
                 window.invalidateShadow()
@@ -451,7 +454,7 @@ struct ContentView: View {
                 await triggerPathLoadIfNeeded(path: path)
             }
         }
-        .onChange(of: activePath) { newPath in
+        .onChange(of: activePath) { _, newPath in
             findBarState.dismiss()
             isSVGSourceMode = false
             isCSVSourceMode = false
@@ -476,7 +479,7 @@ struct ContentView: View {
                 markdownBootstrapReady = false
             }
         }
-        .onChange(of: activeRenderType) { newRenderType in
+        .onChange(of: activeRenderType) { _, newRenderType in
             resetHeavyPreviewState(for: newRenderType)
             markdownBootstrapReady = false
             if newRenderType != .markdown {
@@ -484,13 +487,13 @@ struct ContentView: View {
                 markdownHasLoadedInitialContent = false
             }
         }
-        .onChange(of: goToLineState.isPresented) { isPresented in
+        .onChange(of: goToLineState.isPresented) { _, isPresented in
             windowActions.onSearchStateChanged?(isPresented || findBarState.isPresented)
             if isPresented && findBarState.isPresented {
                 findBarState.dismiss()
             }
         }
-        .onChange(of: findBarState.isPresented) { isPresented in
+        .onChange(of: findBarState.isPresented) { _, isPresented in
             windowActions.onSearchStateChanged?(isPresented || goToLineState.isPresented)
             if isPresented {
                 if goToLineState.isPresented {
@@ -499,7 +502,7 @@ struct ContentView: View {
                 triggerFullLoadForSearchIfNeeded()
             }
         }
-        .onChange(of: findBarState.query) { newQuery in
+        .onChange(of: findBarState.query) { _, newQuery in
             if !newQuery.isEmpty && findBarState.isPresented {
                 triggerFullLoadForSearchIfNeeded()
             }

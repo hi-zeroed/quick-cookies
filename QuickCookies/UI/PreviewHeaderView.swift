@@ -38,13 +38,13 @@ struct PreviewHeaderView: View {
     var onGoBack: (() -> Void)? = nil
     var onGoForward: (() -> Void)? = nil
     
+    // 工程元数据洞察 (⌘I 与顶栏按钮)
+    var isTelemetryActive: Bool = false
+    var onToggleTelemetry: (() -> Void)? = nil
+    
     @State private var isHeaderHovered: Bool = false
     @State private var isBackHovered: Bool = false
     @State private var isForwardHovered: Bool = false
-    @State private var isSearchHovered: Bool = false
-    @State private var isCopySVGHovered: Bool = false
-    @State private var isPDFHovered: Bool = false
-    @State private var isShareCardHovered: Bool = false
 
     var body: some View {
         HStack {
@@ -68,36 +68,38 @@ struct PreviewHeaderView: View {
                 }
 
                 // 历史往复回溯导航微按钮组 (◀ ▶)
-                HStack(spacing: 2) {
-                    Button(action: { onGoBack?() }) {
-                        Image(systemName: "chevron.backward")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(canGoBack ? Color.appText.opacity(isBackHovered ? 1.0 : 0.65) : Color.appText.opacity(0.18))
-                            .frame(width: 18, height: 18)
-                            .background(
-                                RoundedRectangle(cornerRadius: 4)
-                                    .fill(canGoBack && isBackHovered ? Color.white.opacity(colorScheme == .dark ? 0.12 : 0.18) : Color.clear)
-                            )
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                    .disabled(!canGoBack)
-                    .onHover { isBackHovered = $0 }
-                    .help("Back (⌘[)".localized())
+                LiquidGlassToolbarContainer(spacing: 2) {
+                    HStack(spacing: 2) {
+                        Button(action: { onGoBack?() }) {
+                            Image(systemName: "chevron.backward")
+                                .font(.system(size: 10, weight: .bold))
+                                .foregroundColor(canGoBack ? Color.appText.opacity(isBackHovered ? 1.0 : 0.65) : Color.appText.opacity(0.18))
+                                .frame(width: 18, height: 18)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 4)
+                                        .fill(canGoBack && isBackHovered ? Color.white.opacity(colorScheme == .dark ? 0.12 : 0.18) : Color.clear)
+                                )
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        .disabled(!canGoBack)
+                        .onHover { isBackHovered = $0 }
+                        .help("Back (⌘[)".localized())
 
-                    Button(action: { onGoForward?() }) {
-                        Image(systemName: "chevron.forward")
-                            .font(.system(size: 10, weight: .bold))
-                            .foregroundColor(canGoForward ? Color.appText.opacity(isForwardHovered ? 1.0 : 0.65) : Color.appText.opacity(0.18))
-                            .frame(width: 18, height: 18)
-                            .background(
-                                RoundedRectangle(cornerRadius: 4)
-                                    .fill(canGoForward && isForwardHovered ? Color.white.opacity(colorScheme == .dark ? 0.12 : 0.18) : Color.clear)
-                            )
+                        Button(action: { onGoForward?() }) {
+                            Image(systemName: "chevron.forward")
+                                .font(.system(size: 10, weight: .bold))
+                                .foregroundColor(canGoForward ? Color.appText.opacity(isForwardHovered ? 1.0 : 0.65) : Color.appText.opacity(0.18))
+                                .frame(width: 18, height: 18)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 4)
+                                        .fill(canGoForward && isForwardHovered ? Color.white.opacity(colorScheme == .dark ? 0.12 : 0.18) : Color.clear)
+                                )
+                        }
+                        .buttonStyle(PlainButtonStyle())
+                        .disabled(!canGoForward)
+                        .onHover { isForwardHovered = $0 }
+                        .help("Forward (⌘])".localized())
                     }
-                    .buttonStyle(PlainButtonStyle())
-                    .disabled(!canGoForward)
-                    .onHover { isForwardHovered = $0 }
-                    .help("Forward (⌘])".localized())
                 }
             }
             .frame(width: 108, alignment: .leading)
@@ -141,8 +143,9 @@ struct PreviewHeaderView: View {
             Spacer()
 
             // 右侧控制区域（外部接力打开、SVG模式切换、⌥F搜索、PDF导出）
-            HStack(spacing: 8) {
-                if let path = activePath, activeErrorMessage == nil {
+            LiquidGlassToolbarContainer(spacing: 6) {
+                HStack(spacing: 8) {
+                    if let path = activePath, activeErrorMessage == nil {
                     // SVG 双模切换胶囊 & 源码复制按钮
                     let isSVG = path.lowercased().hasSuffix(".svg")
                     if isSVG {
@@ -198,30 +201,15 @@ struct PreviewHeaderView: View {
 
                             // 源码模式下一键复制 SVG 源码
                             if isSVGSourceMode {
-                                Button(action: {
-                                    NSPasteboard.general.clearContents()
-                                    NSPasteboard.general.setString(svgContent, forType: .string)
-                                    onShowToast("SVG code copied to clipboard".localized(), "doc.on.doc")
-                                }) {
-                                    Image(systemName: "doc.on.doc")
-                                        .font(.system(size: 12, weight: .medium))
-                                        .foregroundColor(Color.appText.opacity(isCopySVGHovered ? 0.95 : 0.75))
-                                        .frame(width: 22, height: 22)
-                                        .background(
-                                            RoundedRectangle(cornerRadius: 5)
-                                                .fill(Color.appText.opacity(isCopySVGHovered ? 0.12 : 0.06))
-                                        )
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 5)
-                                                .stroke(Color.appText.opacity(isCopySVGHovered ? 0.18 : (colorScheme == .dark ? 0.12 : 0.08)), lineWidth: 0.5)
-                                        )
-                                        .contentShape(Rectangle())
-                                }
-                                .buttonStyle(.plain)
-                                .help("Copy SVG Code".localized())
-                                .onHover { hovering in
-                                    isCopySVGHovered = hovering
-                                }
+                                HeaderToolbarButton(
+                                    iconName: "doc.on.doc",
+                                    helpText: "Copy SVG Code".localized(),
+                                    action: {
+                                        NSPasteboard.general.clearContents()
+                                        NSPasteboard.general.setString(svgContent, forType: .string)
+                                        onShowToast("SVG code copied to clipboard".localized(), "doc.on.doc")
+                                    }
+                                )
                             }
                         }
                     }
@@ -285,62 +273,46 @@ struct PreviewHeaderView: View {
                         isSVGSourceMode: isSVGSourceMode
                     )
                     if supportsFind {
-                        Button(action: {
-                            if findBarState.isPresented {
-                                findBarState.dismiss()
-                            } else {
-                                findBarState.present()
+                        HeaderToolbarButton(
+                            iconName: "magnifyingglass",
+                            helpText: "Find in file (⌥F)".localized(),
+                            isActive: findBarState.isPresented,
+                            action: {
+                                if findBarState.isPresented {
+                                    findBarState.dismiss()
+                                } else {
+                                    findBarState.present()
+                                }
                             }
-                        }) {
-                            Image(systemName: "magnifyingglass")
-                                .font(.system(size: 12, weight: .medium))
-                                .foregroundColor(findBarState.isPresented ? Color.accentColor : Color.appText.opacity(isSearchHovered ? 0.95 : 0.75))
-                                .frame(width: 22, height: 22)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 5)
-                                        .fill(findBarState.isPresented ? Color.accentColor.opacity(0.15) : Color.appText.opacity(isSearchHovered ? 0.12 : 0.06))
-                                 )
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 5)
-                                        .stroke(findBarState.isPresented ? Color.accentColor.opacity(0.3) : Color.appText.opacity(isSearchHovered ? 0.18 : (colorScheme == .dark ? 0.12 : 0.08)), lineWidth: 0.5)
-                                 )
-                                .contentShape(Rectangle())
-                        }
-                        .buttonStyle(.plain)
-                        .help("Find in file (⌥F)".localized())
+                        )
                         .keyboardShortcut("f", modifiers: .option)
-                        .onHover { hovering in
-                            isSearchHovered = hovering
-                        }
                     }
 
+                    // ⌘I 文件工程元数据洞察按钮 (点击直接开关底部 HUD，无需聚焦窗口)
+                    if onToggleTelemetry != nil {
+                        HeaderToolbarButton(
+                            iconName: "info.circle",
+                            helpText: "File Info (⌘I)".localized(),
+                            isActive: isTelemetryActive,
+                            action: {
+                                onToggleTelemetry?()
+                            }
+                        )
+                    }
+
+                    // PDF 导出按钮
                     if PreviewProviderRegistry.allowsPDFExport(for: activeRenderType) {
                         Group {
                             if isExportingPDF {
                                 ProgressView()
                                     .progressViewStyle(LinearProgressViewStyle(tint: Color.appText.opacity(0.6)))
-                                    .frame(width: 50)
+                                    .frame(width: 44)
                             } else {
-                                Button(action: onExportPDF) {
-                                    Image(systemName: "square.and.arrow.up")
-                                        .font(.system(size: 13, weight: .medium))
-                                        .foregroundColor(Color.appText.opacity(isPDFHovered ? 0.95 : 0.8))
-                                        .frame(width: 22, height: 22)
-                                        .background(
-                                            RoundedRectangle(cornerRadius: 5)
-                                                .fill(Color.appText.opacity(isPDFHovered ? 0.12 : 0.06))
-                                        )
-                                        .overlay(
-                                            RoundedRectangle(cornerRadius: 5)
-                                                .stroke(Color.appText.opacity(isPDFHovered ? 0.18 : (colorScheme == .dark ? 0.12 : 0.08)), lineWidth: 0.5)
-                                        )
-                                        .contentShape(Rectangle())
-                                }
-                                .buttonStyle(.plain)
-                                .help("Export PDF".localized())
-                                .onHover { hovering in
-                                    isPDFHovered = hovering
-                                }
+                                HeaderToolbarButton(
+                                    iconName: "square.and.arrow.up",
+                                    helpText: "Export PDF".localized(),
+                                    action: onExportPDF
+                                )
                             }
                         }
                         .animation(.easeInOut(duration: 0.2), value: isExportingPDF)
@@ -348,28 +320,11 @@ struct PreviewHeaderView: View {
 
                     // 分享精美代码卡片按钮
                     if (activeRenderType == .code || activeRenderType == .plainText || activeRenderType == .markdown), onShareCard != nil {
-                        Button(action: {
-                            onShareCard?()
-                        }) {
-                            Image(systemName: "sparkles.rectangle.stack")
-                                .font(.system(size: 12, weight: .medium))
-                                .foregroundColor(Color.appText.opacity(isShareCardHovered ? 0.95 : 0.75))
-                                .frame(width: 22, height: 22)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 5)
-                                        .fill(Color.appText.opacity(isShareCardHovered ? 0.12 : 0.06))
-                                )
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 5)
-                                        .stroke(Color.appText.opacity(isShareCardHovered ? 0.18 : (colorScheme == .dark ? 0.12 : 0.08)), lineWidth: 0.5)
-                                )
-                                .contentShape(Rectangle())
-                        }
-                        .buttonStyle(.plain)
-                        .help((activeRenderType == .code ? "Share Code Card" : "Share Card").localized())
-                        .onHover { hovering in
-                            isShareCardHovered = hovering
-                        }
+                        HeaderToolbarButton(
+                            iconName: "sparkles.rectangle.stack",
+                            helpText: (activeRenderType == .code ? "Share Code Card" : "Share Card").localized(),
+                            action: { onShareCard?() }
+                        )
                     }
 
                     // 外部应用接力打开控件
@@ -378,16 +333,17 @@ struct PreviewHeaderView: View {
                     }
                 }
             }
-            .frame(minWidth: 72, alignment: .trailing)
         }
-        .padding(.horizontal, 16)
-        .padding(.top, 8)
-        .padding(.bottom, 8)
-        .background(VisualEffectView(material: .hudWindow, blendingMode: .behindWindow))
-        .onHover { hovering in
-            isHeaderHovered = hovering
-        }
+        .frame(minWidth: 72, alignment: .trailing)
     }
+    .padding(.horizontal, 16)
+    .padding(.top, 8)
+    .padding(.bottom, 8)
+    .background(Color.clear)
+    .onHover { hovering in
+        isHeaderHovered = hovering
+    }
+}
 
     @ViewBuilder
     private func previewFileIcon(for renderType: FileRenderType?) -> some View {
@@ -398,5 +354,52 @@ struct PreviewHeaderView: View {
                 .frame(width: 12, height: 12)
                 .foregroundColor(Color.appText.opacity(0.6))
         }
+    }
+}
+
+/// 顶栏统一规范动作按钮
+struct HeaderToolbarButton: View {
+    let iconName: String
+    let helpText: String
+    var isActive: Bool = false
+    var isEnabled: Bool = true
+    let action: () -> Void
+    
+    @State private var isHovered: Bool = false
+    @Environment(\.colorScheme) private var colorScheme
+    
+    var body: some View {
+        Button(action: action) {
+            Image(systemName: iconName)
+                .font(.system(size: 11.5, weight: .medium))
+                .foregroundColor(
+                    isActive
+                        ? Color.accentColor
+                        : Color.appText.opacity(isHovered ? 0.95 : 0.72)
+                )
+                .frame(width: 24, height: 24)
+                .background(
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(
+                            isActive
+                                ? Color.accentColor.opacity(0.15)
+                                : (isHovered ? Color.appText.opacity(0.12) : Color.appText.opacity(0.06))
+                        )
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 6)
+                        .stroke(
+                            isActive
+                                ? Color.accentColor.opacity(0.35)
+                                : (isHovered ? Color.appText.opacity(0.18) : (colorScheme == .dark ? Color.white.opacity(0.08) : Color.black.opacity(0.06))),
+                            lineWidth: 0.5
+                        )
+                )
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+        .disabled(!isEnabled)
+        .help(helpText)
+        .onHover { isHovered = $0 }
     }
 }

@@ -92,15 +92,12 @@ struct CustomAlertModifier: ViewModifier {
                     }
                     .padding(.horizontal, 14)
                     .padding(.vertical, 9)
-                    .background(
-                        Capsule()
-                            .fill(colorScheme == .dark ? Color(white: 0.16).opacity(0.95) : Color.white.opacity(0.95))
-                            .shadow(color: Color.black.opacity(colorScheme == .dark ? 0.25 : 0.08), radius: 8, x: 0, y: 4)
-                    )
+                    .liquidGlassCapsule(isInteractive: true)
                     .overlay(
                         Capsule()
                             .stroke(colorScheme == .dark ? Color.white.opacity(0.12) : Color.black.opacity(0.06), lineWidth: 0.5)
                     )
+                    .shadow(color: Color.black.opacity(colorScheme == .dark ? 0.25 : 0.08), radius: 8, x: 0, y: 4)
                     .padding(.bottom, 16)
                     .padding(.horizontal, 16)
                     .transition(.move(edge: .bottom).combined(with: .opacity))

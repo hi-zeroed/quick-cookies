@@ -179,10 +179,10 @@ struct ImageFileView: View {
         .onAppear {
             loadContent(for: filePath)
         }
-        .onChange(of: filePath) { newPath in
+        .onChange(of: filePath) { _, newPath in
             loadContent(for: newPath)
         }
-        .onChange(of: readyToken) { _ in
+        .onChange(of: readyToken) {
             notifyReady()
         }
     }

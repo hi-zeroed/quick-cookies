@@ -18,10 +18,7 @@ struct PreviewFooterHUD: View {
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 8)
-                .background(
-                    VisualEffectView(material: .hudWindow, blendingMode: .withinWindow)
-                        .cornerRadius(12)
-                )
+                .liquidGlassPill(cornerRadius: 12)
                 .shadow(color: Color.black.opacity(0.35), radius: 6, y: 3)
                 .transition(.move(edge: .bottom).combined(with: .opacity))
                 .padding(.bottom, 20)

@@ -59,7 +59,10 @@ struct PreviewContentContainer<Content: View>: View {
             VStack(spacing: 4) {
                 Spacer()
                 if let telemetryState = telemetryState {
-                    TelemetryInspectorBarView(state: telemetryState)
+                    TelemetryInspectorBarView(
+                        state: telemetryState,
+                        bottomPadding: loadState.isIncrementalLoading ? 4 : 16
+                    )
                 }
                 PreviewFooterHUD(loadState: loadState, isLocatingSelection: isLocatingSelection)
             }

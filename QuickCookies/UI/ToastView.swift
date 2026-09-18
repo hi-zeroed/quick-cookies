@@ -15,11 +15,8 @@ struct ToastView: View {
             .foregroundColor(.white)
             .padding(.horizontal, 16)
             .padding(.vertical, 10)
-            .background(
-                RoundedRectangle(cornerRadius: 18)
-                    .fill(Color(white: 0.12).opacity(0.85)) // 统一深色高档半透明磨砂背景，适配深浅色模式
-                    .shadow(color: Color.black.opacity(0.25), radius: 6, x: 0, y: 3)
-            )
+            .liquidGlassPill(cornerRadius: 18)
+            .shadow(color: Color.black.opacity(0.25), radius: 6, x: 0, y: 3)
             .frame(maxWidth: 300, maxHeight: 46)
     }
 }

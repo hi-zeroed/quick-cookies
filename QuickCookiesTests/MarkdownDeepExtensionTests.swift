@@ -1,4 +1,5 @@
 import XCTest
+import JavaScriptCore
 @testable import QuickCookies
 
 final class MarkdownDeepExtensionTests: XCTestCase {
@@ -79,5 +80,34 @@ final class MarkdownDeepExtensionTests: XCTestCase {
         XCTAssertTrue(firstBlock.html.contains("mermaid-src"), "HTML should mark mermaid block with mermaid-src")
         XCTAssertTrue(firstBlock.html.contains("language-mermaid"), "HTML should have language-mermaid class")
         XCTAssertTrue(firstBlock.html.contains("Start --&gt; Stop") || firstBlock.html.contains("Start --> Stop"), "HTML should retain raw graph source")
+    }
+
+    func testMarkdownHTMLShell_withExplicitMermaidFlag_injectsMermaidRegardlessOfContent() {
+        let plainHTML = "<p>Initial chunk without any keywords</p>"
+        let html = MarkdownHTMLShell.renderHTML(
+            baseDirectoryURL: nil,
+            isDarkAppearance: true,
+            bodyFontName: "System",
+            bodyFontSize: 14,
+            initialContentHTML: plainHTML,
+            bootstrapJavaScript: nil,
+            hasMermaid: true
+        )
+
+        XCTAssertTrue(html.contains("mermaid"), "HTML should inject mermaid when explicit flag is true even if content is empty")
+    }
+
+    func testMarkdownRendererRuntime_hasValidJavaScriptSyntax() {
+        let script = MarkdownRendererRuntime.visibleRuntimeScript()
+        guard let context = JSContext() else {
+            XCTFail("Failed to create JSContext")
+            return
+        }
+        var exceptionMessage: String?
+        context.exceptionHandler = { _, exception in
+            exceptionMessage = exception?.toString()
+        }
+        context.evaluateScript("(function() {\n\(script)\n})")
+        XCTAssertNil(exceptionMessage, "Runtime JS script should have no syntax errors, but got: \(exceptionMessage ?? "")")
     }
 }

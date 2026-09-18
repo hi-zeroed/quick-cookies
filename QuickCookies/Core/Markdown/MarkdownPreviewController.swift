@@ -28,7 +28,7 @@ protocol PreviewWebViewing: AnyObject {
     func loadHTMLString(_ string: String, baseURL: URL?) -> WKNavigation?
     func evaluateJavaScript(
         _ javaScriptString: String,
-        completionHandler: ((Any?, (any Error)?) -> Void)?
+        completionHandler: (@MainActor @Sendable (Any?, (any Error)?) -> Void)?
     )
 }
 
@@ -184,6 +184,9 @@ final class MarkdownPreviewController: NSObject, WKNavigationDelegate, WKScriptM
                     allowsEmptyPlaceholder: true
                 )
 
+                let docHasMermaid = Self.detectMermaid(in: fallbackContent)
+                let docHasMath = Self.detectMath(in: fallbackContent)
+
                 let bootstrapContent = bootstrapContent(from: fallbackContent)
                 let bootstrapScript = bootstrapScript(
                     preparedContent: bootstrapContent,
@@ -201,7 +204,9 @@ final class MarkdownPreviewController: NSObject, WKNavigationDelegate, WKScriptM
                     bodyFontSize: bodyFontSize,
                     using: webView,
                     loadID: loadID,
-                    canReuseLoadedShell: canReuseLoadedShell
+                    canReuseLoadedShell: canReuseLoadedShell,
+                    hasMermaid: docHasMermaid,
+                    hasMath: docHasMath
                 )
                 return
             }
@@ -216,6 +221,8 @@ final class MarkdownPreviewController: NSObject, WKNavigationDelegate, WKScriptM
                 snapshot: session.bootstrapSnapshot
             )
             previewTimeline?.mark(.bootstrapScriptPrepared)
+            let docHasMermaid = Self.detectMermaid(in: session.bootstrapContent) || (session.continuationContent.map(Self.detectMermaid(in:)) ?? false)
+            let docHasMath = Self.detectMath(in: session.bootstrapContent) || (session.continuationContent.map(Self.detectMath(in:)) ?? false)
             presentBootstrap(
                 initialContentHTML: session.bootstrapSnapshot.map(MarkdownPreviewBridge.initialContentHTML(for:)) ?? "",
                 bootstrapScript: bootstrapScript,
@@ -225,7 +232,9 @@ final class MarkdownPreviewController: NSObject, WKNavigationDelegate, WKScriptM
                 bodyFontSize: bodyFontSize,
                 using: webView,
                 loadID: loadID,
-                canReuseLoadedShell: canReuseLoadedShell
+                canReuseLoadedShell: canReuseLoadedShell,
+                hasMermaid: docHasMermaid,
+                hasMath: docHasMath
             )
         }
     }
@@ -399,6 +408,26 @@ final class MarkdownPreviewController: NSObject, WKNavigationDelegate, WKScriptM
         )
     }
 
+    private static func detectMermaid(in preparedContent: MarkdownPreviewPreparedContent) -> Bool {
+        preparedContent.batches.contains { batch in
+            batch.blocks.contains { block in
+                block.codeLanguage?.lowercased() == "mermaid" ||
+                block.markdown.localizedCaseInsensitiveContains("```mermaid") ||
+                block.markdown.localizedCaseInsensitiveContains("class=\"mermaid")
+            }
+        }
+    }
+
+    private static func detectMath(in preparedContent: MarkdownPreviewPreparedContent) -> Bool {
+        preparedContent.batches.contains { batch in
+            batch.blocks.contains { block in
+                block.markdown.contains("$") ||
+                block.markdown.contains("\\[") ||
+                block.markdown.contains("\\(")
+            }
+        }
+    }
+
     private func presentBootstrap(
         initialContentHTML: String,
         bootstrapScript: String?,
@@ -408,7 +437,9 @@ final class MarkdownPreviewController: NSObject, WKNavigationDelegate, WKScriptM
         bodyFontSize: CGFloat,
         using webView: any PreviewWebViewing,
         loadID: UUID,
-        canReuseLoadedShell: Bool
+        canReuseLoadedShell: Bool,
+        hasMermaid: Bool = false,
+        hasMath: Bool = false
     ) {
         if canReuseLoadedShell {
             // Reuse the existing preview shell in-place. This preserves the
@@ -417,7 +448,9 @@ final class MarkdownPreviewController: NSObject, WKNavigationDelegate, WKScriptM
             let script = shellReuseBootstrapScript(
                 from: bootstrapScript,
                 baseDirectoryURL: baseDirectoryURL,
-                loadID: loadID
+                loadID: loadID,
+                hasMermaid: hasMermaid,
+                hasMath: hasMath
             )
             previewTimeline?.mark(.shellLoadIssued)
             webView.evaluateJavaScript(script) { [weak self] _, _ in
@@ -445,7 +478,9 @@ final class MarkdownPreviewController: NSObject, WKNavigationDelegate, WKScriptM
             bodyFontName: bodyFontName,
             bodyFontSize: bodyFontSize,
             initialContentHTML: initialContentHTML,
-            bootstrapJavaScript: bootstrapScript
+            bootstrapJavaScript: bootstrapScript,
+            hasMermaid: hasMermaid,
+            hasMath: hasMath
         )
 
         previewTimeline?.mark(.shellLoadIssued)
@@ -455,13 +490,46 @@ final class MarkdownPreviewController: NSObject, WKNavigationDelegate, WKScriptM
     private func shellReuseBootstrapScript(
         from bootstrapScript: String?,
         baseDirectoryURL: URL?,
-        loadID: UUID
+        loadID: UUID,
+        hasMermaid: Bool = false,
+        hasMath: Bool = false
     ) -> String {
         // Reused shell contract:
         // 1. reset shell state from the previous document
         // 2. update <base href> so relative images/links resolve for the new file
-        // 3. bootstrap the first visible content batch
-        // 4. re-apply typography/theme state
+        // 3. ensure vendor assets (Mermaid/KaTeX) are available if needed
+        // 4. bootstrap the first visible content batch
+        // 5. re-apply typography/theme state
+        var vendorInjectionScript = ""
+        if hasMermaid, let mermaidJS = MarkdownVendorAssetLoader.loadMermaidScript() {
+            let safeMermaid = mermaidJS.replacingOccurrences(of: "</script>", with: "<\\/script>", options: .caseInsensitive)
+            vendorInjectionScript += """
+            if (typeof mermaid === 'undefined') {
+                try {
+                    \(safeMermaid);
+                } catch (e) {
+                    console.warn('Dynamic mermaid injection failed:', e);
+                }
+            }
+            """
+        }
+        if hasMath,
+           let katexJS = MarkdownVendorAssetLoader.loadKaTeXScript(),
+           let autoRenderJS = MarkdownVendorAssetLoader.loadKaTeXAutoRenderScript() {
+            let safeKaTeX = katexJS.replacingOccurrences(of: "</script>", with: "<\\/script>", options: .caseInsensitive)
+            let safeAutoRender = autoRenderJS.replacingOccurrences(of: "</script>", with: "<\\/script>", options: .caseInsensitive)
+            vendorInjectionScript += """
+            if (typeof renderMathInElement === 'undefined') {
+                try {
+                    \(safeKaTeX);
+                    \(safeAutoRender);
+                } catch (e) {
+                    console.warn('Dynamic KaTeX injection failed:', e);
+                }
+            }
+            """
+        }
+
         let configureAndBootstrap = bootstrapScript ?? ""
         let resetScript = MarkdownPreviewBridge.javaScriptForReset()
         let updateBaseScript = MarkdownPreviewBridge.javaScriptForUpdateBaseURL(baseDirectoryURL)
@@ -499,16 +567,20 @@ final class MarkdownPreviewController: NSObject, WKNavigationDelegate, WKScriptM
             };
             markShellReusePhase('reset-start');
             \(resetScript)
+            window.scrollTo(0, 0);
             markShellReusePhase('reset-clear');
             markShellReusePhase('reset');
             \(updateBaseScript)
             markShellReusePhase('base');
+            \(vendorInjectionScript)
             window.__quickCookiesMarkdown.setShellReusePhaseHook(relayBootstrapPhase);
             \(configureAndBootstrap)
             window.__quickCookiesMarkdown.setShellReusePhaseHook(null);
+            window.scrollTo(0, 0);
             markShellReusePhase('bootstrap');
             \(styleScript)
             markShellReusePhase('style');
+            window.scrollTo(0, 0);
         })();
         """
     }

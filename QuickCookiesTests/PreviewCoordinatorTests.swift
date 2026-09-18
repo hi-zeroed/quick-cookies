@@ -149,7 +149,7 @@ final class PreviewCoordinatorTests: XCTestCase {
     }
 
     func test_coordinator_openUnsupportedFile_keepsResolvedTargetForPresentation() throws {
-        let fileURL = temporaryDirectoryURL.appendingPathComponent("executable.bin")
+        let fileURL = temporaryDirectoryURL.appendingPathComponent("installer.dmg")
         try Data([0x41, 0x42, 0x00, 0x43]).write(to: fileURL)
 
         let session = PreviewSession()
@@ -165,13 +165,13 @@ final class PreviewCoordinatorTests: XCTestCase {
         try coordinator.handle(.openPath(fileURL.path, source: .service))
 
         XCTAssertEqual(session.state.target?.resolvedPath, fileURL.path)
-        XCTAssertEqual(session.state.target?.displayName, "executable.bin")
+        XCTAssertEqual(session.state.target?.displayName, "installer.dmg")
         XCTAssertEqual(session.state.runtimeKind, .text)
         XCTAssertEqual(session.state.readiness, .loading)
         XCTAssertEqual(session.state.target?.renderType, .unsupported)
     }
 
-    func test_coordinator_openDirectory_keepsUnsupportedPresentationTarget() throws {
+    func test_coordinator_openDirectory_keepsFolderPresentationTarget() throws {
         let directoryURL = temporaryDirectoryURL.appendingPathComponent("Folder", isDirectory: true)
         try FileManager.default.createDirectory(
             at: directoryURL,
@@ -192,8 +192,8 @@ final class PreviewCoordinatorTests: XCTestCase {
 
         XCTAssertEqual(session.state.target?.resolvedPath, directoryURL.path)
         XCTAssertEqual(session.state.target?.displayName, "Folder")
-        XCTAssertEqual(session.state.target?.renderType, .unsupported)
-        XCTAssertEqual(session.state.runtimeKind, .text)
+        XCTAssertEqual(session.state.target?.renderType, .folder)
+        XCTAssertEqual(session.state.runtimeKind, .archive)
         XCTAssertEqual(session.state.readiness, .loading)
     }
 

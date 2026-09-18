@@ -186,17 +186,14 @@ final class ArchiveReaderTests: XCTestCase {
     }
 
     func testReadEmptyZipArchiveReturnsEmptyTreeAndZeroFiles() async throws {
-        // 创建一个空的 zip 文件
+        // 创建一个空的 zip 文件（标准 22 字节 EOCD 记录）
         let emptyZipPath = tempDirectoryURL.appendingPathComponent("empty.zip").path
-        let emptyDir = tempDirectoryURL.appendingPathComponent("empty_dir")
-        try FileManager.default.createDirectory(at: emptyDir, withIntermediateDirectories: true)
-
-        let process = Process()
-        process.currentDirectoryURL = emptyDir
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/zip")
-        process.arguments = ["-r", emptyZipPath, "."]
-        try process.run()
-        process.waitUntilExit()
+        let emptyZipBytes: [UInt8] = [
+            0x50, 0x4B, 0x05, 0x06, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x00, 0x00, 0x00, 0x00
+        ]
+        try Data(emptyZipBytes).write(to: URL(fileURLWithPath: emptyZipPath))
 
         let (summary, entries, tree) = try await ArchiveReader.readArchive(at: emptyZipPath)
         XCTAssertEqual(summary.fileCount, 0)

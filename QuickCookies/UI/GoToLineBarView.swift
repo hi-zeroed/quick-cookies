@@ -1,7 +1,8 @@
 import SwiftUI
+import Observation
 
 public struct GoToLineBarView: View {
-    @ObservedObject public var state: GoToLineState
+    @Bindable public var state: GoToLineState
     @FocusState private var isFocused: Bool
 
     public init(state: GoToLineState) {
@@ -57,8 +58,7 @@ public struct GoToLineBarView: View {
             }
             .padding(.horizontal, 10)
             .padding(.vertical, 6)
-            .background(VisualEffectView(material: .hudWindow, blendingMode: .withinWindow))
-            .cornerRadius(8)
+            .liquidGlassPill(cornerRadius: 8)
             .overlay(
                 RoundedRectangle(cornerRadius: 8)
                     .stroke(Color.appBorder.opacity(0.35), lineWidth: 0.8)
@@ -71,7 +71,7 @@ public struct GoToLineBarView: View {
                     isFocused = true
                 }
             }
-            .onChange(of: state.isPresented) { presented in
+            .onChange(of: state.isPresented) { _, presented in
                 if presented {
                     DispatchQueue.main.async {
                         isFocused = true

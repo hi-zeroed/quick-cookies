@@ -205,10 +205,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             object: window,
             queue: .main
         ) { [weak self, weak window] _ in
-            if self?.onboardingWindow === window {
-                self?.onboardingWindow = nil
+            MainActor.assumeIsolated {
+                if self?.onboardingWindow === window {
+                    self?.onboardingWindow = nil
+                }
+                self?.setupNormalFlow()
             }
-            self?.setupNormalFlow()
         }
         
         let onboardingView = OnboardingView(onFinished: { [weak self, weak window] in
@@ -394,8 +396,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             object: Settings.shared,
             queue: .main
         ) { [weak self] _ in
-            HotkeyManager.shared.registerClipboardWithSettings { [weak self] in
-                self?.inspectClipboard()
+            MainActor.assumeIsolated {
+                HotkeyManager.shared.registerClipboardWithSettings { [weak self] in
+                    self?.inspectClipboard()
+                }
             }
         }
 
@@ -404,8 +408,10 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             object: Settings.shared,
             queue: .main
         ) { [weak self] _ in
-            HotkeyManager.shared.registerShareCardWithSettings { [weak self] in
-                self?.openShareCardDirectly()
+            MainActor.assumeIsolated {
+                HotkeyManager.shared.registerShareCardWithSettings { [weak self] in
+                    self?.openShareCardDirectly()
+                }
             }
         }
 

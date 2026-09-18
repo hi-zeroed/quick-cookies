@@ -394,6 +394,41 @@ final class MarkdownPreviewControllerTests: XCTestCase {
             )
         )
     }
+
+    func test_bridge_javaScriptForReset_resetsScrollPosition() {
+        let resetScript = MarkdownPreviewBridge.javaScriptForReset()
+        XCTAssertTrue(resetScript.contains("window.__quickCookiesMarkdown.reset();"))
+        XCTAssertTrue(resetScript.contains("window.scrollTo(0, 0);"))
+    }
+
+    func test_controller_reusedShellIncludesScrollReset() async throws {
+        let webView = SpyPreviewWebView()
+        let controller = MarkdownPreviewController(
+            policy: MarkdownPreviewPolicy(),
+            sessionLoader: { _, _, _, _, _, _, _, _ in
+                Self.makeSession()
+            }
+        )
+        controller.bindForTesting(webViewProxy: webView)
+        controller.debugMarkShellLoaded()
+
+        controller.loadContent(
+            filePath: "/tmp/docs/second.md",
+            markdownText: "# Second Document",
+            isDarkAppearance: false,
+            bodyFontName: "JetBrains Mono",
+            bodyFontSize: 14,
+            preferFileBackedRendering: false
+        )
+
+        try await Task.sleep(nanoseconds: 50_000_000)
+
+        guard let firstCall = webView.evaluateJavaScriptCalls.first else {
+            XCTFail("Expected at least one evaluateJavaScript call")
+            return
+        }
+        XCTAssertTrue(firstCall.contains("window.scrollTo(0, 0);"))
+    }
 }
 
 @MainActor
@@ -470,7 +505,7 @@ private final class SpyPreviewWebView: PreviewWebViewing {
 
     func evaluateJavaScript(
         _ javaScriptString: String,
-        completionHandler: ((Any?, (any Error)?) -> Void)?
+        completionHandler: (@MainActor @Sendable (Any?, (any Error)?) -> Void)?
     ) {
         evaluateJavaScriptCalls.append(javaScriptString)
         completionHandler?(nil, nil)

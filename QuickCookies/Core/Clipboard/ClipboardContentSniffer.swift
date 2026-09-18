@@ -140,8 +140,6 @@ enum ClipboardContentSniffer {
     
     /// 语言嗅探特征
     private static func detectProgrammingLanguage(in text: String) -> (language: String, fileExtension: String)? {
-        let lines = text.components(separatedBy: .newlines)
-        
         // Swift 特征
         if text.contains("import SwiftUI") || text.contains("import Foundation") || text.contains("@State ") || text.contains("func ") && text.contains(" -> ") {
             return ("Swift", "swift")

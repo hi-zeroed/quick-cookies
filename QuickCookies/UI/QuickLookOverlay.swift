@@ -702,9 +702,17 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         window.makeKeyAndOrderFront(nil)
     }
     
+    private func activateFinderApp(_ finderApp: NSRunningApplication) {
+        if #available(macOS 14.0, *) {
+            finderApp.activate()
+        } else {
+            finderApp.activate(options: [.activateIgnoringOtherApps])
+        }
+    }
+
     func unfocusWindowToFinder() {
         if let finderApp = NSWorkspace.shared.runningApplications.first(where: { $0.bundleIdentifier == "com.apple.finder" }) {
-            finderApp.activate(options: [.activateIgnoringOtherApps])
+            activateFinderApp(finderApp)
         }
     }
 
@@ -1403,7 +1411,7 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
         
         // 3. 激活并归还焦点给 Finder
         if let finderApp = NSWorkspace.shared.runningApplications.first(where: { $0.bundleIdentifier == "com.apple.finder" }) {
-            finderApp.activate(options: [.activateIgnoringOtherApps])
+            activateFinderApp(finderApp)
         }
     }
 
@@ -1466,7 +1474,7 @@ class QuickLookOverlay: NSObject, NSWindowDelegate {
 
         // 立即激活并归还焦点给 Finder，使视觉缩小动画播放的同时焦点已经回到 Finder
         if let finderApp = NSWorkspace.shared.runningApplications.first(where: { $0.bundleIdentifier == "com.apple.finder" }) {
-            finderApp.activate(options: [.activateIgnoringOtherApps])
+            activateFinderApp(finderApp)
         }
 
         // 立即解绑业务会话，避免动画期间继续消费旧 session；

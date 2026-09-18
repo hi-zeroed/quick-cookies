@@ -1,13 +1,15 @@
 import SwiftUI
 import Combine
 import AppKit
+import Observation
 
 @MainActor
-final class TelemetryInspectorState: ObservableObject {
-    @Published var isPresented: Bool = false
-    @Published var report: TelemetryReport? = nil
-    @Published var isLoading: Bool = false
-    @Published var showCopiedFeedback: Bool = false
+@Observable
+final class TelemetryInspectorState {
+    var isPresented: Bool = false
+    var report: TelemetryReport? = nil
+    var isLoading: Bool = false
+    var showCopiedFeedback: Bool = false
     
     private var currentTask: Task<Void, Never>?
     private var lastLoadedPath: String?

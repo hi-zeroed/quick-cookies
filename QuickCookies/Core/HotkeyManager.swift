@@ -2,6 +2,8 @@ import Foundation
 import Combine
 import AppKit
 
+typealias HotkeyAction = @MainActor @Sendable () -> Void
+
 class HotkeyManager {
     static let shared = HotkeyManager()
 
@@ -9,17 +11,17 @@ class HotkeyManager {
     private var localEventMonitor: Any?
     private var flagsChangedMonitor: Any?
     private var localFlagsChangedMonitor: Any?
-    private var onKeyDown: (() -> Void)?
+    private var onKeyDown: HotkeyAction?
 
     // 剪贴板透视独立快捷键
     private var clipboardEventMonitor: Any?
     private var localClipboardEventMonitor: Any?
-    private var onClipboardKeyDown: (() -> Void)?
+    private var onClipboardKeyDown: HotkeyAction?
 
     // 分享卡片独立快捷键 (⌃⌥C)
     private var shareCardEventMonitor: Any?
     private var localShareCardEventMonitor: Any?
-    private var onShareCardKeyDown: (() -> Void)?
+    private var onShareCardKeyDown: HotkeyAction?
 
     // 双击修饰键检测
     private var lastModifierPressTime: Date?
@@ -28,7 +30,7 @@ class HotkeyManager {
     private init() {}
 
     /// 注册组合快捷键监听
-    func registerHotkey(modifiers: NSEvent.ModifierFlags, keyCode: UInt16, handler: @escaping () -> Void) {
+    func registerHotkey(modifiers: NSEvent.ModifierFlags, keyCode: UInt16, handler: @escaping HotkeyAction) {
         unregister()
 
         onKeyDown = handler
@@ -63,7 +65,7 @@ class HotkeyManager {
     }
 
     /// 注册双击修饰键（如 Command/Option）触发
-    func registerDoubleModifierPress(modifier: NSEvent.ModifierFlags, handler: @escaping () -> Void) {
+    func registerDoubleModifierPress(modifier: NSEvent.ModifierFlags, handler: @escaping HotkeyAction) {
         unregister()
 
         onKeyDown = handler
@@ -80,7 +82,7 @@ class HotkeyManager {
         }
     }
 
-    private func handleFlagsChanged(_ event: NSEvent, modifier: NSEvent.ModifierFlags, handler: @escaping () -> Void) {
+    private func handleFlagsChanged(_ event: NSEvent, modifier: NSEvent.ModifierFlags, handler: @escaping HotkeyAction) {
         let coreFlags: NSEvent.ModifierFlags = [.command, .option, .shift, .control]
         let eventModifiers = event.modifierFlags.intersection(coreFlags)
         
@@ -111,7 +113,7 @@ class HotkeyManager {
     }
 
     /// 使用当前设置注册热键
-    func registerWithSettings(handler: @escaping () -> Void) {
+    func registerWithSettings(handler: @escaping HotkeyAction) {
         let settings = Settings.shared
         
         // 智能路由：如果 keyCode == 0 且修饰键中包含 Command 或 Option，则注册为对应的双击模式
@@ -135,7 +137,7 @@ class HotkeyManager {
     }
 
     /// 注册剪贴板透视独立快捷键监听
-    func registerClipboardHotkey(modifiers: NSEvent.ModifierFlags, keyCode: UInt16, handler: @escaping () -> Void) {
+    func registerClipboardHotkey(modifiers: NSEvent.ModifierFlags, keyCode: UInt16, handler: @escaping HotkeyAction) {
         unregisterClipboardHotkey()
 
         onClipboardKeyDown = handler
@@ -164,7 +166,7 @@ class HotkeyManager {
     }
 
     /// 使用当前设置注册剪贴板快捷键
-    func registerClipboardWithSettings(handler: @escaping () -> Void) {
+    func registerClipboardWithSettings(handler: @escaping HotkeyAction) {
         let settings = Settings.shared
         registerClipboardHotkey(
             modifiers: settings.clipboardHotkeyModifiers,
@@ -187,7 +189,7 @@ class HotkeyManager {
     }
 
     /// 注册直接分享卡片独立快捷键监听 (⌃⌥C)
-    func registerShareCardHotkey(modifiers: NSEvent.ModifierFlags, keyCode: UInt16, handler: @escaping () -> Void) {
+    func registerShareCardHotkey(modifiers: NSEvent.ModifierFlags, keyCode: UInt16, handler: @escaping HotkeyAction) {
         unregisterShareCardHotkey()
 
         onShareCardKeyDown = handler
@@ -216,7 +218,7 @@ class HotkeyManager {
     }
 
     /// 使用当前设置注册直接分享卡片快捷键
-    func registerShareCardWithSettings(handler: @escaping () -> Void) {
+    func registerShareCardWithSettings(handler: @escaping HotkeyAction) {
         let settings = Settings.shared
         registerShareCardHotkey(
             modifiers: settings.shareCardHotkeyModifiers,

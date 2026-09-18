@@ -75,6 +75,7 @@ struct AppRelayControlView: View {
                         Image(systemName: "arrow.up.forward.app")
                             .font(.system(size: 11, weight: .regular))
                             .foregroundColor(Color.appText.opacity(0.85))
+                            .symbolEffect(.bounce, value: isActionHovered)
 
                         Text("Open".localized())
                             .font(.system(size: 11, weight: .medium))
@@ -113,7 +114,7 @@ struct AppRelayControlView: View {
         .onAppear {
             refreshApps()
         }
-        .onChange(of: filePath) { _ in
+        .onChange(of: filePath) {
             refreshApps()
         }
     }

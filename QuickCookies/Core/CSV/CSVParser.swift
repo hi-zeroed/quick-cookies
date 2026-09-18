@@ -8,7 +8,7 @@
 import Foundation
 
 /// CSV / TSV 解析结果数据模型
-public struct CSVDataSet: Equatable {
+public struct CSVDataSet: Equatable, Sendable {
     /// 表头列名
     public let headers: [String]
     /// 数据行矩阵（每行长度严格与 headers 对齐）
@@ -57,13 +57,13 @@ public struct CSVDataSet: Equatable {
 }
 
 /// 排序方向
-public enum CSVSortDirection: Equatable {
+public enum CSVSortDirection: Equatable, Sendable {
     case ascending
     case descending
 }
 
 /// 排序状态
-public struct CSVSortState: Equatable {
+public struct CSVSortState: Equatable, Sendable {
     public var columnIndex: Int?
     public var direction: CSVSortDirection
 

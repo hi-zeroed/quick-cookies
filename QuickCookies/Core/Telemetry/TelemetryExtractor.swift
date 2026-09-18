@@ -20,9 +20,9 @@ enum TelemetryExtractor {
             case .image:
                 items = extractImageTelemetry(url: url)
             case .audio:
-                items = extractAudioTelemetry(url: url)
+                items = await extractAudioTelemetry(url: url)
             case .video:
-                items = extractVideoTelemetry(url: url)
+                items = await extractVideoTelemetry(url: url)
             case .font:
                 items = extractFontTelemetry(url: url)
             case .archive, .folder, .pdf, .office, .hex, .unsupported:
@@ -265,24 +265,27 @@ enum TelemetryExtractor {
     
     // MARK: - 音频提炼
     
-    static func extractAudioTelemetry(url: URL) -> [TelemetryItem] {
+    static func extractAudioTelemetry(url: URL) async -> [TelemetryItem] {
         var items: [TelemetryItem] = []
         let asset = AVURLAsset(url: url)
         
-        let seconds = CMTimeGetSeconds(asset.duration)
-        if !seconds.isNaN && seconds > 0 {
-            let m = Int(seconds) / 60
-            let s = Int(seconds) % 60
-            items.append(TelemetryItem(
-                id: "duration",
-                label: "Duration".localized(),
-                value: String(format: "%02d:%02d", m, s)
-            ))
+        if let duration = try? await asset.load(.duration) {
+            let seconds = CMTimeGetSeconds(duration)
+            if !seconds.isNaN && seconds > 0 {
+                let m = Int(seconds) / 60
+                let s = Int(seconds) % 60
+                items.append(TelemetryItem(
+                    id: "duration",
+                    label: "Duration".localized(),
+                    value: String(format: "%02d:%02d", m, s)
+                ))
+            }
         }
         
-        if let track = asset.tracks(withMediaType: .audio).first {
-            let formatDescriptions = track.formatDescriptions as? [CMAudioFormatDescription]
-            if let desc = formatDescriptions?.first,
+        if let audioTracks = try? await asset.loadTracks(withMediaType: .audio),
+           let track = audioTracks.first {
+            if let formatDescriptions = try? await track.load(.formatDescriptions),
+               let desc = formatDescriptions.first,
                let basicDesc = CMAudioFormatDescriptionGetStreamBasicDescription(desc)?.pointee {
                 let sampleRate = basicDesc.mSampleRate
                 let channels = basicDesc.mChannelsPerFrame
@@ -316,34 +319,37 @@ enum TelemetryExtractor {
     
     // MARK: - 视频提炼
     
-    static func extractVideoTelemetry(url: URL) -> [TelemetryItem] {
+    static func extractVideoTelemetry(url: URL) async -> [TelemetryItem] {
         var items: [TelemetryItem] = []
         let asset = AVURLAsset(url: url)
         
-        let seconds = CMTimeGetSeconds(asset.duration)
-        if !seconds.isNaN && seconds > 0 {
-            let h = Int(seconds) / 3600
-            let m = (Int(seconds) % 3600) / 60
-            let s = Int(seconds) % 60
-            let durStr = h > 0 ? String(format: "%02d:%02d:%02d", h, m, s) : String(format: "%02d:%02d", m, s)
-            items.append(TelemetryItem(
-                id: "duration",
-                label: "Duration".localized(),
-                value: durStr
-            ))
+        if let duration = try? await asset.load(.duration) {
+            let seconds = CMTimeGetSeconds(duration)
+            if !seconds.isNaN && seconds > 0 {
+                let h = Int(seconds) / 3600
+                let m = (Int(seconds) % 3600) / 60
+                let s = Int(seconds) % 60
+                let durStr = h > 0 ? String(format: "%02d:%02d:%02d", h, m, s) : String(format: "%02d:%02d", m, s)
+                items.append(TelemetryItem(
+                    id: "duration",
+                    label: "Duration".localized(),
+                    value: durStr
+                ))
+            }
         }
         
-        if let videoTrack = asset.tracks(withMediaType: .video).first {
-            let size = videoTrack.naturalSize
-            if size.width > 0 && size.height > 0 {
+        if let videoTracks = try? await asset.loadTracks(withMediaType: .video),
+           let videoTrack = videoTracks.first {
+            if let size = try? await videoTrack.load(.naturalSize),
+               size.width > 0 && size.height > 0 {
                 items.append(TelemetryItem(
                     id: "resolution",
                     label: "Resolution".localized(),
                     value: "\(Int(size.width)) × \(Int(size.height))"
                 ))
             }
-            let fps = videoTrack.nominalFrameRate
-            if fps > 0 {
+            if let fps = try? await videoTrack.load(.nominalFrameRate),
+               fps > 0 {
                 items.append(TelemetryItem(
                     id: "fps",
                     label: "FPS".localized(),

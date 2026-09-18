@@ -151,6 +151,7 @@ final class WebKitRuntime: PreviewRuntime {
     func detachCurrentWebView(resetContent: Bool = false) {
         webView.navigationDelegate = nil
         webView.stopLoading()
+        webView.evaluateJavaScript("window.scrollTo(0, 0); if (document.documentElement) { document.documentElement.scrollTop = 0; } if (document.body) { document.body.scrollTop = 0; }", completionHandler: nil)
         webView.removeFromSuperview()
         webView.shouldShowContextMenu = { false }
         clearSessionDebugState()

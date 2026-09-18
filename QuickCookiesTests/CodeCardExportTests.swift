@@ -444,4 +444,17 @@ final class CodeCardExportTests: XCTestCase {
         _ = emerald.gradient
         _ = emerald.primaryColor
     }
+
+    func testCardZoomModeEnumeration() {
+        let modes = CardZoomMode.allCases
+        XCTAssertEqual(modes.count, 2)
+        XCTAssertTrue(modes.contains(.fit))
+        XCTAssertTrue(modes.contains(.actual))
+        
+        for mode in modes {
+            XCTAssertFalse(mode.displayName.isEmpty)
+            XCTAssertEqual(mode.id, mode.rawValue)
+        }
+    }
 }
+

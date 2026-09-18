@@ -53,7 +53,7 @@ struct StructuredDataView: View {
         .onAppear {
             parseContent()
         }
-        .onChange(of: content) { _ in
+        .onChange(of: content) {
             parseContent()
         }
     }

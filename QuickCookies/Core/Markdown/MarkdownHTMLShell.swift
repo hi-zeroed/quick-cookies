@@ -7,8 +7,10 @@ enum MarkdownHTMLShell {
         isDarkAppearance: Bool,
         bodyFontName: String,
         bodyFontSize: CGFloat,
-        initialContentHTML: String = "",
-        bootstrapJavaScript: String? = nil
+        initialContentHTML: String,
+        bootstrapJavaScript: String?,
+        hasMermaid: Bool? = nil,
+        hasMath: Bool? = nil
     ) -> String {
         renderDocument(
             baseDirectoryURL: baseDirectoryURL,
@@ -17,7 +19,9 @@ enum MarkdownHTMLShell {
             bodyFontSize: bodyFontSize,
             initialContentHTML: initialContentHTML,
             runtimeScript: MarkdownRendererRuntime.visibleRuntimeScript(),
-            trailingScript: bootstrapJavaScript
+            trailingScript: bootstrapJavaScript,
+            explicitHasMermaid: hasMermaid,
+            explicitHasMath: hasMath
         )
     }
 
@@ -28,7 +32,9 @@ enum MarkdownHTMLShell {
         bodyFontSize: CGFloat,
         initialContentHTML: String,
         runtimeScript: String,
-        trailingScript: String?
+        trailingScript: String?,
+        explicitHasMermaid: Bool? = nil,
+        explicitHasMath: Bool? = nil
     ) -> String {
         let baseTag: String
         if let baseDirectoryURL {
@@ -68,8 +74,8 @@ enum MarkdownHTMLShell {
             .replacingOccurrences(of: "</script>", with: "<\\/script>", options: .caseInsensitive) ?? ""
 
         let fullTextToProbe = initialContentHTML + (trailingScript ?? "")
-        let hasMermaid = fullTextToProbe.localizedCaseInsensitiveContains("mermaid")
-        let hasMath = fullTextToProbe.contains("$") || fullTextToProbe.contains("\\[") || fullTextToProbe.contains("\\(")
+        let hasMermaid = explicitHasMermaid ?? fullTextToProbe.localizedCaseInsensitiveContains("mermaid")
+        let hasMath = explicitHasMath ?? (fullTextToProbe.contains("$") || fullTextToProbe.contains("\\[") || fullTextToProbe.contains("\\("))
 
         var vendorStyles: [String] = []
         var vendorScripts: [String] = []

@@ -112,7 +112,7 @@ enum MarkdownPreviewBridge {
     }
 
     static func javaScriptForReset() -> String {
-        "window.__quickCookiesMarkdown.reset();"
+        "window.__quickCookiesMarkdown.reset(); window.scrollTo(0, 0);"
     }
 
     static func javaScriptForAppend(batch: MarkdownPreviewBatch) -> String? {

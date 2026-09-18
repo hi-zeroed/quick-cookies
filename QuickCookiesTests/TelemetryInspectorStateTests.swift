@@ -48,4 +48,13 @@ final class TelemetryInspectorStateTests: XCTestCase {
         let pasteboardString = NSPasteboard.general.string(forType: .string)
         XCTAssertEqual(pasteboardString, "Lines: 42")
     }
+
+    func testTelemetryInspectorBarView_initializesWithDefaultAndCustomBottomPadding() {
+        let state = TelemetryInspectorState()
+        let defaultBar = TelemetryInspectorBarView(state: state)
+        XCTAssertEqual(defaultBar.bottomPadding, 16)
+
+        let customBar = TelemetryInspectorBarView(state: state, bottomPadding: 4)
+        XCTAssertEqual(customBar.bottomPadding, 4)
+    }
 }

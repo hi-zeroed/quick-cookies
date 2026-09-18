@@ -106,6 +106,122 @@ enum CardGradientPreset: String, CaseIterable, Identifiable {
             )
         }
     }
+
+    /// 在支持 macOS 15+ / 27 的系统上呈现高质量多点流体 MeshGradient，低版本平滑回退至 LinearGradient
+    @ViewBuilder
+    func backgroundCanvasView() -> some View {
+        if #available(macOS 15.0, *) {
+            switch self {
+            case .aurora:
+                MeshGradient(
+                    width: 3,
+                    height: 3,
+                    points: [
+                        [0.0, 0.0], [0.5, 0.0], [1.0, 0.0],
+                        [0.0, 0.5], [0.5, 0.5], [1.0, 0.5],
+                        [0.0, 1.0], [0.5, 1.0], [1.0, 1.0]
+                    ],
+                    colors: [
+                        Color(red: 0.06, green: 0.73, blue: 0.51), Color(red: 0.15, green: 0.55, blue: 0.75), Color(red: 0.39, green: 0.40, blue: 0.95),
+                        Color(red: 0.10, green: 0.65, blue: 0.60), Color(red: 0.39, green: 0.40, blue: 0.95), Color(red: 0.85, green: 0.30, blue: 0.70),
+                        Color(red: 0.20, green: 0.45, blue: 0.85), Color(red: 0.93, green: 0.28, blue: 0.60), Color(red: 0.98, green: 0.40, blue: 0.50)
+                    ]
+                )
+            case .sunset:
+                MeshGradient(
+                    width: 3,
+                    height: 3,
+                    points: [
+                        [0.0, 0.0], [0.5, 0.0], [1.0, 0.0],
+                        [0.0, 0.5], [0.5, 0.5], [1.0, 0.5],
+                        [0.0, 1.0], [0.5, 1.0], [1.0, 1.0]
+                    ],
+                    colors: [
+                        Color(red: 0.96, green: 0.25, blue: 0.37), Color(red: 0.98, green: 0.45, blue: 0.30), Color(red: 0.98, green: 0.57, blue: 0.24),
+                        Color(red: 0.85, green: 0.20, blue: 0.45), Color(red: 0.96, green: 0.35, blue: 0.32), Color(red: 0.99, green: 0.70, blue: 0.25),
+                        Color(red: 0.70, green: 0.15, blue: 0.50), Color(red: 0.90, green: 0.30, blue: 0.35), Color(red: 0.98, green: 0.57, blue: 0.24)
+                    ]
+                )
+            case .ocean:
+                MeshGradient(
+                    width: 3,
+                    height: 3,
+                    points: [
+                        [0.0, 0.0], [0.5, 0.0], [1.0, 0.0],
+                        [0.0, 0.5], [0.5, 0.5], [1.0, 0.5],
+                        [0.0, 1.0], [0.5, 1.0], [1.0, 1.0]
+                    ],
+                    colors: [
+                        Color(red: 0.00, green: 0.32, blue: 0.83), Color(red: 0.15, green: 0.36, blue: 0.90), Color(red: 0.26, green: 0.39, blue: 0.97),
+                        Color(red: 0.05, green: 0.40, blue: 0.88), Color(red: 0.26, green: 0.39, blue: 0.97), Color(red: 0.38, green: 0.55, blue: 0.98),
+                        Color(red: 0.12, green: 0.35, blue: 0.92), Color(red: 0.44, green: 0.69, blue: 0.99), Color(red: 0.55, green: 0.78, blue: 1.00)
+                    ]
+                )
+            case .cyberpunk:
+                MeshGradient(
+                    width: 3,
+                    height: 3,
+                    points: [
+                        [0.0, 0.0], [0.5, 0.0], [1.0, 0.0],
+                        [0.0, 0.5], [0.5, 0.5], [1.0, 0.5],
+                        [0.0, 1.0], [0.5, 1.0], [1.0, 1.0]
+                    ],
+                    colors: [
+                        Color(red: 0.13, green: 0.53, blue: 0.98), Color(red: 0.35, green: 0.40, blue: 0.96), Color(red: 0.68, green: 0.20, blue: 0.95),
+                        Color(red: 0.08, green: 0.42, blue: 0.92), Color(red: 0.50, green: 0.30, blue: 0.96), Color(red: 0.82, green: 0.15, blue: 0.85),
+                        Color(red: 0.20, green: 0.30, blue: 0.90), Color(red: 0.68, green: 0.20, blue: 0.95), Color(red: 0.95, green: 0.10, blue: 0.60)
+                    ]
+                )
+            case .cosmic:
+                MeshGradient(
+                    width: 3,
+                    height: 3,
+                    points: [
+                        [0.0, 0.0], [0.5, 0.0], [1.0, 0.0],
+                        [0.0, 0.5], [0.5, 0.5], [1.0, 0.5],
+                        [0.0, 1.0], [0.5, 1.0], [1.0, 1.0]
+                    ],
+                    colors: [
+                        Color(red: 0.56, green: 0.18, blue: 0.89), Color(red: 0.42, green: 0.10, blue: 0.88), Color(red: 0.29, green: 0.00, blue: 0.88),
+                        Color(red: 0.65, green: 0.22, blue: 0.92), Color(red: 0.38, green: 0.05, blue: 0.88), Color(red: 0.20, green: 0.00, blue: 0.70),
+                        Color(red: 0.45, green: 0.12, blue: 0.85), Color(red: 0.29, green: 0.00, blue: 0.88), Color(red: 0.12, green: 0.00, blue: 0.55)
+                    ]
+                )
+            case .emerald:
+                MeshGradient(
+                    width: 3,
+                    height: 3,
+                    points: [
+                        [0.0, 0.0], [0.5, 0.0], [1.0, 0.0],
+                        [0.0, 0.5], [0.5, 0.5], [1.0, 0.5],
+                        [0.0, 1.0], [0.5, 1.0], [1.0, 1.0]
+                    ],
+                    colors: [
+                        Color(red: 0.04, green: 0.64, blue: 0.38), Color(red: 0.12, green: 0.68, blue: 0.48), Color(red: 0.24, green: 0.73, blue: 0.57),
+                        Color(red: 0.03, green: 0.55, blue: 0.32), Color(red: 0.24, green: 0.73, blue: 0.57), Color(red: 0.35, green: 0.78, blue: 0.65),
+                        Color(red: 0.02, green: 0.48, blue: 0.28), Color(red: 0.18, green: 0.65, blue: 0.50), Color(red: 0.30, green: 0.75, blue: 0.60)
+                    ]
+                )
+            case .charcoal:
+                MeshGradient(
+                    width: 2,
+                    height: 2,
+                    points: [
+                        [0.0, 0.0], [1.0, 0.0],
+                        [0.0, 1.0], [1.0, 1.0]
+                    ],
+                    colors: [
+                        Color(red: 0.14, green: 0.15, blue: 0.18), Color(red: 0.10, green: 0.11, blue: 0.14),
+                        Color(red: 0.08, green: 0.09, blue: 0.11), Color(red: 0.04, green: 0.04, blue: 0.06)
+                    ]
+                )
+            case .monochrome:
+                self.gradient
+            }
+        } else {
+            self.gradient
+        }
+    }
     
     var primaryColor: Color {
         switch self {

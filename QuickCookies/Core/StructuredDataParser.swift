@@ -243,9 +243,6 @@ struct StructuredDataParser {
             return
         }
 
-        var current = dict
-        var pointer: [String: Any] = dict
-
         // 简化的嵌套写入
         let topKey = stack[0].key
         if dict[topKey] == nil || !(dict[topKey] is [String: Any]) {

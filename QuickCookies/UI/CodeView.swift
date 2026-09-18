@@ -8,11 +8,16 @@ enum CodeViewTextColorPolicy {
     }
 }
 
-struct FontVariantCache {
+struct FontVariantCache: @unchecked Sendable {
     let regular: NSFont
     let bold: NSFont
     let italic: NSFont
     let boldItalic: NSFont
+}
+
+private final class SendableHolder<T>: @unchecked Sendable {
+    let value: T
+    init(_ value: T) { self.value = value }
 }
 
 struct CodeViewRenderIdentity: Equatable {
@@ -104,6 +109,7 @@ struct CodeView: NSViewRepresentable {
         )
     }
 
+    @MainActor
     class Coordinator: NSObject {
         var lastIsDark: Bool?
         var lastFontName: String?
@@ -934,7 +940,7 @@ struct CodeView: NSViewRepresentable {
         let modDate = FileUtils.getModificationDate(at: filePath)
         let fullText = previousFullText + newText
         
-        DispatchQueue.global(qos: .utility).async {
+        Task.detached(priority: .utility) {
             let highlighted = SyntaxHighlighter.shared?.highlight(code: fullText, language: language, theme: themeName)
             let customFull = CodeViewHighlightFallbackPolicy.attributedText(
                 highlighted: highlighted,
@@ -949,15 +955,20 @@ struct CodeView: NSViewRepresentable {
                 HighlightCache.shared.set(customFull, for: filePath, themeName: themeName, fontName: fontName, fontSize: fontSize, modificationDate: modDate)
             }
             
+            let sendableText = SendableHolder(customFull)
+
             // 4. 主线程中直接一次性将高亮完整的富文本整体写入（仅需一次 Bridge 桥接，速度比 enumerateAttributes 快 20 倍以上）
-            DispatchQueue.main.async { @MainActor in
+            await MainActor.run { [weak textView, weak coordinator] in
+                guard let textView = textView,
+                      let coordinator = coordinator,
+                      let textStorage = textView.textStorage else { return }
                 guard CodeViewAsyncRenderPolicy.shouldApply(
                     capturedIdentity: capturedIdentity,
                     currentIdentity: coordinator.currentRenderIdentity,
                     capturedContent: fullText,
                     currentText: textView.string
                 ) else { return }
-                textStorage.setAttributedString(customFull)
+                textStorage.setAttributedString(sendableText.value)
                 if let liveState = coordinator.liveWatchingState, liveState.isLiveTailMode && liveState.isFollowingTail {
                     let endRange = NSRange(location: (textView.string as NSString).length, length: 0)
                     textView.scrollRangeToVisible(endRange)

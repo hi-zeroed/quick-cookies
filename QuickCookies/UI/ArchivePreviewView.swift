@@ -56,7 +56,7 @@ struct ArchivePreviewView: View {
         .onAppear {
             loadArchiveContents()
         }
-        .onChange(of: archivePath) { _ in
+        .onChange(of: archivePath) {
             loadArchiveContents()
         }
         .onDisappear {

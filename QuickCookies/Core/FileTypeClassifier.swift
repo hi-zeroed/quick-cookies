@@ -70,6 +70,11 @@ struct FileTypeClassifier {
             return .hex
         }
 
+        // 如果扩展名在二进制黑名单中，直接判定为不支持预览
+        if Constants.binaryBlacklistExtensions.contains(ext) {
+            return .unsupported
+        }
+
         // 快速进行物理二进制检测 (只读取最前 1KB 字节检查 null 字节)
         // 必须在排除已知支持的图片、PDF、Office 和压缩包等格式之后检测，防误杀
         if isBinaryFileFastCheck(path: resolvedPath) {

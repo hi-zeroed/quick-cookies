@@ -1,10 +1,12 @@
 import SwiftUI
 
 struct TelemetryInspectorBarView: View {
-    @ObservedObject var state: TelemetryInspectorState
+    var state: TelemetryInspectorState
+    var bottomPadding: CGFloat
     
-    init(state: TelemetryInspectorState) {
+    init(state: TelemetryInspectorState, bottomPadding: CGFloat = 16) {
         self.state = state
+        self.bottomPadding = bottomPadding
     }
     
     var body: some View {
@@ -93,17 +95,14 @@ struct TelemetryInspectorBarView: View {
             }
             .padding(.horizontal, 8)
             .frame(height: 28)
-            .background(
+            .liquidGlassPill(cornerRadius: 7)
+            .overlay(
                 RoundedRectangle(cornerRadius: 7)
-                    .fill(.ultraThinMaterial)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 7)
-                            .stroke(Color.primary.opacity(0.1), lineWidth: 0.8)
-                    )
-                    .shadow(color: Color.black.opacity(0.12), radius: 6, x: 0, y: 2)
+                    .stroke(Color.primary.opacity(0.1), lineWidth: 0.8)
             )
-            .padding(.horizontal, 10)
-            .padding(.bottom, 6)
+            .shadow(color: Color.black.opacity(0.12), radius: 6, x: 0, y: 2)
+            .padding(.horizontal, 16)
+            .padding(.bottom, bottomPadding)
             .transition(.asymmetric(
                 insertion: .move(edge: .bottom).combined(with: .opacity),
                 removal: .move(edge: .bottom).combined(with: .opacity)

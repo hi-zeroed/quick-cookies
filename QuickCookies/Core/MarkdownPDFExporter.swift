@@ -133,7 +133,7 @@ class MarkdownPDFExporter: NSObject, WKNavigationDelegate {
 
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         // 延时 0.6 秒等待 JS 渲染及 Highlight 完毕
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.6) { [weak self] in
             if #available(macOS 11.0, *) {
                 let config = WKPDFConfiguration()
                 webView.createPDF(configuration: config) { [weak self] result in
@@ -148,8 +148,8 @@ class MarkdownPDFExporter: NSObject, WKNavigationDelegate {
                 }
             } else {
                 let error = NSError(domain: "QuickCookies", code: -1, userInfo: [NSLocalizedDescriptionKey: "macOS version too low, PDF generation is not supported".localized()])
-                self.completion?(.failure(error))
-                self.cleanup()
+                self?.completion?(.failure(error))
+                self?.cleanup()
             }
         }
     }

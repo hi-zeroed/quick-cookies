@@ -113,6 +113,14 @@ enum MarkdownRendererRuntime {
                     return;
                 }
 
+                const preEl = codeEl.closest('pre');
+                if (languageHint === 'mermaid' ||
+                    codeEl.classList.contains('language-mermaid') ||
+                    codeEl.classList.contains('mermaid') ||
+                    (preEl && preEl.classList.contains('mermaid-src'))) {
+                    return;
+                }
+
                 const rawText = codeEl.textContent || '';
 
                 try {
@@ -286,20 +294,31 @@ enum MarkdownRendererRuntime {
                     preEl.dataset.mermaidRendered = 'true';
 
                     const codeText = codeEl.innerText || codeEl.textContent || '';
-                    const id = 'qc-mermaid-' + Date.now() + '-' + index;
+                    const id = 'qc_mermaid_' + Date.now() + '_' + index;
                     const wrapper = document.createElement('div');
                     wrapper.className = 'mermaid-wrapper';
 
                     try {
-                        mermaid.render(id, codeText.trim()).then(function (res) {
-                            wrapper.innerHTML = res.svg;
+                        const renderResult = mermaid.render(id, codeText.trim());
+                        if (renderResult && typeof renderResult.then === 'function') {
+                            renderResult.then(function (res) {
+                                wrapper.innerHTML = res.svg || '';
+                                if (preEl.parentNode) {
+                                    preEl.parentNode.replaceChild(wrapper, preEl);
+                                }
+                                if (res && typeof res.bindFunctions === 'function') {
+                                    res.bindFunctions(wrapper);
+                                }
+                            }).catch(function (err) {
+                                console.warn('Mermaid rendering failed:', err);
+                                preEl.dataset.mermaidRendered = 'error';
+                            });
+                        } else if (renderResult && renderResult.svg) {
+                            wrapper.innerHTML = renderResult.svg;
                             if (preEl.parentNode) {
                                 preEl.parentNode.replaceChild(wrapper, preEl);
                             }
-                        }).catch(function (err) {
-                            console.warn('Mermaid rendering failed:', err);
-                            preEl.dataset.mermaidRendered = 'error';
-                        });
+                        }
                     } catch (err) {
                         console.warn('Mermaid sync exception:', err);
                     }
@@ -595,9 +614,26 @@ enum MarkdownRendererRuntime {
                 });
             };
 
+            if ('scrollRestoration' in history) {
+                history.scrollRestoration = 'manual';
+            }
+
+            const scrollToTop = function () {
+                window.scrollTo(0, 0);
+                if (document.documentElement) {
+                    document.documentElement.scrollTop = 0;
+                }
+                if (document.body) {
+                    document.body.scrollTop = 0;
+                }
+            };
+
             window.__quickCookiesMarkdown = {
+                scrollToTop: scrollToTop,
                 bootstrapSnapshot: function (snapshot) {
+                    scrollToTop();
                     registerBootstrapSnapshot(snapshot || {});
+                    scrollToTop();
                 },
                 bootstrapBatch: function (batch) {
                     bridgeState.blockOrder = [];
@@ -606,6 +642,7 @@ enum MarkdownRendererRuntime {
                     bridgeState.blockHeights = new Map();
                     bridgeState.continuationRequestPending = false;
                     contentEl().innerHTML = '';
+                    scrollToTop();
                     if (!batch || !Array.isArray(batch.blocks) || batch.blocks.length === 0) {
                         notifyShellReusePhase('bootstrap-render');
                         notifyShellReusePhase('bootstrap-attach');
@@ -615,6 +652,7 @@ enum MarkdownRendererRuntime {
                             notifyReady: true,
                             requestMore: false
                         });
+                        scrollToTop();
                         return;
                     }
 
@@ -627,6 +665,7 @@ enum MarkdownRendererRuntime {
                     measureAllRenderedBlocks();
                     notifyShellReusePhase('bootstrap-measure');
                     bridgeState.continuationRequestPending = false;
+                    scrollToTop();
                     scheduleVirtualization();
                     notifyShellReusePhase('bootstrap-post');
                     notifyBootstrapReady();
@@ -650,6 +689,7 @@ enum MarkdownRendererRuntime {
                         bridgeState.rafToken = 0;
                     }
                     contentEl().innerHTML = '';
+                    scrollToTop();
                 },
                 appendBatch: function (batch) {
                     appendBlocks(batch, { requestMore: true });

@@ -51,7 +51,7 @@ public struct CSVGridView: View {
         .onAppear {
             loadData()
         }
-        .onChange(of: rawText) { _ in
+        .onChange(of: rawText) {
             loadData()
         }
     }

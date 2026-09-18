@@ -141,6 +141,7 @@ private struct MarkdownWebPreviewView: NSViewRepresentable {
             if lastContentSignature != contentSig {
                 lastContentSignature = contentSig
                 lastStyleSignature = styleSig
+                webView.evaluateJavaScript("window.scrollTo(0, 0);", completionHandler: nil)
                 controller.loadContent(
                     filePath: parent.filePath,
                     markdownText: parent.markdownText,

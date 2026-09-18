@@ -91,17 +91,17 @@ struct CodeCardSnapshotView: View {
         ZStack {
             // 1. 同源漫反射环境柔光 (Ambient Glow)
             if config.showAmbientGlow && !config.isTransparentBackground {
-                config.preset.gradient
+                config.preset.backgroundCanvasView()
                     .frame(width: effectiveCardWidth * 0.94, height: (targetHeight ?? 240) * 0.94)
                     .blur(radius: 34)
                     .opacity(config.colorTheme == .dark ? 0.46 : 0.28)
                     .offset(y: 12)
             }
             
-            // 2. 主卡片外框：艺术渐变背景 或 透明背景
+            // 2. 主卡片外框：现代艺术渐变背景 (macOS 15+ MeshGradient) 或 透明背景
             ZStack {
                 if !config.isTransparentBackground {
-                    config.preset.gradient
+                    config.preset.backgroundCanvasView()
                 }
                 
                 // 3. 内层拟物毛玻璃卡片 (Glassmorphism)
@@ -423,6 +423,21 @@ private struct CardHeightPreferenceKey: PreferenceKey {
     }
 }
 
+/// 画板查看缩放模式
+enum CardZoomMode: String, CaseIterable, Identifiable {
+    case fit = "fit"
+    case actual = "actual"
+    
+    var id: String { rawValue }
+    
+    var displayName: String {
+        switch self {
+        case .fit: return "Fit".localized()
+        case .actual: return "100%"
+        }
+    }
+}
+
 /// 交互式分享代码/引用卡片导出弹窗 (Card Studio 2.0)
 struct CodeCardExportModalView: View {
     let title: String
@@ -438,26 +453,31 @@ struct CodeCardExportModalView: View {
     @State private var isSaving: Bool = false
     @State private var inlineToast: (message: String, icon: String?)? = nil
     @State private var measuredCardHeight: CGFloat = 260
+    @State private var zoomMode: CardZoomMode = .fit
     
     private var currentCardWidth: CGFloat {
         config.cardWidthPreset.width
     }
     
-    private var currentModalWidth: CGFloat {
-        currentCardWidth + 100
+    private let modalWindowWidth: CGFloat = 1020
+    private let modalWindowHeight: CGFloat = 630
+    private let inspectorWidth: CGFloat = 270
+    
+    private var canvasViewportWidth: CGFloat {
+        modalWindowWidth - inspectorWidth - 1
     }
     
-    private var canvasHeight: CGFloat {
-        // 当选择固定比例时，直接根据比例固定高度
-        switch config.aspectRatio {
-        case .square:
-            return 520
-        case .landscape:
-            return 440
-        case .auto:
-            let ideal = measuredCardHeight + 56
-            return min(max(ideal, 190), 520)
-        }
+    private var canvasViewportHeight: CGFloat {
+        modalWindowHeight - 48
+    }
+    
+    /// 适应视口缩放比例计算 (四周保留呼吸感点阵间距)
+    private var fitScale: CGFloat {
+        let availableWidth = max(canvasViewportWidth - 64, 200)
+        let availableHeight = max(canvasViewportHeight - 64, 200)
+        let widthScale = availableWidth / max(currentCardWidth, 100)
+        let heightScale = availableHeight / max(measuredCardHeight, 100)
+        return min(1.0, min(widthScale, heightScale))
     }
     
     init(
@@ -492,287 +512,22 @@ struct CodeCardExportModalView: View {
             
             // 居中卡片工作台 (Card Studio)
             VStack(spacing: 0) {
-                // 1. 顶部标题栏 + 模式分段器 + 快捷关闭
-                HStack(spacing: 16) {
-                    HStack(spacing: 8) {
-                        Image(systemName: "sparkles.rectangle.stack")
-                            .font(.system(size: 15, weight: .semibold))
-                            .foregroundColor(.accentColor)
-                        Text("Share Card".localized())
-                            .font(.system(size: 14, weight: .semibold))
-                            .foregroundColor(.primary)
-                    }
-                    
-                    Spacer()
-                    
-                    // 卡片类型模式分段器 (代码 ⟷ 文本/引用)
-                    Picker("", selection: $config.mode) {
-                        ForEach(CardContentMode.allCases) { mode in
-                            Label(mode.displayName, systemImage: mode.iconName).tag(mode)
-                        }
-                    }
-                    .pickerStyle(.segmented)
-                    .frame(width: 220)
-                    
-                    Spacer()
-                    
-                    Button(action: onDismiss) {
-                        Image(systemName: "xmark")
-                            .font(.system(size: 11, weight: .bold))
-                            .foregroundColor(.secondary)
-                            .frame(width: 22, height: 22)
-                            .background(Circle().fill(Color.primary.opacity(0.08)))
-                    }
-                    .buttonStyle(.plain)
-                    .keyboardShortcut(.escape, modifiers: [])
-                }
-                .padding(.horizontal, 20)
-                .padding(.vertical, 14)
-                .background(VisualEffectView(material: .headerView, blendingMode: .withinWindow))
+                // 1. 顶部标题栏 + 模式分段器 + 缩放模式切换 + 快捷关闭
+                topHeaderBar
                 
                 Divider()
                 
-                // 2. 中部画板展示区：点阵网格设计工作台 (Dot Matrix Canvas) + 漫反射光晕
-                ScrollView([.vertical], showsIndicators: true) {
-                    VStack {
-                        CodeCardSnapshotView(
-                            title: title,
-                            code: code,
-                            language: language,
-                            config: config,
-                            cardWidth: currentCardWidth,
-                            onToggleLineFocus: { lineIndex in
-                                withAnimation(.easeInOut(duration: 0.18)) {
-                                    if config.focusedLineIndices.contains(lineIndex) {
-                                        config.focusedLineIndices.remove(lineIndex)
-                                    } else {
-                                        config.focusedLineIndices.insert(lineIndex)
-                                    }
-                                }
-                            }
-                        )
-                        .background(
-                            GeometryReader { proxy in
-                                Color.clear.preference(key: CardHeightPreferenceKey.self, value: proxy.size.height)
-                            }
-                        )
-                    }
-                    .frame(maxWidth: .infinity, alignment: .center)
-                    .padding(.vertical, 28)
-                }
-                .frame(height: canvasHeight)
-                .background(
-                    ZStack {
-                        Color(red: 0.08, green: 0.09, blue: 0.11).opacity(0.85)
-                        DotMatrixCanvasView()
-                    }
-                )
-                .overlay(
-                    Rectangle().stroke(Color.white.opacity(0.08), lineWidth: 1)
-                )
-                .onPreferenceChange(CardHeightPreferenceKey.self) { height in
-                    if height > 0 {
-                        measuredCardHeight = height
-                    }
-                }
-                
-                Divider()
-                
-                // 3. 下部参数微调栏 (Pro Studio Controls)
-                VStack(spacing: 12) {
-                    // 第 1 排：主题颜色选择 + 明暗模式切换 + 社交比例预设
-                    HStack(spacing: 18) {
-                        // 艺术渐变主题选择器
-                        HStack(spacing: 8) {
-                            Text("Theme".localized())
-                                .font(.system(size: 12, weight: .medium))
-                                .foregroundColor(.secondary)
-                            
-                            HStack(spacing: 6) {
-                                ForEach(CardGradientPreset.allCases) { preset in
-                                    Button(action: {
-                                        config.preset = preset
-                                    }) {
-                                        Circle()
-                                            .fill(preset.gradient)
-                                            .frame(width: 20, height: 20)
-                                            .overlay(
-                                                Circle()
-                                                    .stroke(Color.white, lineWidth: config.preset == preset ? 2.5 : 0)
-                                            )
-                                            .shadow(color: .black.opacity(0.3), radius: 3)
-                                    }
-                                    .buttonStyle(.plain)
-                                }
-                            }
-                        }
-                        
-                        Spacer()
-                        
-                        // 明暗主题切换 (Dark 🌙 / Light ☀️)
-                        Picker("", selection: $config.colorTheme) {
-                            ForEach(CardColorTheme.allCases) { theme in
-                                Label(theme.displayName, systemImage: theme.iconName).tag(theme)
-                            }
-                        }
-                        .pickerStyle(.segmented)
-                        .frame(width: 140)
-                        
-                        // 比例预设 (Auto / 1:1 / 16:9)
-                        HStack(spacing: 6) {
-                            Text("Aspect Ratio".localized())
-                                .font(.system(size: 12, weight: .medium))
-                                .foregroundColor(.secondary)
-                            
-                            Picker("", selection: $config.aspectRatio) {
-                                ForEach(CardAspectRatio.allCases) { ratio in
-                                    Text(ratio.displayName).tag(ratio)
-                                }
-                            }
-                            .pickerStyle(.segmented)
-                            .frame(width: 150)
-                        }
-                    }
-                    .padding(.horizontal, 20)
+                // 2. 左右双栏主体：左侧沉浸大画板 (Canvas) ⟷ 右侧专业属性检查器 (Inspector)
+                HStack(spacing: 0) {
+                    canvasArea
                     
-                    // 第 2 排：边距选择 + 宽度选择 + 语言微调(代码模式) + 透明底开关 + 行号开关 + 水印开关
-                    HStack(spacing: 16) {
-                        // 边距档位
-                        HStack(spacing: 6) {
-                            Text("Padding".localized())
-                                .font(.system(size: 12, weight: .medium))
-                                .foregroundColor(.secondary)
-                            
-                            Picker("", selection: $config.padding) {
-                                ForEach(CardPaddingPreset.allCases) { padding in
-                                    Text(padding.displayName).tag(padding)
-                                }
-                            }
-                            .pickerStyle(.segmented)
-                            .frame(width: 155)
-                        }
-                        
-                        // 卡片宽度档位 (防止长代码折行)
-                        HStack(spacing: 6) {
-                            Text("Width".localized())
-                                .font(.system(size: 12, weight: .medium))
-                                .foregroundColor(.secondary)
-                            
-                            Picker("", selection: $config.cardWidthPreset) {
-                                ForEach(CardWidthPreset.allCases) { preset in
-                                    Text(preset.displayName).tag(preset)
-                                }
-                            }
-                            .pickerStyle(.segmented)
-                            .frame(width: 165)
-                        }
-                        
-                        // 语言微调 (仅代码模式，支持自选 TSX, JS, JAVA, SWIFT 等)
-                        if config.mode == .code {
-                            HStack(spacing: 6) {
-                                Text("Language".localized())
-                                    .font(.system(size: 12, weight: .medium))
-                                    .foregroundColor(.secondary)
-                                
-                                Picker("", selection: Binding(
-                                    get: { config.customLanguage ?? "Auto" },
-                                    set: { config.customLanguage = ($0 == "Auto" ? nil : $0) }
-                                )) {
-                                    ForEach(CodeCardLanguageFormatter.popularLanguages, id: \.self) { lang in
-                                        Text(lang).tag(lang)
-                                    }
-                                }
-                                .pickerStyle(.menu)
-                                .frame(width: 88)
-                            }
-                        }
-                        
-                        // 透明底导出开关
-                        Toggle(isOn: $config.isTransparentBackground) {
-                            Text("Transparent".localized())
-                                .font(.system(size: 12))
-                        }
-                        .toggleStyle(.checkbox)
-                        
-                        Spacer()
-                        
-                        // 行号开关 (仅在代码模式下展示)
-                        if config.mode == .code {
-                            Toggle(isOn: $config.showLineNumbers) {
-                                Text("Line Numbers".localized())
-                                    .font(.system(size: 12))
-                            }
-                            .toggleStyle(.checkbox)
-                            
-                            // 行号聚焦状态与清空
-                            if !config.focusedLineIndices.isEmpty {
-                                HStack(spacing: 5) {
-                                    Text(config.focusedLineIndices.count == 1 ? "Focused 1 line".localized() : String(format: "Focused %d lines".localized(), config.focusedLineIndices.count))
-                                        .font(.system(size: 11.5, weight: .medium))
-                                        .foregroundColor(.secondary)
-                                    
-                                    Button(action: {
-                                        withAnimation(.easeInOut(duration: 0.18)) {
-                                            config.focusedLineIndices.removeAll()
-                                        }
-                                    }) {
-                                        Text("Clear Focus".localized())
-                                            .font(.system(size: 11.5, weight: .semibold))
-                                            .foregroundColor(.accentColor)
-                                    }
-                                    .buttonStyle(.plain)
-                                }
-                            }
-                        }
-                        
-                        // 水印开关
-                        Toggle(isOn: $config.showWatermark) {
-                            Text("Watermark".localized())
-                                .font(.system(size: 12))
-                        }
-                        .toggleStyle(.checkbox)
-                    }
-                    .padding(.horizontal, 20)
+                    Divider()
                     
-                    // 第 3 排：底部动作按钮
-                    HStack(spacing: 14) {
-                        Button(action: onDismiss) {
-                            Text("Cancel".localized())
-                                .frame(minWidth: 70)
-                        }
-                        .buttonStyle(.bordered)
-                        .controlSize(.regular)
-                        
-                        Spacer()
-                        
-                        Button(action: copyToPasteboard) {
-                            HStack(spacing: 6) {
-                                Image(systemName: "doc.on.doc")
-                                Text("Copy Image (⌘C)".localized())
-                            }
-                            .frame(minWidth: 130)
-                        }
-                        .buttonStyle(.bordered)
-                        .controlSize(.regular)
-                        .keyboardShortcut("c", modifiers: .command)
-                        
-                        Button(action: saveImageToDisk) {
-                            HStack(spacing: 6) {
-                                Image(systemName: "square.and.arrow.down")
-                                Text("Save Image... (⌘S)".localized())
-                            }
-                            .frame(minWidth: 130)
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .controlSize(.regular)
-                        .keyboardShortcut("s", modifiers: .command)
-                    }
-                    .padding(.horizontal, 20)
+                    inspectorPanel
                 }
-                .padding(.vertical, 14)
-                .background(VisualEffectView(material: .headerView, blendingMode: .withinWindow))
+                .frame(height: canvasViewportHeight)
             }
-            .frame(width: currentModalWidth)
+            .frame(width: modalWindowWidth, height: modalWindowHeight)
             .background(Color.appBackground)
             .cornerRadius(16)
             .overlay(
@@ -780,8 +535,6 @@ struct CodeCardExportModalView: View {
                     .stroke(Color.white.opacity(0.18), lineWidth: 0.8)
             )
             .shadow(color: Color.black.opacity(0.55), radius: 36, y: 16)
-            .animation(.easeInOut(duration: 0.2), value: canvasHeight)
-            .animation(.easeInOut(duration: 0.2), value: currentModalWidth)
             
             // 弹窗最高层级内联反馈胶囊 (保证 100% 绝对可见)
             if let toast = inlineToast {
@@ -815,6 +568,319 @@ struct CodeCardExportModalView: View {
             }
         }
         .animation(.easeInOut(duration: 0.18), value: inlineToast != nil)
+    }
+    
+    // MARK: - 顶部标题工具栏 (Header Bar)
+    private var topHeaderBar: some View {
+        HStack(spacing: 16) {
+            HStack(spacing: 8) {
+                Image(systemName: "sparkles.rectangle.stack")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundColor(.accentColor)
+                Text("Share Card".localized())
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundColor(.primary)
+            }
+            
+            Spacer()
+            
+            // 卡片类型模式分段器 (代码 ⟷ 文本/引用)
+            Picker("", selection: $config.mode) {
+                ForEach(CardContentMode.allCases) { mode in
+                    Label(mode.displayName, systemImage: mode.iconName).tag(mode)
+                }
+            }
+            .pickerStyle(.segmented)
+            .frame(width: 210)
+            
+            Spacer()
+            
+            // 右侧：缩放模式微胶囊 (适应 ⟷ 100%) 与快捷关闭
+            HStack(spacing: 12) {
+                Picker("", selection: $zoomMode) {
+                    ForEach(CardZoomMode.allCases) { mode in
+                        Text(mode.displayName).tag(mode)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .frame(width: 125)
+                
+                Button(action: onDismiss) {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundColor(.secondary)
+                        .frame(width: 22, height: 22)
+                        .background(Circle().fill(Color.primary.opacity(0.08)))
+                }
+                .buttonStyle(.plain)
+                .keyboardShortcut(.escape, modifiers: [])
+            }
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 12)
+        .background(VisualEffectView(material: .headerView, blendingMode: .withinWindow))
+    }
+    
+    // MARK: - 左侧画板展示区 (Canvas Viewport)
+    private var canvasArea: some View {
+        ZStack {
+            Color(red: 0.08, green: 0.09, blue: 0.11).opacity(0.85)
+            DotMatrixCanvasView()
+            
+            if zoomMode == .fit {
+                // 适应模式：计算 fitScale 居中展示卡片，四周留有匀称点阵呼吸感
+                let effectiveScale = fitScale
+                let scaledWidth = currentCardWidth * effectiveScale
+                let scaledHeight = max(measuredCardHeight * effectiveScale, 80)
+                
+                VStack {
+                    cardSnapshotCanvas
+                        .scaleEffect(effectiveScale)
+                        .frame(width: scaledWidth, height: scaledHeight)
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                .padding(.vertical, 24)
+                .padding(.horizontal, 24)
+            } else {
+                // 100% 原始尺寸模式：双向水平与垂直自由滚动平移，可仔细校对行号与字形
+                ScrollView([.horizontal, .vertical], showsIndicators: true) {
+                    VStack {
+                        cardSnapshotCanvas
+                    }
+                    .padding(.horizontal, max((canvasViewportWidth - currentCardWidth) / 2, 36))
+                    .padding(.vertical, 36)
+                    .frame(minWidth: canvasViewportWidth, minHeight: canvasViewportHeight, alignment: .center)
+                }
+            }
+        }
+        .frame(width: canvasViewportWidth, height: canvasViewportHeight)
+        .clipped()
+        .onPreferenceChange(CardHeightPreferenceKey.self) { height in
+            if height > 0 {
+                measuredCardHeight = height
+            }
+        }
+    }
+    
+    // MARK: - 右侧专业属性检查器 (Inspector Panel)
+    private var inspectorPanel: some View {
+        VStack(spacing: 0) {
+            ScrollView(.vertical, showsIndicators: false) {
+                VStack(alignment: .leading, spacing: 18) {
+                    // 1. 外观 (APPEARANCE)
+                    inspectorAppearanceSection
+                    
+                    Divider().opacity(0.5)
+                    
+                    // 2. 画幅 (CANVAS)
+                    inspectorCanvasSection
+                    
+                    Divider().opacity(0.5)
+                    
+                    // 3. 内容 (CONTENT)
+                    inspectorContentSection
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 16)
+            }
+            
+            Divider()
+            
+            // 4. 动作底栏 (ACTIONS)
+            inspectorActionsBottomBar
+        }
+        .frame(width: inspectorWidth, height: canvasViewportHeight)
+        .background(VisualEffectView(material: .sidebar, blendingMode: .withinWindow))
+    }
+    
+    // MARK: - 检查器小节辅助视图
+    private func inspectorSectionHeader(_ title: String) -> some View {
+        Text(title)
+            .font(.system(size: 10, weight: .bold))
+            .foregroundColor(.secondary.opacity(0.85))
+            .tracking(0.6)
+    }
+    
+    private func inspectorItemLabel(_ text: String) -> some View {
+        Text(text)
+            .font(.system(size: 11.5, weight: .medium))
+            .foregroundColor(.secondary)
+            .fixedSize()
+    }
+    
+    // 1. 外观小节 (APPEARANCE)
+    private var inspectorAppearanceSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            inspectorSectionHeader("Appearance".localized().uppercased())
+            
+            // 4x2 渐变色块矩阵
+            LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 10), count: 4), spacing: 10) {
+                ForEach(CardGradientPreset.allCases) { preset in
+                    Button(action: {
+                        config.preset = preset
+                    }) {
+                        Circle()
+                            .fill(preset.gradient)
+                            .frame(width: 24, height: 24)
+                            .overlay(
+                                Circle()
+                                    .stroke(Color.white, lineWidth: config.preset == preset ? 2.5 : 0)
+                            )
+                            .shadow(color: .black.opacity(0.3), radius: 2)
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.vertical, 2)
+            
+            // 明暗外观模式
+            Picker("", selection: $config.colorTheme) {
+                ForEach(CardColorTheme.allCases) { theme in
+                    Label(theme.displayName, systemImage: theme.iconName).tag(theme)
+                }
+            }
+            .pickerStyle(.segmented)
+            
+            // 透明底开关
+            Toggle(isOn: $config.isTransparentBackground) {
+                Text("Transparent".localized())
+                    .font(.system(size: 11.5))
+            }
+            .toggleStyle(.checkbox)
+        }
+    }
+    
+    // 2. 画幅小节 (CANVAS)
+    private var inspectorCanvasSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            inspectorSectionHeader("Canvas".localized().uppercased())
+            
+            // 比例 (Ratio)
+            VStack(alignment: .leading, spacing: 5) {
+                inspectorItemLabel("Ratio".localized())
+                Picker("", selection: $config.aspectRatio) {
+                    ForEach(CardAspectRatio.allCases) { ratio in
+                        Text(ratio.displayName).tag(ratio)
+                    }
+                }
+                .pickerStyle(.segmented)
+            }
+            
+            // 宽度 (Width)
+            VStack(alignment: .leading, spacing: 5) {
+                inspectorItemLabel("Width".localized())
+                Picker("", selection: $config.cardWidthPreset) {
+                    ForEach(CardWidthPreset.allCases) { preset in
+                        Text(preset.displayName).tag(preset)
+                    }
+                }
+                .pickerStyle(.segmented)
+            }
+            
+            // 边距 (Padding)
+            VStack(alignment: .leading, spacing: 5) {
+                inspectorItemLabel("Padding".localized())
+                Picker("", selection: $config.padding) {
+                    ForEach(CardPaddingPreset.allCases) { padding in
+                        Text(padding.displayName).tag(padding)
+                    }
+                }
+                .pickerStyle(.segmented)
+            }
+        }
+    }
+    
+    // 3. 内容小节 (CONTENT)
+    private var inspectorContentSection: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            inspectorSectionHeader("Content".localized().uppercased())
+            
+            if config.mode == .code {
+                // 语言选择
+                VStack(alignment: .leading, spacing: 5) {
+                    inspectorItemLabel("Lang".localized())
+                    
+                    Picker("", selection: Binding(
+                        get: { config.customLanguage ?? "Auto" },
+                        set: { config.customLanguage = ($0 == "Auto" ? nil : $0) }
+                    )) {
+                        ForEach(CodeCardLanguageFormatter.popularLanguages, id: \.self) { lang in
+                            Text(lang).tag(lang)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                }
+                
+                // 行号开关与已聚焦清除
+                VStack(alignment: .leading, spacing: 4) {
+                    Toggle(isOn: $config.showLineNumbers) {
+                        Text("Line Numbers".localized())
+                            .font(.system(size: 11.5))
+                    }
+                    .toggleStyle(.checkbox)
+                    
+                    if !config.focusedLineIndices.isEmpty {
+                        HStack {
+                            Text(config.focusedLineIndices.count == 1 ? "1 focused".localized() : "\(config.focusedLineIndices.count) focused".localized())
+                                .font(.system(size: 10.5, weight: .semibold))
+                                .foregroundColor(.accentColor)
+                            Spacer()
+                            Button("Clear".localized()) {
+                                withAnimation(.easeInOut(duration: 0.18)) {
+                                    config.focusedLineIndices.removeAll()
+                                }
+                            }
+                            .buttonStyle(.plain)
+                            .font(.system(size: 10.5))
+                            .foregroundColor(.secondary)
+                        }
+                        .padding(.leading, 18)
+                    }
+                }
+            }
+            
+            // 品牌水印
+            Toggle(isOn: $config.showWatermark) {
+                Text("Watermark".localized())
+                    .font(.system(size: 11.5))
+            }
+            .toggleStyle(.checkbox)
+        }
+    }
+    
+    // 4. 底部动作区 (ACTIONS)
+    private var inspectorActionsBottomBar: some View {
+        VStack(spacing: 8) {
+            Button(action: copyToPasteboard) {
+                HStack(spacing: 6) {
+                    Image(systemName: "doc.on.doc")
+                    Text("Copy Image (⌘C)".localized())
+                }
+                .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.regular)
+            .keyboardShortcut("c", modifiers: .command)
+            
+            Button(action: saveImageToDisk) {
+                HStack(spacing: 6) {
+                    Image(systemName: "square.and.arrow.down")
+                    Text("Save Image... (⌘S)".localized())
+                }
+                .frame(maxWidth: .infinity)
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.regular)
+            .keyboardShortcut("s", modifiers: .command)
+            
+            Text("Esc Cancel · ⌘C Copy · ⌘S Save".localized())
+                .font(.system(size: 10))
+                .foregroundColor(.secondary.opacity(0.75))
+                .frame(maxWidth: .infinity, alignment: .center)
+                .padding(.top, 2)
+        }
+        .padding(14)
+        .background(Color.primary.opacity(0.02))
     }
     
     private func showInlineToast(message: String, icon: String?) {
@@ -902,4 +968,30 @@ struct CodeCardExportModalView: View {
             savePanel.begin(completionHandler: completionHandler)
         }
     }
+    
+    // MARK: - 画板渲染视图
+    private var cardSnapshotCanvas: some View {
+        CodeCardSnapshotView(
+            title: title,
+            code: code,
+            language: language,
+            config: config,
+            cardWidth: currentCardWidth,
+            onToggleLineFocus: { lineIndex in
+                withAnimation(.easeInOut(duration: 0.18)) {
+                    if config.focusedLineIndices.contains(lineIndex) {
+                        config.focusedLineIndices.remove(lineIndex)
+                    } else {
+                        config.focusedLineIndices.insert(lineIndex)
+                    }
+                }
+            }
+        )
+        .background(
+            GeometryReader { proxy in
+                Color.clear.preference(key: CardHeightPreferenceKey.self, value: proxy.size.height)
+            }
+        )
+    }
 }
+

@@ -1,5 +1,6 @@
 import XCTest
 import Combine
+import Observation
 @testable import QuickCookies
 
 final class GoToLineStateTests: XCTestCase {
@@ -105,23 +106,23 @@ final class GoToLineStateTests: XCTestCase {
         XCTAssertEqual(state.totalLines, 1)
     }
 
-    func test_updateTotalLines_sameValue_doesNotEmitObjectWillChange() {
+    func test_updateTotalLines_sameValue_doesNotTriggerObservation() {
         let state = GoToLineState()
         state.updateTotalLines(50)
 
-        var changeCount = 0
-        state.objectWillChange
-            .sink {
-                changeCount += 1
-            }
-            .store(in: &cancellables)
+        var changeTriggered = false
+        withObservationTracking {
+            _ = state.totalLines
+        } onChange: {
+            changeTriggered = true
+        }
 
-        // 传入相同的值，应当被 guard 拦截，不触发 objectWillChange
+        // 传入相同的值，应当被 guard 拦截，不触发 Observation 变更通知
         state.updateTotalLines(50)
-        XCTAssertEqual(changeCount, 0)
+        XCTAssertFalse(changeTriggered)
 
-        // 传入不同的值，应触发一次 objectWillChange
+        // 传入不同的值，应触发 Observation 变更通知
         state.updateTotalLines(60)
-        XCTAssertEqual(changeCount, 1)
+        XCTAssertTrue(changeTriggered)
     }
 }

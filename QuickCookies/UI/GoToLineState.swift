@@ -1,13 +1,16 @@
 import SwiftUI
 import Combine
+import Observation
 
-public final class GoToLineState: ObservableObject {
-    @Published public var isPresented: Bool = false
-    @Published public var inputLine: String = ""
-    @Published public var totalLines: Int = 1
-    @Published public var errorMessage: String? = nil
+@Observable
+public final class GoToLineState {
+    public var isPresented: Bool = false
+    public var inputLine: String = ""
+    public var totalLines: Int = 1
+    public var errorMessage: String? = nil
 
     /// 发送跳转目标行号（1-indexed）
+    /// NOTE: 保留 Combine PassthroughSubject 用于向 AppKit NSTextView 跨层派发单次跳转信号
     public let jumpToLineTrigger = PassthroughSubject<Int, Never>()
 
     public init() {}

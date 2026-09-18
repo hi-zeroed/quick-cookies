@@ -1,7 +1,7 @@
 import Foundation
 
 /// 十六进制单行渲染模型（固定承载最多 16 字节）
-public struct HexRow: Identifiable, Equatable {
+public struct HexRow: Identifiable, Equatable, Sendable {
     public var id: UInt64 { offset }
     public let offset: UInt64
     public let offsetString: String
@@ -21,7 +21,7 @@ public struct HexRow: Identifiable, Equatable {
 }
 
 /// 十六进制探查结果模型
-public struct HexInspectorResult: Equatable {
+public struct HexInspectorResult: Equatable, Sendable {
     public let rows: [HexRow]
     public let totalFileSize: UInt64
     public let loadedByteCount: Int
